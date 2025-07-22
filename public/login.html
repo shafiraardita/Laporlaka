@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Masuk - Sistem Monitoring</title>
+  <link rel="stylesheet" href="styles/login.css" />
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="dot"></span>
+            <span class="logo-text">LaporLaka!</span>
+        </div>
+    </header>
+    
+  <div class="login-container">
+        <div class="login-header">
+            <span class="logo-text">Masuk LaporLaka</span>
+           <div class="logo-wrapper" style="margin-top: 10px;">
+            <img src="assets/logo.png" alt="Logo LaporLaka" style="max-width: 120px;">
+    </div>
+        </div>
+        <form class="login-form" onsubmit="handleLogin(event)">
+  <div class="form-group">
+    <label for="username">Nama Pengguna</label>
+    <input type="text" id="username" name="username" placeholder="Masukkan nama pengguna" required />
+  </div>
+  <div class="form-group password-group">
+    <label for="passwordInput">Katasandi</label>
+    <div class="password-wrapper">
+      <input type="password" id="passwordInput" name="password" placeholder="Masukkan kata sandi" required />
+      <button type="button" id="togglePassword" class="toggle-password-btn" aria-label="Tampilkan/Sembunyikan Password">
+        <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8 a21.51 21.51 0 0 1 5.17-5.94"/>
+          <path d="M1 1l22 22"/>
+          <path d="M9.53 9.53a3.5 3.5 0 0 0 4.95 4.95"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <button type="submit" class="login-btn">Masuk</button>
+  <a href="forgot-password.html" class="forgot-password">Lupa Katasandi?</a>
+</form>
+
+  <script src="scripts/login.js"></script>
+</body>
+</html>
+</style>
+</head>
+<body>
+    
