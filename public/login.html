@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Masuk - Sistem Monitoring</title>
+  <link rel="stylesheet" href="styles/login.css" />
+  <!-- Font Awesome untuk ikon mata -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <span class="dot"></span>
+      <span class="logo-text">LaporLaka!</span>
+    </div>
+  </header>
+
+  <div class="login-container">
+    <div class="login-header">
+      <span class="logo-text">Masuk LaporLaka</span>
+      <div class="logo-wrapper" style="margin-top: 10px;">
+        <img src="assets/logo.png" alt="Logo LaporLaka" style="max-width: 120px;">
+        <p>Masukkan Nama Pengguna dan Kata Sandi</p>
+      </div>
+    </div>
+
+    <form class="login-form">
+      <label for="username">Email:</label>
+      <input type="text" id="username" placeholder="Email" required>
+
+      <label for="passwordInput">Password:</label>
+      <div style="position: relative;">
+        <input type="password" id="passwordInput" placeholder="Kata Sandi" required style="padding-right: 40px;">
+        <i id="togglePassword" class="fa-solid fa-eye-slash" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+      </div>
+      <button type="submit">Login</button>
+    </form>
+
+    <a href="forgot-password.html" class="forgot-password">Lupa Kata Sandi?</a>
+  </div>
+
+  <!-- JavaScript login -->
+  <script src="scripts/login.js"></script>
+</body>
+</html>

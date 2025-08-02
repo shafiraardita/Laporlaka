@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistem Monitoring</title>
+    <link rel="stylesheet" href="styles/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <img src="https://img.icons8.com/ios-filled/50/000000/pdf.png" alt="Download PDF" style="width: 28px; height: 28px;" />
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=geometry,drawing&callback=initMap" async defer></script>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="dot"></span>
+            <span class="logo-text">LaporLaka</span>
+        </div>
+        <div class="user-info">
+<button class="logout-btn" onclick="handleLogout()">Keluar</button>
+            <span class="user-name">Pengguna: <span id="username">Pimpinan</span></span>
+            <img id="profile-icon-header" src="assets/user.png" alt="Profile Icon" class="profile-icon-header">
+        </div>
+    </header>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img id="sidebar-profile-icon" src="assets/user.png" alt="Profile Icon" class="profile-icon">
+            <span class="sidebar-title">Pimpinan</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#home" class="nav-item" data-section="home-section">Beranda</a>
+            <a href="#laporan-masuk" class="nav-item" data-section="laporan-masuk-section">Laporan Masuk</a>
+            <a href="#monitoring" class="nav-item" data-section="monitoring-section">Monitoring Data</a>
+            <a href="#titik-laporan" class="nav-item" data-section="titik-laporan-section">Titik Laporan</a>
+            <a href="#tracking" class="nav-item" data-section="tracking-section">Pelacakan Laporan</a>
+        </nav>
+    </div>
+
+    <main class="main-content">
+        <section id="home-section" class="content-section">
+            <h2>Selamat datang, Pimpinan!</h2>
+            <div class="section-content">
+                <p>Anda telah masuk ke Sistem Monitoring & Evaluasi Kecelakaan Lalu Lintas Kota Bogor.</p>
+                <p>Silahkan pantau data kecelakaan secara real-time dan kelola informasi dengan bijak untuk mendukung pengambilan keputusan yang tepat.</p>
+                <p>Pilih menu sidebar untuk melihat detail</p>
+                <div class="stats-section">
+                    <h3>Proses Pelaporan</h3>
+                    <div class="stats-cards">
+                        <div class="stats-card proses1">
+                            <h4>Total Laporan Masuk</h4>
+                            <p id="total-laporan">0</p>
+                        </div>
+                        <div class="stats-card proses2">
+                            <h4>Kasus Dalam Proses</h4>
+                            <p id="kasus-proses">0</p>
+                        </div>
+                        <div class="stats-card proses3">
+                            <h4>Kasus Diselesaikan</h4>
+                            <p id="kasus-selesai">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="notification-section">
+                    <h3>Laporan Terbaru</h3>
+                    <div class="notification-list" id="notification-list"></div>
+                </div>
+                <div class="evaluasi-section">
+                    <h3>Evaluasi</h3>
+                    <p>Evaluasi data kecelakaan lalu lintas untuk meningkatkan keselamatan.</p>
+                    <div class="evaluasi-cards" id="evaluasi-cards"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="profil-section" class="content-section">
+            <h2>Profil Pengguna</h2>
+            <div class="section-content profile-section">
+                <div class="profile-field">
+                    <label>Foto Profil:</label>
+                    <img id="profile-preview" src="assets/user.png" alt="Profile Preview" style="max-width: 100px; margin-top: 10px;">
+                </div>
+                <div class="profile-field">
+                    <label>Nama:</label>
+                    <input type="text" id="profil-username" value="Pimpinan">
+                </div>
+                <div class="profile-field">
+                    <label>Email:</label>
+                    <input type="email" id="profil-email" value="">
+                </div>
+                <div class="profile-field">
+                    <label>NIK:</label>
+                    <input type="text" id="profil-nik" value="">
+                </div>
+                <div class="profile-field">
+                    <label>Jabatan:</label>
+                    <input type="text" id="profil-jabatan" value="">
+                </div>
+                <div class="profile-field">
+                    <label>Nomor Telepon:</label>
+                    <input type="tel" id="profil-telepon" value="">
+                </div>
+                <div class="profile-buttons">
+                    <button class="save-btn" id="save-profile-btn">Simpan</button>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="monitoring-section" class="content-section">
+            <h2>Monitoring Data Kecelakaan Lalu Lintas di Kota Bogor</h2>
+            <div class="section-content">
+                <div class="monitoring-filters">
+                    <label for="year-select">Tahun:</label>
+                    <select id="year-select">
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                    <select id="month-select" onchange="updateChart()">
+                    <option value="all">Semua Bulan</option>
+                    <option value="01">Januari</option>
+                    <option value="02">Februari</option>
+                    <option value="03">Maret</option>
+                    <option value="04">April</option>
+                    <option value="05">Mei</option>
+                    <option value="06">Juni</option>
+                    <option value="07">Juli</option>
+                    <option value="08">Agustus</option>
+                    <option value="09">September</option>
+                    <option value="10">Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12">Desember</option>
+                    </select>
+                </div>
+                <div class="chart-wrapper" id="chart-container">
+                <canvas id="accident-chart"></canvas>
+                <div class="monitoring-buttons">
+                <button class="download-btn" id="download-chart-btn">Unduh Gambar</button>
+                <button class="download-btn" id="download-excel-btn">Unduh Excel</button>
+            </div>
+            </div>
+
+            </div>
+        </section>
+
+        <div class="content-section" id="titik-laporan-section">
+    <h2>Titik Laporan Kecelakaan di Kota Bogor</h2>
+    <p>Halaman ini menampilkan titik laporan kecelakaan berdasarkan tahun yang dipilih.</p>
+
+    <div class="filter-section">
+        <label for="filter-tahun-laporan">Pilih Tahun:</label>
+        <select id="filter-tahun-laporan" onchange="toggleMapByYear()">
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+        </select>
+    </div>
+
+    <div id="map-2024-container">
+        <h3>Titik Laporan Kecelakaan di Kota Bogor Pada Tahun 2024</h3>
+        <button class="map-download-btn" onclick="downloadMapImage('map-2024', 'peta-wilayah-2024')">Unduh Gambar Peta 2024</button>
+        <button class="map-download-btn" onclick="downloadMapDataToExcel('2024')">Unduh Excel Data 2024</button>
+        <div id="map-2024" style="height: 400px; width: 100%;"></div>
+    </div>
+
+    <div id="map-2023-container">
+        <h3>Titik Laporan Kecelakaan di Kota Bogor Pada Tahun 2023</h3>
+        <button class="map-download-btn" onclick="downloadMapImage('map-2023', 'peta-wilayah-2023')">Unduh Gambar Peta 2023</button>
+        <button class="map-download-btn" onclick="downloadMapDataToExcel('2023')">Unduh Excel Data 2023</button>
+        <div id="map-2023" style="height: 400px; width: 100%;"></div>
+    </div>
+</div>
+
+<!-- Modal for Report Details -->
+        <div class="modal" id="report-modal" style="display: none;">
+            <div class="modal-content">
+                <span class="modal-close" onclick="closeModal()">×</span>
+                <h2>Detail Laporan</h2>
+                <div class="modal-body">
+                    <p><strong>Nama:</strong> <span id="report-nama"></span></p>
+                    <p><strong>NIK:</strong> <span id="report-nik"></span></p>
+                    <p><strong>Email:</strong> <span id="report-email"></span></p>
+                    <p><strong>Telepon:</strong> <span id="report-telepon"></span></p>
+                    <p><strong>Saksi:</strong> <span id="report-saksi"></span></p>
+                    <p><strong>Titik Kecelakaan:</strong> <span id="report-titik"></span></p>
+                    <p><strong>Kendaraan yang Terlibat:</strong> <span id="report-kendaraan"></span></p>
+                    <p><strong>Jenis Kecelakaan:</strong> <span id="report-jenis"></span></p>
+                    <p><strong>Jumlah Korban:</strong> <span id="report-jumlah-korban"></span></p>
+                    <p><strong>Tanggal:</strong> <span id="report-tanggal"></span></p>
+                    <p><strong>Status:</strong> <span id="report-status"></span></p>
+                    <p><strong>Petugas:</strong> <input type="text" id="report-petugas" value=""></p>
+                    <p><strong>Bukti:</strong> <img id="report-bukti" src="" alt="Bukti Kecelakaan" style="max-width: 200px;"></p>
+                    <p><strong>Kronologi kecelakaan:</strong> <span id="report-kronologi"></span></p>
+                </div>
+                <div class="report-buttons"></div>
+            </div>
+        </div>
+
+<section id="laporan-masuk-section" class="content-section">
+    <h2>Laporan Masuk</h2>
+    <div class="section-content">
+    <p>Halaman ini menampilkan laporan kecelakaan yang telah masuk ke sistem.</p>
+    <div class="filter-bar">
+    <label for="report-search">Cari ID atau Nama Laporan:</label>
+    <input type="text" id="report-search" oninput="searchReportById()" placeholder="Masukkan ID atau Nama">
+    <label for="year-filter">Tahun:</label>
+    <select id="year-filter" onchange="filterReports()">
+        <option value="all">Semua</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+    </select>
+
+    <label for="month-filter">Bulan:</label>
+    <select id="month-filter" onchange="filterReports()">
+        <option value="all">Semua</option>
+        <option value="Januari">Januari</option>
+        <option value="Februari">Februari</option>
+        <option value="Maret">Maret</option>
+        <option value="April">April</option>
+        <option value="Mei">Mei</option>
+        <option value="Juni">Juni</option>
+        <option value="Juli">Juli</option>
+        <option value="Agustus">Agustus</option>
+        <option value="September">September</option>
+        <option value="Oktober">Oktober</option>
+        <option value="November">November</option>
+        <option value="Desember">Desember</option>
+    </select>
+
+    <button id="download-filter-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+    </svg>Unduh Filter</button>
+</div>
+<table id="report-table" class="user-table">
+<thead>
+    <tr>
+      <th>ID</th>
+      <th>Nama</th>
+      <th>Tanggal</th>
+      <th>Jenis</th>
+      <th>Titik kecelakaan</th>
+      <th>Saksi</th>
+      <th>Kronologi</th>
+      <th>Status</th>
+      <th>Detail</th>
+      <th>Unduh</th>
+    </tr>
+  </thead>
+  <tbody id="report-table-body"></tbody>
+</table>
+<div class="pagination-center">
+    <button id="prev-page">Kembali</button>
+    <button id="next-page">Lanjut</button>
+</div>
+</div>
+</section>
+        
+
+        <section id="tracking-section" class="content-section">
+    <h2>Tracking Laporan Kecelakaan</h2>
+    <div class="section-content">
+        <div class="stats-section">
+            <div class="stats-cards">
+                <div class="stats-card blue1">
+                    <h4>Total Laporan</h4>
+                    <p id="total-reports">0</p>
+                </div>
+                <div class="stats-card blue2">
+                    <h4>Laporan Diterima</h4>
+                    <p id="accepted-reports-count">0</p>
+                </div>
+                <div class="stats-card blue3">
+                    <h4>Penanganan Laporan</h4>
+                    <p id="handling-reports-count">0</p>
+                </div>
+                <div class="stats-card blue4">
+                    <h4>Laporan Selesai</h4>
+                    <p id="received-data-count">0</p>
+                </div>
+                <div class="stats-card blue5">
+                    <h4>Laporan Ditolak</h4>
+                    <p id="rejected-reports-count">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="tracking-filter-bar">
+  <input type="text" id="tracking-search" placeholder="Cari berdasarkan ID atau Nama" oninput="searchTracking()" />
+  <select id="tracking-filter-year" onchange="applyFilters()">
+  <option value="all">Semua Tahun</option>
+  <option value="2025">2025</option>
+  <option value="2024">2024</option>
+  <option value="2023">2023</option>
+</select>
+
+<select id="tracking-filter-month" onchange="applyFilters()">
+  <option value="all">Semua Bulan</option>
+  <option value="Januari">Januari</option>
+  <option value="Februari">Februari</option>
+  <option value="Maret">Maret</option>
+  <option value="April">April</option>
+  <option value="Mei">Mei</option>
+  <option value="Juni">Juni</option>
+  <option value="Juli">Juli</option>
+  <option value="Agustus">Agustus</option>
+  <option value="September">September</option>
+  <option value="Oktober">Oktober</option>
+  <option value="November">November</option>
+  <option value="Desember">Desember</option>
+</select>
+  <button onclick="downloadFilteredTracking(currentTrackingCategory)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+    </svg>Unduh Filter</button>
+</div>
+<div class="tracking-categories">
+    <div class="category-card active" data-category="all" onclick="filterCategory('all')">Semua Laporan</div>
+    <div class="category-card" data-category="accepted" onclick="filterCategory('accepted')">Laporan Diterima</div>
+    <div class="category-card" data-category="handling" onclick="filterCategory('handling')">Penanganan Laporan</div>
+    <div class="category-card" data-category="received" onclick="filterCategory('received')">Laporan Selesai</div>
+    <div class="category-card" data-category="rejected" onclick="filterCategory('rejected')">Laporan Ditolak</div>
+</div>
+<div class="table-card">
+<table id="tracking-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nama</th>
+            <th>Tanggal</th>
+            <th>Jenis Kecelakaan</th>
+            <th>Kendaraan</th>
+            <th>Jumlah Korban</th>
+            <th>Titik Kejadian</th>
+            <th>Kronologi</th>
+            <th>Detail</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody id="tracking-table-body"></tbody>
+</table>
+</div>
+    <div class="pagination">
+            <div>
+    <button id="prev-page">Kembali</button>
+    <button id="next-page">Lanjut</button>
+</div>
+        </div>
+        </div>
+    </div>
+</section>
+
+        <!-- Modal for Report Details -->
+        <div class="modal" id="report-modal" style="display: none;">
+    <div class="modal-content">
+        <span class="modal-close">×</span>
+        <h2>Detail Laporan</h2>
+        <div class="modal-body">
+            <p><strong>Nama:</strong> <span id="report-nama" class="readonly-field"></span></p>
+            <p><strong>NIK:</strong> <span id="report-nik" class="readonly-field"></span></p>
+            <p><strong>Email:</strong> <span id="report-email" class="readonly-field"></span></p>
+            <p><strong>Telepon:</strong> <span id="report-telepon" class="readonly-field"></span></p>
+            <p><strong>Saksi:</strong> <span id="report-saksi" class="readonly-field"></span></p>
+            <p><strong>Titik Kecelakaan:</strong> <span id="report-titik" class="readonly-field"></span></p>
+            <p><strong>Kendaraan yang Terlibat:</strong> <span id="report-kendaraan" class="readonly-field"></span></p>
+            <p><strong>Jenis Kecelakaan:</strong> <span id="report-jenis" class="readonly-field"></span></p>
+            <p><strong>Jumlah Korban:</strong> <span id="report-jumlah-korban" class="readonly-field"></span></p>
+            <p><strong>Tanggal:</strong> <span id="report-tanggal" class="readonly-field"></span></p>
+            <p><strong>Status:</strong> <span id="report-status" class="readonly-field"></span></p>
+            <p><strong>Petugas:</strong> 
+            <input type="text" id="report-petugas" value="" readonly style="pointer-events: none;" />
+            </p>
+            <p><strong>Bukti:</strong> 
+                <img id="report-bukti" src="" alt="Bukti Kecelakaan" style="max-width: 200px; border: 1px solid #ccc;">
+            </p>
+            <p><strong>Kronologi kecelakaan:</strong> 
+                <span id="report-kronologi" class="readonly-field" style="display: block; white-space: pre-wrap;"></span>
+            </p>
+        </div>
+        <div class="report-buttons"></div>
+    </div>
+</div>
+
+        <!-- Modal for Evaluasi -->
+        <div class="modal" id="evaluasi-modal" style="display: none;">
+            <div class="modal-content">
+                <span class="modal-close">×</span>
+                <h2>Ubah Evaluasi</h2>
+                <div class="modal-body">
+                    <div class="profile-field">
+                        <label>Judul:</label>
+                        <input type="text" id="evaluasi-title" value="">
+                    </div>
+                    <div class="profile-field">
+                        <label>Deskripsi:</label>
+                        <textarea id="evaluasi-description"></textarea>
+                    </div>
+                    <div class="profile-field">
+                        <label>Periode:</label>
+                        <input type="text" id="evaluasi-period" value="">
+                    </div>
+                </div>
+                <div class="profile-buttons">
+                    <button class="cancel-btn" id="cancel-evaluasi-btn">Batal</button>
+                </div>
+            </div>
+        </div>
+
+    <!-- Include the external JavaScript file -->
+    <script src="scripts/pimpinan.js"></script>
+</body>
+</html>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    initializeAdminPage();
+  });
+</script>
