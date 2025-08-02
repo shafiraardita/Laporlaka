@@ -856,7 +856,7 @@ async function fetchLaporanMasuk() {
     const statusMap = {
       "0": "Masuk",
       "1": "Diterima",
-      "2": "Proses",
+      "2": "Penanganan",
       "3": "Selesai",
       "4": "Ditolak"
     };
@@ -1266,7 +1266,7 @@ function openReportModal(reportId) {
         `;
         break;
 
-      case 'proses':
+      case 'penanganan':
         if (petugasInput) petugasInput.disabled = false;
         buttonContainer.innerHTML = `
           <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
@@ -1280,6 +1280,8 @@ function openReportModal(reportId) {
       default:
         if (petugasInput) petugasInput.disabled = true;
         buttonContainer.innerHTML = `
+        <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
+          <button class="complete-btn" onclick="updateStatus('${reportId}', 'selesai')">Selesai</button>
           <button class="btn cancel-btn">Batal</button>
         `;
         break;
@@ -1338,24 +1340,56 @@ function closeReportModal() {
 
 // Fungsi untuk menyimpan petugas dan memperbarui status
 function savePetugas(reportId) {
-    const report = reports.find(r => r.id === reportId);
-    if (!report) return;
+  const report = reports.find(r => r.id === reportId);
+  if (!report) return;
 
-    const petugas = document.getElementById('report-petugas').value.trim();
-    if (!petugas && report.status === 'Diterima') {
-        alert('Petugas harus diisi sebelum menyimpan!');
-        return;
-    }
+  const petugas = document.getElementById('report-petugas').value.trim();
+  if (!petugas && report.status === 'Diterima') {
+    alert('Petugas harus diisi sebelum menyimpan!');
+    return;
+  }
 
-    report.petugas = petugas;
-    if (report.status === 'Diterima' && petugas) {
-        report.status = 'Proses'; // Ubah status ke Proses jika petugas diisi
-    }
+  report.petugas = petugas;
 
-    localStorage.setItem('reports', JSON.stringify(reports));
-    alert('Petugas diperbarui.');
-    closeModal();
-    renderTracking(getCurrentCategory());
+  const statusMap = {
+    "Penanganan": "2"
+  };
+
+  if (report.status === 'Diterima' && petugas) {
+    report.status = 'Penanganan';
+
+    // Kirim ke API
+    const statusValue = statusMap[report.status];
+    const formData = new FormData();
+    formData.append("id", reportId);
+    formData.append("status", statusValue);
+
+    fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
+      method: "POST",
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return response.json();
+    })
+    .then(result => {
+      console.log("Respons ubah status:", result);
+      if (result.kode !== 200) {
+        alert("Gagal mengubah status di server: " + (result.message || "Unknown error."));
+      } else {
+        console.log("Status berhasil diubah ke Penanganan.");
+      }
+    })
+    .catch(err => {
+      console.error("Gagal mengirim ke API:", err);
+      alert("Gagal mengirim status ke server.");
+    });
+  }
+
+  localStorage.setItem('reports', JSON.stringify(reports));
+  alert('Petugas diperbarui.');
+  closeModal();
+  renderTracking(getCurrentCategory());
 }
 
 // Fungsi untuk memperbarui status laporan
@@ -1367,7 +1401,8 @@ async function updateStatus(reportId, newStatus) {
   const statusMap = {
     "diterima": "1",
     "ditolak": "4",
-    "selesai": "3"
+    "selesai": "3",
+    "penanganan": "2"
   };
 
   const statusValue = statusMap[newStatus];
@@ -1402,18 +1437,16 @@ async function updateStatus(reportId, newStatus) {
     alert(`Status laporan berhasil diubah menjadi ${newStatus}.`);
 
     // Refresh data laporan dari server
-    await loadAllReports();
+    // await loadAllReports();
     closeModal();
+    window.location.reload();
 
     // Render ulang halaman pelacakan
     renderTracking(getCurrentCategory());
   } catch (err) {
     console.error("Gagal mengubah status laporan:", err);
-    alert("Gagal mengubah status laporan: " + err.message);
   }
 }
-
-
 
 // async function loadAllReports() {
 //   try {
@@ -1460,7 +1493,7 @@ function filterCategory(category) {
             filteredTrackingReports = reports.filter(r => r.status === "Diterima");
             break;
         case 'handling':
-            filteredTrackingReports = reports.filter(r => r.status === "Proses");
+            filteredTrackingReports = reports.filter(r => r.status === "Penanganan");
             break;
         case 'received':
             filteredTrackingReports = reports.filter(r => r.status === "Selesai");
@@ -1478,7 +1511,7 @@ function downloadFilteredTracking(category) {
     let filtered = reports.filter(r => {
         if (category === 'all' && r.status !== "Masuk") return false;
         if (category === 'accepted' && r.status !== "Diterima") return false;
-        if (category === 'handling' && r.status !== "Proses") return false;
+        if (category === 'handling' && r.status !== "Penanganan") return false;
         if (category === 'received' && r.status !== "Selesai") return false;
         if (category === 'rejected' && r.status !== "Ditolak") return false;
         return matchesDate(r.tanggal, selectedYear, selectedMonth);
@@ -1559,7 +1592,7 @@ if (currentTrackingCategory === 'all') {
 
     totalElement.textContent = data.length;
     acceptedElement.textContent = data.filter(r => r.status === 'Diterima').length;
-    handlingElement.textContent = data.filter(r => r.status === 'Proses').length;
+    handlingElement.textContent = data.filter(r => r.status === 'Penanganan').length;
     receivedElement.textContent = data.filter(r => r.status === 'Selesai').length;
     rejectedElement.textContent = data.filter(r => r.status === 'Ditolak').length;
 } else {
@@ -1820,7 +1853,7 @@ function updatePetugas(reportId) {
         }
 
         report.petugas = petugas;
-        report.status = 'Proses';
+        report.status = 'Penanganan';
         localStorage.setItem('reports', JSON.stringify(reports));
         alert('Petugas berhasil disimpan!');
         closeModal('report-modal');
@@ -1916,7 +1949,7 @@ function updatePagination(totalItems) {
 function renderStats() {
     try {
         const totalLaporan = reports.length;
-        const kasusProses = reports.filter(r => r.status === 'Proses').length;
+        const kasusProses = reports.filter(r => r.status === 'Penanganan').length;
         const kasusSelesai = reports.filter(r => r.status === 'Selesai').length;
 
         const totalLaporanElement = document.getElementById('total-laporan');
@@ -2470,7 +2503,7 @@ function renderTracking(category = 'all', filteredReports = null) {
             if (category === 'accepted') {
                 displayReports = displayReports.filter(r => r.status === 'Diterima');
             } else if (category === 'handling') {
-                displayReports = displayReports.filter(r => r.status === 'Proses');
+                displayReports = displayReports.filter(r => r.status === 'Penanganan');
             } else if (category === 'received') {
                 displayReports = displayReports.filter(r => r.status === 'Selesai');
             } else if (category === 'rejected') {
@@ -2478,7 +2511,7 @@ function renderTracking(category = 'all', filteredReports = null) {
             } else if (category === 'all') {
                 // All Report hanya menampilkan laporan yang sudah diproses
                 displayReports = displayReports.filter(r => 
-                    ['Diterima', 'Proses', 'Selesai', 'Ditolak'].includes(r.status)
+                    ['Diterima', 'Penanganan', 'Selesai', 'Ditolak'].includes(r.status)
                 );
             }
         }
@@ -2521,7 +2554,7 @@ function renderTracking(category = 'all', filteredReports = null) {
         // Update statistik berdasarkan displayReports
         document.getElementById('total-reports').textContent = displayReports.length;
         document.getElementById('accepted-reports-count').textContent = displayReports.filter(r => r.status === 'Diterima').length;
-        document.getElementById('handling-reports-count').textContent = displayReports.filter(r => r.status === 'Proses').length;
+        document.getElementById('handling-reports-count').textContent = displayReports.filter(r => r.status === 'Penanganan').length;
         document.getElementById('received-data-count').textContent = displayReports.filter(r => r.status === 'Selesai').length;
         document.getElementById('rejected-reports-count').textContent = displayReports.filter(r => r.status === 'Ditolak').length;
 
@@ -3678,7 +3711,7 @@ function applyFilters() {
             filtered = filtered.filter(r => r.status === "Diterima");
             break;
         case 'handling':
-            filtered = filtered.filter(r => r.status === "Proses");
+            filtered = filtered.filter(r => r.status === "Penanganan");
             break;
         case 'received':
             filtered = filtered.filter(r => r.status === "Selesai");
