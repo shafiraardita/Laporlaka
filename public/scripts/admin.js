@@ -1280,9 +1280,7 @@ function openReportModal(reportId) {
       default:
         if (petugasInput) petugasInput.disabled = true;
         buttonContainer.innerHTML = `
-        <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
-          <button class="complete-btn" onclick="updateStatus('${reportId}', 'selesai')">Selesai</button>
-          <button class="btn cancel-btn">Batal</button>
+        <button class="btn cancel-btn">Batal</button>
         `;
         break;
     }

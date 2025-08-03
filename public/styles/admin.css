@@ -234,7 +234,19 @@ button[onclick*="'Selesai'"] {
 button[onc/lick*="'Selesai'"]:hover {
   background-color: #1976D2;
 }
+.complete-btn {
+  background-color: #2196F3; /* Hijau */
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
 
+.complete-btn:hover {
+  background-color: #1976D2; /* Bitu lebih gelap saat hover */
+}
 /* Tombol Batal */
 #logout-cancel-btn, #save-user-btn{
     background-color: #45a049;
@@ -1491,7 +1503,7 @@ h4 {
   border-color: #007bff;
 }
 
-.report-status.proses {
+.report-status.penanganan {
   color: #f1c40f;
   border-color: #f1c40f;
 }
