@@ -970,7 +970,6 @@ function bukaDetailLaporan(id) {
         document.getElementById("report-petugas").value = report.petugas;
         document.getElementById("report-bukti").src = report.bukti;
         document.getElementById("report-kronologi").value = report.kronologi;
-
         document.getElementById("report-modal").style.display = "block";
       }
     });
@@ -1169,7 +1168,7 @@ function renderReportPagination(totalReports) {
 
 function downloadReportPDF(reportId) {
   const link = document.createElement("a");
-  link.href = `/api/reports/${reportId}/download`; // ganti URL ini sesuai endpoint server kamu
+  link.href = `https://dragonmontainapi.com/riwayat_laporan.php?user=1/download`; // ganti URL ini sesuai endpoint server kamu
   link.download = `laporan_${reportId}.pdf`;
   document.body.appendChild(link);
   link.click();
@@ -1218,8 +1217,8 @@ function openReportModal(reportId) {
 
     // Isi field modal
     document.getElementById('report-nama').value = report.nama || '';
-    document.getElementById('report-nik').value = report.nik || '';
-    document.getElementById('report-email').value = report.email || '';
+    document.getElementById('report-nik').value = report.pelapor?.nik || '';
+    document.getElementById('report-email').value = report.pelapor?.email || '';
     document.getElementById('report-telepon').value = report.telepon || '';
     document.getElementById('report-saksi').value = report.saksi || '';
     document.getElementById('report-titik').value = report.titik || '';
@@ -1887,6 +1886,122 @@ function updateReportStatus(reportId, newStatus) {
     } catch (e) {
         console.error('Error updating report status:', e);
         showErrorBoundary('Gagal memperbarui status laporan: ' + e.message);
+    }
+}
+// Utility untuk load gambar external jadi dataURL (dipakai di PDF)
+function loadImageAsDataURL(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous'; // agar bisa dipakai ke canvas
+        img.onload = function () {
+            const canvas = document.createElement('canvas');
+            canvas.width = this.width;
+            canvas.height = this.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(this, 0, 0);
+            try {
+                const dataURL = canvas.toDataURL('image/jpeg');
+                resolve(dataURL);
+            } catch (e) {
+                reject(e);
+            }
+        };
+        img.onerror = () => reject(new Error('Gagal memuat gambar bukti'));
+        img.src = url;
+    });
+}
+
+async function downloadReportPDF(reportId) {
+    try {
+        if (typeof jspdf === 'undefined') {
+            alert('jsPDF belum dimuat.');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+
+        // Ambil detail laporan (fallback ke daftar kalau tidak ada detail endpoint)
+        const res = await fetch(`https://dragonmontainapi.com/riwayat_laporan.php?user=1`);
+        if (!res.ok) throw new Error('Gagal mengambil data laporan');
+        const allReports = await res.json();
+        const report = allReports.find(r => String(r.id) === String(reportId));
+        if (!report) {
+            alert('Laporan tidak ditemukan.');
+            return;
+        }
+
+        const doc = new jsPDF({
+            unit: 'pt',
+            format: 'a4'
+        });
+
+        const margin = 40;
+        let y = 50;
+
+        // Header
+        doc.setFontSize(16);
+        doc.text(`Detail Laporan #${report.id}`, margin, y);
+        y += 25;
+
+        doc.setFontSize(11);
+        const lines = [
+            `Nama Pelapor: ${report.nama || '-'}`,
+            `NIK: ${report.nik || '-'}`,
+            `Email: ${report.email || '-'}`,
+            `Telepon: ${report.telepon || '-'}`,
+            `Jenis Kecelakaan: ${report.jenis || '-'}`,
+            `Jumlah Korban: ${report.jumlahKorban || '-'}`,
+            `Kendaraan: ${report.kendaraan || '-'}`,
+            `Titik Kejadian: ${report.titik || '-'}`,
+            `Tanggal: ${report.tanggal || '-'}`,
+            `Kronologi: ${report.kronologi || '-'}`,
+            `Saksi: ${report.saksi || '-'}`,
+            `Petugas Menangani: ${report.petugas || '-'}`,
+            `Status: ${report.status || '-'}`
+        ];
+
+        for (const line of lines) {
+            const split = doc.splitTextToSize(line, 500);
+            for (const part of split) {
+                if (y > 750) { // halaman baru jika sudah hampir habis
+                    doc.addPage();
+                    y = 50;
+                }
+                doc.text(part, margin, y);
+                y += 14;
+            }
+        }
+
+        // Gambar bukti jika ada
+        if (report.bukti) {
+            try {
+                if (y > 650) {
+                    doc.addPage();
+                    y = 50;
+                }
+                doc.text('Bukti Gambar:', margin, y);
+                y += 14;
+                const imgData = await loadImageAsDataURL(report.bukti);
+                const maxWidth = 250;
+                const aspect = 1; // default kalau tidak tahu
+                // bisa diimprove dengan membuat Image objek dulu
+                doc.addImage(imgData, 'JPEG', margin, y, maxWidth, maxWidth * aspect);
+                y += maxWidth + 10;
+            } catch (err) {
+                console.warn('Gagal memuat gambar bukti:', err);
+                if (y > 750) {
+                    doc.addPage();
+                    y = 50;
+                }
+                doc.text('Bukti Gambar: [Gagal dimuat]', margin, y);
+                y += 14;
+            }
+        }
+
+        // Simpan / unduh
+        doc.save(`laporan_${report.id}.pdf`);
+    } catch (e) {
+        console.error('Error download PDF:', e);
+        alert('Gagal mengunduh PDF: ' + (e.message || e));
     }
 }
 
