@@ -866,13 +866,13 @@ async function fetchLaporanMasuk() {
       nama: item.nama_user || '',
       nik: item.nik || '',
       email: item.email || '',
-      telepon: item.telepon || '',
+      no_hp: item.no_hp || '',
       tanggal: item.tanggal || '',
       status: statusMap[item.status] || "Masuk",
       titik: item.alamat || '',
       bukti: item.foto?.[0] || '',
       saksi: item.saksi_1 || '',
-      petugas: "",
+      petugas: item.petugas || '',
       received: item.status === "3",
       kendaraan: item.kendaraan || '',
       jenis: item.jenis_kecelakaan || '',
@@ -959,7 +959,7 @@ function bukaDetailLaporan(id) {
         document.getElementById("report-nama").value = report.nama;
         document.getElementById("report-nik").value = report.nik;
         document.getElementById("report-email").value = report.email;
-        document.getElementById("report-telepon").value = report.telepon;
+        document.getElementById("report-no_hp").value = report.no_hp;
         document.getElementById("report-saksi").value = report.saksi;
         document.getElementById("report-titik").value = report.titik_kejadian;
         document.getElementById("report-kendaraan").value = report.kendaraan;
@@ -1217,9 +1217,9 @@ function openReportModal(reportId) {
 
     // Isi field modal
     document.getElementById('report-nama').value = report.nama || '';
-    document.getElementById('report-nik').value = report.pelapor?.nik || '';
+    document.getElementById('report-nik').value = report.nik || '';
     document.getElementById('report-email').value = report.pelapor?.email || '';
-    document.getElementById('report-telepon').value = report.telepon || '';
+    document.getElementById('report-telepon').value = report.no_hp || '0813';
     document.getElementById('report-saksi').value = report.saksi || '';
     document.getElementById('report-titik').value = report.titik || '';
     document.getElementById('report-kendaraan').value = report.kendaraan || '-';
@@ -1229,7 +1229,7 @@ function openReportModal(reportId) {
     document.getElementById('report-status').innerText = report.status || '-';
     document.getElementById('report-kronologi').value = report.kronologi || '';
     document.getElementById('report-bukti').src = report.bukti || '';
-
+    document.getElementById('report-petugas').value = report.petugas || '';
     const petugasInput = document.getElementById('report-petugas');
     if (petugasInput) {
       petugasInput.value = escapeHTML(report.petugas || '');
@@ -1360,6 +1360,7 @@ function savePetugas(reportId) {
     const formData = new FormData();
     formData.append("id", reportId);
     formData.append("status", statusValue);
+    formData.append("petugas", '');
 
     fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
       method: "POST",
@@ -1383,7 +1384,7 @@ function savePetugas(reportId) {
     });
   }
 
-  localStorage.setItem('reports', JSON.stringify(reports));
+//   localStorage.setItem('reports', JSON.stringify(reports));
   alert('Petugas diperbarui.');
   closeModal();
   renderTracking(getCurrentCategory());
@@ -1414,6 +1415,7 @@ async function updateStatus(reportId, newStatus) {
     const formData = new FormData();
     formData.append("id", reportId);
     formData.append("status", statusValue);
+    formData.append("petugas", '');
 
     const response = await fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
       method: "POST",
