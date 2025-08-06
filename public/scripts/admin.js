@@ -1360,7 +1360,9 @@ function savePetugas(reportId) {
     const formData = new FormData();
     formData.append("id", reportId);
     formData.append("status", statusValue);
-    formData.append("petugas", '');
+    const petugasInput = document.getElementById('report-petugas');
+    const petugas = petugasInput ? petugasInput.value.trim() : '';
+    formData.append("petugas", petugas);
 
     fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
       method: "POST",
@@ -1415,7 +1417,9 @@ async function updateStatus(reportId, newStatus) {
     const formData = new FormData();
     formData.append("id", reportId);
     formData.append("status", statusValue);
-    formData.append("petugas", '');
+    const petugasInput = document.getElementById('report-petugas');
+    const petugas = petugasInput ? petugasInput.value.trim() : '';
+    formData.append("petugas", petugas);
 
     const response = await fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
       method: "POST",
