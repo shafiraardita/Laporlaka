@@ -2317,12 +2317,6 @@ function validateUsersData(data) {
 users = validateStoredData('users', users, validateUsersData);
 
 function renderUserList() {
-    // Urutkan berdasarkan id terbesar ke terkecil (pengguna baru di atas)
-    const sortedUsers = [...users].sort((a, b) => b.id - a.id);
-    const start = (currentPage - 1) * reportsPerPage;
-    const end = start + reportsPerPage;
-    const paginatedUsers = sortedUsers.slice(start, end);
-
     try {
         const userTableBody = document.getElementById('user-table-body');
         if (!userTableBody) {
@@ -2330,38 +2324,91 @@ function renderUserList() {
             return;
         }
 
+        const searchQuery = document.getElementById('user-search')?.value.trim().toLowerCase();
+        const sortOption = document.getElementById('user-sort')?.value || 'terbaru';
+
+        let filteredUsers = [...users];
+
+        // Pencarian berdasarkan nama/email
+        if (searchQuery) {
+            filteredUsers = filteredUsers.filter(user =>
+                user.nama.toLowerCase().includes(searchQuery) ||
+                user.email.toLowerCase().includes(searchQuery)
+            );
+        }
+
+        // Urutkan berdasarkan opsi filter
+        switch (sortOption) {
+            case 'az':
+                filteredUsers.sort((a, b) => a.nama.localeCompare(b.nama));
+                break;
+            case 'za':
+                filteredUsers.sort((a, b) => b.nama.localeCompare(a.nama));
+                break;
+            case 'terbaru':
+                filteredUsers.sort((a, b) => new Date(b.lastActive || b.updated_at || b.created_at) - new Date(a.lastActive || a.updated_at || a.created_at));
+                break;
+            case 'terlama':
+                filteredUsers.sort((a, b) => new Date(a.lastActive || a.updated_at || a.created_at) - new Date(b.lastActive || b.updated_at || b.created_at));
+                break;
+            default:
+                // Default tetap ID terbaru ke atas
+                filteredUsers.sort((a, b) => b.id - a.id);
+        }
+
+        // Pagination
         const start = (currentPage - 1) * reportsPerPage;
         const end = start + reportsPerPage;
-        const sortedUsers = [...users].sort((a, b) => b.id - a.id);
-        const paginatedUsers = sortedUsers.slice(start, end);
+        const paginatedUsers = filteredUsers.slice(start, end);
+
+        // Render
         userTableBody.innerHTML = paginatedUsers.map(user => `
             <tr>
                 <td>${escapeHTML(user.nama)}</td>
                 <td>${escapeHTML(user.email)}</td>
-                <td>${escapeHTML(user.lastActive)}</td>
+                <td>${escapeHTML(user.lastActive || '-')}</td>
                 <td class="action-buttons">
                     <button class="edit-btn" onclick="openUserModal(${user.id})" title="Ubah">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                    <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
-                </svg></button>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                            <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                        </svg>
+                    </button>
                     <button class="delete-btn" onclick="deleteUser(${user.id})" title="Hapus">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3h11V2h-11v1z"/>
-        </svg>
-    </button>
-</td>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3h11V2h-11v1z"/>
+                        </svg>
+                    </button>
                 </td>
             </tr>
         `).join('');
 
-        updatePagination(users.length);
+        updatePagination(filteredUsers.length);
     } catch (e) {
         console.error('Error rendering user list:', e);
         showErrorBoundary('Gagal memuat daftar pengguna: ' + e.message);
     }
 }
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("user-search");
+  const sortSelect = document.getElementById("user-sort");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      currentPage = 1;
+      renderUserList();
+    });
+  }
+
+  if (sortSelect) {
+    sortSelect.addEventListener("change", () => {
+      currentPage = 1;
+      renderUserList();
+    });
+  }
+});
+
 function setupAddUserModal() {
     const addUserBtn = document.getElementById('add-user-btn');
     const modal = document.getElementById('user-modal');

@@ -2317,7 +2317,43 @@ background-color: #375B85;
 .leaflet-popup-content td {
     white-space: nowrap;   /* Hindari teks memecah baris */
 }
+#user-search,
+#user-sort {
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #fff;
+  color: #333;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
 
+#user-search:focus,
+#user-sort:focus {
+  border-color: #375b85;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(55, 91, 133, 0.2);
+}
+
+#user-search {
+  width: 100%;
+  max-width: 600px;
+}
+
+#user-sort {
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Container jika mau sejajar */
+.user-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+  align-items: center;
+}
 
 /* Refined Mobile and Tablet Responsiveness */
 @media (max-width: 768px) {
@@ -2926,4 +2962,17 @@ background-color: #375B85;
         padding: 5px;
         font-size: 11px;
     }
+}
+/* Responsive */
+@media (max-width: 600px) {
+  #user-search,
+  #user-sort {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .user-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

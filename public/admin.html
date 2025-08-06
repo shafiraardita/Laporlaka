@@ -55,7 +55,7 @@
                     <h3>Proses Pelaporan</h3>
                     <div class="stats-cards">
                         <div class="stats-card proses1">
-                            <h4>Total Laporan Masuk</h4>
+                            <h4>Total Laporan</h4>
                             <p id="total-laporan">0</p>
                         </div>
                         <div class="stats-card proses2">
@@ -243,9 +243,11 @@
     <h2>Manajemen Pengguna</h2>
     <div class="section-content">
         <button id="add-user-btn">Tambah Pengguna</button>
+
+        <!-- Modal Tambah Pengguna -->
         <div id="user-modal" class="modal" style="display: none;">
             <div class="modal-content">
-                <span class="modal-close">×</span>
+                <span class="modal-close" id="user-modal-close">×</span>
                 <h3>Tambah Pengguna Baru</h3>
                 <form id="add-user-form">
                     <label>
@@ -273,8 +275,21 @@
                 </form>
             </div>
         </div>
+
+        <!-- Filter dan Search -->
+        <div class="user-controls" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
+            <input type="text" id="user-search" placeholder="Cari pengguna..." style="flex: 1; padding: 6px;" />
+            <select id="user-sort" style="padding: 6px; min-width: 200px;">
+                <option value="az">Urutkan A-Z</option>
+                <option value="za">Urutkan Z-A</option>
+                <option value="terbaru">Aktif Terbaru</option>
+                <option value="terlama">Aktif Terlama</option>
+            </select>
+        </div>
+
+        <!-- Tabel Data Pengguna -->
         <div class="table-card">
-            <table class="user-table">
+            <table class="user-table" style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr>
                         <th>Nama</th>
@@ -283,15 +298,20 @@
                         <th>Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="user-table-body"></tbody>
+                <tbody id="user-table-body">
+                    <!-- Diisi dari JS -->
+                </tbody>
             </table>
         </div>
-        <div class="pagination-center">
-    <button id="prev-page">Kembali</button>
-    <button id="next-page">Lanjut</button>
-</div>
+
+        <!-- Pagination -->
+        <div class="pagination-center" style="text-align: center; margin-top: 20px;">
+            <button id="prev-page">Kembali</button>
+            <button id="next-page">Lanjut</button>
+        </div>
     </div>
 </section>
+
 
         <section id="tracking-section" class="content-section">
     <h2>Pelacakan Laporan Kecelakaan</h2>
