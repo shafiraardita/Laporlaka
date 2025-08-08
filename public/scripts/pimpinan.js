@@ -768,15 +768,18 @@ function setFilter(year, month) {
     renderReportList();
 }
 
-function matchesDate(reportDate, year, month) {
-    if (year === 'all') return true;
-    const date = new Date(reportDate);
-    const reportYear = date.getFullYear().toString();
-    const reportMonth = (date.getMonth() + 1).toString().padStart(2, '0');
-    if (year !== reportYear) return false;
-    if (month !== 'all' && month !== reportMonth) return false;
-    return true;
+function matchesDate(dateStr, year, month) {
+  const date = new Date(dateStr);
+  const reportYear = date.getFullYear().toString();
+  const reportMonth = (date.getMonth() + 1).toString().padStart(2, "0");
+
+  const yearMatch = year === "all" || reportYear === year;
+  const monthMatch = month === "all" || reportMonth === month;
+
+  return yearMatch && monthMatch;
 }
+
+
 async function fetchLaporanMasuk() {
   try {
     const response = await fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1");
@@ -836,8 +839,10 @@ function renderReportList() {
         const searchKeyword = document.getElementById('report-search')?.value.trim().toLowerCase();
 
         let dataToRender = reports.filter(report =>
-            report.status === 'Masuk' || report.status === '' || !report.status
+        (report.status === 'Masuk' || report.status === '' || !report.status) &&
+        matchesDate(report.tanggal, selectedYear, selectedMonth)
         );
+
 
         // Filter pencarian berdasarkan ID atau Nama
         if (searchKeyword) {
@@ -2902,27 +2907,25 @@ function updateTrackingStats(data) {
 
 // Fungsi untuk menerapkan semua filter (tahun, bulan, kategori, dan pencarian)
 function applyFilters() {
-    const yearFilter = document.getElementById("tracking-year").value;
-    const monthFilter = document.getElementById("tracking-month").value;
+    const year = document.getElementById("tracking-filter-year").value;
+    const month = document.getElementById("tracking-filter-month").value;
     const searchQuery = document.getElementById("tracking-search").value.toLowerCase();
 
-    let filteredReports = reports;
+    let filteredReports = trackingData;
 
-    // Filter berdasarkan tahun
-    if (yearFilter !== "all") {
+    if (year !== "all") {
         filteredReports = filteredReports.filter(report => {
             const reportYear = new Date(report.tanggal).getFullYear().toString();
-            return reportYear === yearFilter;
+            return reportYear === year;
         });
     }
 
-    // Filter berdasarkan bulan
-    if (monthFilter !== "all") {
+    if (month !== "all") {
         const monthNames = [
             "Januari", "Februari", "Maret", "April", "Mei", "Juni",
             "Juli", "Agustus", "September", "Oktober", "November", "Desember"
         ];
-        const monthIndex = monthNames.indexOf(monthFilter); // index: 0–11
+        const monthIndex = monthNames.indexOf(month); // index: 0–11
 
         filteredReports = filteredReports.filter(report => {
             const reportMonth = new Date(report.tanggal).getMonth(); // 0–11
@@ -2930,18 +2933,7 @@ function applyFilters() {
         });
     }
 
-    // Filter berdasarkan kategori aktif (jika ada)
-    if (currentCategory !== "all") {
-        filteredReports = filteredReports.filter(report => {
-            if (currentCategory === "accepted") return report.status === "Diterima";
-            if (currentCategory === "handling") return report.status === "Proses";
-            if (currentCategory === "received") return report.status === "Selesai";
-            if (currentCategory === "rejected") return report.status === "Ditolak";
-            return true;
-        });
-    }
-
-    // Filter berdasarkan pencarian
+    // Filter pencarian
     if (searchQuery) {
         filteredReports = filteredReports.filter(report =>
             report.id.toString().includes(searchQuery) ||
@@ -2950,9 +2942,10 @@ function applyFilters() {
     }
 
     currentPage = 1;
-    renderTracking(currentCategory, filteredReports); // render tabel berdasarkan hasil filter
-    updateStats(filteredReports); // update kartu statistik
+    renderTracking(currentCategory, filteredReports);
+    updateStats(filteredReports);
 }
+
 
 // Fungsi untuk merender tabel
 function renderTable(filteredReports) {
@@ -3055,3 +3048,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 window.onbeforeunload = null;
+document.addEventListener("DOMContentLoaded", () => {
+  const yearFilter = document.getElementById("year-filter");
+  const monthFilter = document.getElementById("month-filter");
+
+  if (yearFilter && monthFilter) {
+    yearFilter.addEventListener("change", () => {
+      const year = yearFilter.value;
+      const month = convertMonthNameToNumber(monthFilter.value);
+      setFilter(year, month);
+    });
+
+    monthFilter.addEventListener("change", () => {
+      const year = yearFilter.value;
+      const month = convertMonthNameToNumber(monthFilter.value);
+      setFilter(year, month);
+    });
+  }
+});
+
+function convertMonthNameToNumber(name) {
+  const months = {
+    "Januari": "01",
+    "Februari": "02",
+    "Maret": "03",
+    "April": "04",
+    "Mei": "05",
+    "Juni": "06",
+    "Juli": "07",
+    "Agustus": "08",
+    "September": "09",
+    "Oktober": "10",
+    "November": "11",
+    "Desember": "12",
+    "Semua": "all",
+    "all": "all"
+  };
+  return months[name] || "all";
+}

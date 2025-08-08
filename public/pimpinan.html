@@ -210,7 +210,7 @@
     <label for="report-search">Cari ID atau Nama Laporan:</label>
     <input type="text" id="report-search" oninput="searchReportById()" placeholder="Masukkan ID atau Nama">
     <label for="year-filter">Tahun:</label>
-    <select id="year-filter" onchange="filterReports()">
+    <select id="year-filter">
         <option value="all">Semua</option>
         <option value="2025">2025</option>
         <option value="2024">2024</option>
@@ -218,7 +218,7 @@
     </select>
 
     <label for="month-filter">Bulan:</label>
-    <select id="month-filter" onchange="filterReports()">
+    <select id="month-filter">
         <option value="all">Semua</option>
         <option value="Januari">Januari</option>
         <option value="Februari">Februari</option>
@@ -293,14 +293,14 @@
         </div>
         <div class="tracking-filter-bar">
   <input type="text" id="tracking-search" placeholder="Cari berdasarkan ID atau Nama" oninput="searchTracking()" />
-  <select id="tracking-filter-year" onchange="applyFilters()">
+  <select id="tracking-year" onchange="applyFilters()">
   <option value="all">Semua Tahun</option>
   <option value="2025">2025</option>
   <option value="2024">2024</option>
   <option value="2023">2023</option>
 </select>
 
-<select id="tracking-filter-month" onchange="applyFilters()">
+<select id="tracking-month" onchange="applyFilters()">
   <option value="all">Semua Bulan</option>
   <option value="Januari">Januari</option>
   <option value="Februari">Februari</option>

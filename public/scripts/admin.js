@@ -1549,14 +1549,15 @@ function renderTrackingTable(data) {
 
     tbody.innerHTML = pageData.map(report => `
         <tr>
-            <td>${escapeHTML(report.id.toString())}</td>
-            <td>${escapeHTML(report.nama)}</td>
-            <td>${escapeHTML(report.tanggal)}</td>
-            <td>${escapeHTML(report.jenis)}</td>
-            <td>${escapeHTML(report.kendaraan)}</td>
-            <td>${escapeHTML(report.jumlahKorban)}</td>
-            <td>${escapeHTML(report.titik)}</td>
-            <td>${escapeHTML(report.kronologi)}</td>
+        <td>${escapeHTML(report.id.toString())}</td>
+        <td>${escapeHTML(report.nama?.length > 30 ? report.nama.substring(0, 30) + '...' : report.nama || '-')}</td>
+        <td>${escapeHTML(report.tanggal || '-')}</td>
+        <td>${escapeHTML(report.jenis || '-')}</td>
+        <td>${escapeHTML(report.kendaraan || '-')}</td>
+        <td>${escapeHTML(report.jumlahKorban || '-')}</td>
+        <td>${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + '...' : report.titik || '-')}</td>
+        <td>${escapeHTML(report.kronologi?.length > 80 ? report.kronologi.substring(0, 80) + '...' : report.kronologi || '-')}</td>
+
             <td><button onclick="openTrackingModal(${report.id})">
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 16 16">
                                 <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
@@ -3871,7 +3872,7 @@ function applyFilters() {
 
     let filtered = reports;
 
-    // Filter kategori status
+    // Filter berdasarkan status kategori
     switch (currentTrackingCategory) {
         case 'accepted':
             filtered = filtered.filter(r => r.status === "Diterima");
@@ -3887,21 +3888,40 @@ function applyFilters() {
             break;
         case 'all':
         default:
-            filtered = filtered.filter(r => r.status === "Masuk");
+            filtered = filtered.filter(r =>
+                r.status === "Diterima" ||
+                r.status === "Penanganan" ||
+                r.status === "Selesai" ||
+                r.status === "Ditolak"
+            );
             break;
-    }
+        }
 
     // Filter berdasarkan tahun dan bulan
     filtered = filtered.filter(r => {
-        const tanggal = new Date(r.tanggal);
-        const reportYear = tanggal.getFullYear().toString();
-        const reportMonthIndex = tanggal.getMonth(); // 0–11
+        let reportYear = null;
+        let reportMonthIndex = null;
+
+        if (typeof r.tanggal !== "string") return false;
+
+        if (r.tanggal.includes("/")) {
+            // Format: DD/MM/YYYY
+            const parts = r.tanggal.split("/");
+            if (parts.length !== 3) return false;
+            reportYear = parts[2];
+            reportMonthIndex = parseInt(parts[1], 10) - 1;
+        } else {
+            // Asumsikan format ISO: YYYY-MM-DD
+            const d = new Date(r.tanggal);
+            if (isNaN(d)) return false;
+            reportYear = d.getFullYear().toString();
+            reportMonthIndex = d.getMonth(); // 0–11
+        }
 
         const monthNames = [
             "Januari", "Februari", "Maret", "April", "Mei", "Juni",
             "Juli", "Agustus", "September", "Oktober", "November", "Desember"
         ];
-
         const selectedMonthIndex = monthFilter !== "all" ? monthNames.indexOf(monthFilter) : null;
 
         const matchYear = (yearFilter === "all") || (reportYear === yearFilter);
@@ -3910,20 +3930,21 @@ function applyFilters() {
         return matchYear && matchMonth;
     });
 
-    // Filter pencarian (opsional)
+    // Filter berdasarkan pencarian
     if (searchQuery) {
         filtered = filtered.filter(r =>
-            r.id.toString().includes(searchQuery) ||
-            r.nama.toLowerCase().includes(searchQuery)
+            r.id?.toString().includes(searchQuery) ||
+            r.nama?.toLowerCase().includes(searchQuery)
         );
     }
 
     currentPage = 1;
     renderTrackingTable(filtered);
     updateStats(filtered);
+    console.log("Total semua laporan:", reports.length);
+    console.log("Setelah filter kategori:", filtered.length);
+
 }
-
-
 // Fungsi untuk merender tabel
 function renderTable(filteredReports) {
     const tableBody = document.getElementById("tracking-table-body");
