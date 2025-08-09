@@ -6,26 +6,42 @@ document.addEventListener('DOMContentLoaded', () => {
   if (togglePassword && passwordInput) {
     togglePassword.addEventListener('click', () => {
       const isPasswordHidden = passwordInput.type === 'password';
-
-      if (isPasswordHidden) {
-        passwordInput.type = 'text';
-        togglePassword.classList.remove('fa-eye-slash');
-        togglePassword.classList.add('fa-eye'); // Mata terbuka = terlihat
-      } else {
-        passwordInput.type = 'password';
-        togglePassword.classList.remove('fa-eye');
-        togglePassword.classList.add('fa-eye-slash'); // Mata tertutup = disembunyikan
-      }
+      passwordInput.type = isPasswordHidden ? 'text' : 'password';
+      togglePassword.classList.toggle('fa-eye', isPasswordHidden);
+      togglePassword.classList.toggle('fa-eye-slash', !isPasswordHidden);
     });
   }
 
-  // 🔐 Proses login saat form disubmit
+  // 🔐 Proses login
   async function handleLogin(event) {
     event.preventDefault();
 
     const email = document.getElementById('username').value.trim();
     const password = passwordInput.value.trim();
 
+    // ✅ Login lokal admin
+    if (email === 'opetest@gmail.com' && password === 'Asdf@1') {
+      localStorage.setItem('user_email', email);
+      localStorage.setItem('user_name', 'Operator test');
+      localStorage.setItem('user_id', '2');
+      localStorage.setItem('user_role', 'admin');
+      alert('Login berhasil sebagai admin.');
+      window.location.href = 'admin.html';
+      return;
+    }
+
+    // ✅ Login lokal pimpinan
+    if (email === 'pimpinan@gmail.com' && password === 'Pimpinan@1') {
+      localStorage.setItem('user_email', email);
+      localStorage.setItem('user_name', 'Pimpinan');
+      localStorage.setItem('user_id', '99');
+      localStorage.setItem('user_role', 'pimpinan');
+      alert('Login berhasil sebagai pimpinan.');
+      window.location.href = 'pimpinan.html';
+      return;
+    }
+
+    // 🔄 Kalau tidak cocok dengan akun lokal, cek API
     try {
       const formData = new URLSearchParams();
       formData.append('email', email);
@@ -50,18 +66,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (result.kode === 200) {
         const userData = result.data;
+
         localStorage.setItem('user_email', userData.email);
         localStorage.setItem('user_name', userData.nama);
         localStorage.setItem('user_id', userData.id);
 
         let role = 'user';
-        if (email === 'opetest@gmail.com' && password === 'Asdf@1') {
+        if (userData.kategori === 0) {
           role = 'admin';
         } else if (userData.kategori === 1) {
           role = 'pimpinan';
         }
-
         localStorage.setItem('user_role', role);
+
         alert(`Login berhasil sebagai ${role}.`);
 
         if (role === 'admin') {
@@ -81,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Tambahkan event listener untuk form
+  // Event listener untuk form login
   const form = document.querySelector('.login-form');
   if (form) {
     form.addEventListener('submit', handleLogin);
