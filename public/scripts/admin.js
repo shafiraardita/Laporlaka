@@ -134,8 +134,6 @@ modal.innerHTML = `
     });
 }
 
-
-
 function initializeAdminPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const username = urlParams.get('user') || 'admin';
@@ -1028,7 +1026,58 @@ function renderLaporan() {
     }
   });
 }
+function downloadLaporanMasukExcel() {
+    const yearFilter = document.getElementById("year-filter").value;
+    const monthFilter = document.getElementById("month-filter").value;
+    const keyword = document.getElementById("report-search").value.toLowerCase();
 
+    // Gunakan filteredReports kalau sudah ada, kalau belum pakai reports
+    const sourceReports = filteredReports && filteredReports.length > 0 ? filteredReports : reports;
+
+    // Filter lagi untuk pastikan hanya laporan masuk
+    const dataToExport = sourceReports.filter(r => {
+        const date = new Date(r.tanggal);
+        const reportYear = date.getFullYear().toString();
+        const reportMonth = date.toLocaleString('id-ID', { month: 'long' });
+
+        const matchYear = (yearFilter === 'all') || (reportYear === yearFilter);
+        const matchMonth = (monthFilter === 'all') || (reportMonth === monthFilter);
+        const matchKeyword = !keyword || r.id.toString().includes(keyword) || r.nama.toLowerCase().includes(keyword);
+
+        return matchYear && matchMonth && matchKeyword && r.status === 'Masuk';
+    });
+
+    if (dataToExport.length === 0) {
+        alert("Tidak ada data laporan masuk sesuai filter.");
+        return;
+    }
+
+    // Konversi ke format untuk Excel
+    const exportData = dataToExport.map(r => ({
+        ID: r.id,
+        Nama: r.nama,
+        Tanggal: r.tanggal,
+        Jenis: r.jenis,
+        'Titik Kecelakaan': r.titik,
+        Saksi: r.saksi,
+        Kronologi: r.kronologi,
+        Status: r.status
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Laporan Masuk");
+
+    XLSX.writeFile(wb, `laporan_masuk_${yearFilter}_${monthFilter}.xlsx`);
+}
+
+// Pastikan tombol terhubung
+document.addEventListener("DOMContentLoaded", () => {
+    const btnDownload = document.getElementById("download-filter-btn");
+    if (btnDownload) {
+        btnDownload.addEventListener("click", downloadLaporanMasukExcel);
+    }
+});
 // --- Laporan Masuk ---
 function renderReportList() {
     try {
@@ -1041,11 +1090,31 @@ function renderReportList() {
         }
 
         let currentPage = parseInt(localStorage.getItem('currentReportPage')) || 1;
+
+        // Ambil filter dari dropdown
+        const selectedYear = document.getElementById('year-filter')?.value || 'all';
+        const selectedMonth = document.getElementById('month-filter')?.value || 'all';
         const searchKeyword = document.getElementById('report-search')?.value.trim().toLowerCase();
 
+        // Filter data laporan masuk
         let dataToRender = reports.filter(report =>
             report.status === 'Masuk' || report.status === '' || !report.status
-        );
+        ).filter(report => {
+            if (!report.tanggal) return false;
+
+            const date = new Date(report.tanggal);
+            const year = date.getFullYear().toString();
+            const monthNumber = (date.getMonth() + 1).toString().padStart(2, '0'); // "01" - "12"
+            const monthName = date.toLocaleString('id-ID', { month: 'long' }).toLowerCase();
+
+            const matchYear = (selectedYear === 'all') || (year === selectedYear);
+            const matchMonth =
+                (selectedMonth === 'all') ||
+                (selectedMonth.length === 2 && monthNumber === selectedMonth) || // cocok angka
+                (selectedMonth.length > 2 && monthName === selectedMonth.toLowerCase()); // cocok nama
+
+            return matchYear && matchMonth;
+        });
 
         // Filter pencarian berdasarkan ID atau Nama
         if (searchKeyword) {
@@ -1062,15 +1131,14 @@ function renderReportList() {
         if (currentPage < 1) currentPage = 1;
 
         const startIndex = (currentPage - 1) * reportsPerPage;
-        const endIndex = startIndex + reportsPerPage;
-        const paginatedReports = dataToRender.slice(startIndex, endIndex);
+        const paginatedReports = dataToRender.slice(startIndex, startIndex + reportsPerPage);
 
         // Render ulang tabel
         tableBody.innerHTML = '';
         paginatedReports.forEach(report => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${escapeHTML(report.id.toString())}</td>
+                <td>${escapeHTML(report.id?.toString() || '')}</td>
                 <td>${escapeHTML(report.nama?.length > 30 ? report.nama.substring(0, 30) + '...' : report.nama || '-')}</td>
                 <td>${escapeHTML(report.tanggal || '-')}</td>
                 <td>${escapeHTML(report.jenis || '-')}</td>
@@ -1123,7 +1191,6 @@ function renderReportList() {
         showErrorBoundary('Gagal memuat daftar laporan: ' + e.message);
     }
 }
-
 // Inisialisasi saat halaman dimuat laporan masuk
 document.addEventListener('DOMContentLoaded', () => {
     // Ambil data dari API eksternal
@@ -1511,33 +1578,95 @@ function filterCategory(category) {
 }
 
 function downloadFilteredTracking(category) {
-    let filtered = reports.filter(r => {
-        if (category === 'all' && r.status !== "Masuk") return false;
-        if (category === 'accepted' && r.status !== "Diterima") return false;
-        if (category === 'handling' && r.status !== "Penanganan") return false;
-        if (category === 'received' && r.status !== "Selesai") return false;
-        if (category === 'rejected' && r.status !== "Ditolak") return false;
-        return matchesDate(r.tanggal, selectedYear, selectedMonth);
-    });
+    try {
+        const selectedYear = document.getElementById("tracking-filter-year")?.value || "all";
+        const selectedMonth = document.getElementById("tracking-filter-month")?.value || "all";
+        const searchKeyword = document.getElementById("tracking-search")?.value.trim().toLowerCase();
 
-    if (filtered.length === 0) {
-        alert("Tidak ada data untuk diunduh pada filter ini.");
-        return;
+        let filtered = reports.filter(r => {
+            // Filter kategori laporan
+            if (category === "all" && r.status === "Masuk") return false;
+            if (category === "accepted" && r.status !== "Diterima") return false;
+            if (category === "handling" && r.status !== "Penanganan") return false;
+            if (category === "received" && r.status !== "Selesai") return false;
+            if (category === "rejected" && r.status !== "Ditolak") return false;
+
+            // Filter tahun/bulan
+            if (!r.tanggal) return false;
+            const date = new Date(r.tanggal);
+            const year = date.getFullYear().toString();
+            const monthName = date.toLocaleString("id-ID", { month: "long" }).toLowerCase();
+
+            const matchYear = (selectedYear === "all") || (year === selectedYear);
+            const matchMonth = (selectedMonth === "all") || (monthName === selectedMonth.toLowerCase());
+
+            return matchYear && matchMonth;
+        });
+
+        // Filter keyword jika ada
+        if (searchKeyword) {
+            filtered = filtered.filter(r =>
+                r.id?.toString().toLowerCase().includes(searchKeyword) ||
+                r.nama?.toLowerCase().includes(searchKeyword)
+            );
+        }
+
+        if (filtered.length === 0) {
+            alert("Tidak ada data untuk diunduh pada filter ini.");
+            return;
+        }
+
+        // Header data
+        const wsData = [
+            ["ID", "Nama", "Tanggal", "Jenis Kecelakaan", "Kendaraan", "Jumlah Korban", "Titik Kejadian", "Kronologi", "Status"]
+        ];
+
+        // Isi data
+        filtered.forEach(r => {
+            wsData.push([
+                r.id || "",
+                r.nama || "",
+                r.tanggal || "",
+                r.jenis || "",
+                r.kendaraan || "",
+                r.jumlahKorban || "",
+                r.titik || "",
+                r.kronologi || "",
+                r.status || ""
+            ]);
+        });
+
+        // Buat sheet
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+        // Auto-width kolom
+        const colWidths = wsData[0].map((_, colIndex) => {
+            let maxLength = 0;
+            wsData.forEach(row => {
+                const cellValue = row[colIndex] ? row[colIndex].toString() : "";
+                maxLength = Math.max(maxLength, cellValue.length);
+            });
+            return { wch: maxLength + 2 }; // +2 biar ada jarak
+        });
+        ws['!cols'] = colWidths;
+
+        // Buat workbook
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Tracking Laporan");
+
+        // Nama file
+        let filename = `tracking_${category}`;
+        if (selectedYear !== "all") filename += `_${selectedYear}`;
+        if (selectedMonth !== "all") filename += `_${selectedMonth}`;
+        filename += ".xlsx";
+
+        // Simpan file
+        XLSX.writeFile(wb, filename);
+
+    } catch (e) {
+        console.error("Gagal mengunduh Tracking Excel:", e);
+        alert("Terjadi kesalahan saat mengunduh data tracking.");
     }
-
-    const wb = XLSX.utils.book_new();
-    const wsData = [
-        ["ID", "Nama", "Tanggal", "Jenis", "Kendaraan", "Jumlah Korban", "Titik", "Kronologi", "Status"]
-    ];
-    filtered.forEach(r => {
-        wsData.push([
-            r.id, r.nama, r.tanggal, r.jenis, r.kendaraan, r.jumlahKorban, r.titik, r.kronologi, r.status
-        ]);
-    });
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, "TrackingLaporan");
-    const filename = `Tracking_${category}_${selectedYear}_${selectedMonth}.xlsx`;
-    XLSX.writeFile(wb, filename);
 }
 
 function renderTrackingTable(data) {
@@ -2780,7 +2909,9 @@ function initializeFilters() {
         showErrorBoundary('Gagal memuat filter: ' + e.message);
     }
 }
+// variabel global
 let filteredReports = null;
+
 function filterReports() {
     try {
         const year = document.getElementById("year-filter").value;
@@ -2788,19 +2919,29 @@ function filterReports() {
         const keyword = document.getElementById("report-search").value.toLowerCase();
 
         filteredReports = reports.filter(r => {
+            if (!r.tanggal) return false;
+
             const date = new Date(r.tanggal);
             const reportYear = date.getFullYear().toString();
-            const reportMonth = date.toLocaleString('id-ID', { month: 'long' });
+            const reportMonthNumber = (date.getMonth() + 1).toString().padStart(2, '0');
+            const reportMonthName = date.toLocaleString('id-ID', { month: 'long' });
 
             const matchYear = (year === 'all') || (reportYear === year);
-            const matchMonth = (month === 'all') || (reportMonth === month);
-            const matchKeyword = r.id.toString().includes(keyword) || r.nama.toLowerCase().includes(keyword);
+            const matchMonth =
+                (month === 'all') ||
+                (month === reportMonthNumber) ||
+                (month.toLowerCase() === reportMonthName.toLowerCase());
 
-            return matchYear && matchMonth && matchKeyword && r.status === 'Masuk';
+            const matchKeyword =
+                (!keyword) ||
+                (r.id?.toString().toLowerCase().includes(keyword)) ||
+                (r.nama?.toLowerCase().includes(keyword));
+
+            return matchYear && matchMonth && matchKeyword && (r.status === 'Masuk' || !r.status);
         });
 
-        localStorage.setItem('currentReportPage', 1); // reset ke halaman 1
-        renderReportList(); // gunakan hasil dari filteredReports
+        localStorage.setItem('currentReportPage', 1);
+        renderReportList(); // panggil render ulang
 
     } catch (e) {
         console.error('Error filtering reports:', e);

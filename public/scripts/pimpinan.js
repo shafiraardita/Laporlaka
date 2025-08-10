@@ -423,8 +423,8 @@ function updateChart() {
         }
 
         // Define adjustable sizes
-        const barChartWidth = 750;
-        const barChartHeight = 350;
+        const barChartWidth = 850;
+        const barChartHeight = 450;
 
         const pieChartWidth = 400;
         const pieChartHeight = 400;
