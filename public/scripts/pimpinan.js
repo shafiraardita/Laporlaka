@@ -545,11 +545,41 @@ function downloadChart() {
     try {
         const canvas = document.getElementById('accident-chart');
         if (!canvas || !chartInstance) {
-            throw new Error('Chart is not available for download');
+            throw new Error('Chart tidak tersedia untuk diunduh');
         }
+
+        const year = document.getElementById('year-select')?.value || new Date().getFullYear().toString();
+        const monthValue = document.getElementById('month-select')?.value;
+        let filename = 'accident-chart';
+
+        // Nama file lebih spesifik
+        if (monthValue && monthValue !== 'all') {
+            const monthNames = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            filename = `piechart-${monthNames[parseInt(monthValue) - 1]}-${year}`;
+        } else {
+            filename += `-${year}`;
+        }
+
+        // Buat canvas baru untuk memberi background putih
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = canvas.width;
+        exportCanvas.height = canvas.height;
+        const ctx = exportCanvas.getContext('2d');
+
+        // Isi background putih
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+        // Gambar chart asli di atas background putih
+        ctx.drawImage(canvas, 0, 0);
+
+        // Simpan sebagai JPEG
         const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
-        link.download = 'accident-chart.png';
+        link.href = exportCanvas.toDataURL('image/jpeg', 0.9); // JPEG kualitas 90%
+        link.download = `${filename}.jpeg`;
         link.click();
     } catch (e) {
         console.error('Error downloading chart:', e);
@@ -560,17 +590,37 @@ function downloadChart() {
 function downloadExcel() {
     try {
         if (typeof XLSX === 'undefined') {
-            throw new Error('SheetJS is not loaded');
+            throw new Error('SheetJS tidak dimuat');
         }
         const year = document.getElementById('year-select')?.value || new Date().getFullYear().toString();
-        const month = document.getElementById('month-select')?.value || 'all';
+        const monthValue = document.getElementById('month-select')?.value;
         const dataForYear = accidentData[year];
         if (!dataForYear) {
             alert('Data untuk tahun ini tidak tersedia.');
             return;
         }
+
         let data = [];
-        if (month === 'all') {
+        let sheetTitle = `Data Kecelakaan Tahun ${year}`;
+
+        if (monthValue && monthValue !== 'all') {
+            const monthNames = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            const month = monthNames[parseInt(monthValue, 10) - 1];
+            const d = dataForYear[month];
+            if (!d) {
+                alert('Data untuk bulan ini tidak tersedia.');
+                return;
+            }
+            sheetTitle = `Distribusi Kecelakaan ${month} ${year}`;
+            data = [
+                { Kategori: "Meninggal", Jumlah: d.meninggal || 0 },
+                { Kategori: "Luka Berat", Jumlah: d.lukaBerat || 0 },
+                { Kategori: "Luka Ringan", Jumlah: d.lukaRingan || 0 }
+            ];
+        } else {
             Object.keys(dataForYear).forEach(m => {
                 const d = dataForYear[m];
                 data.push({
@@ -581,30 +631,58 @@ function downloadExcel() {
                     'Luka Ringan': d.lukaRingan || 0
                 });
             });
-        } else {
-            const d = dataForYear[month];
-            if (!d) {
-                alert('Data untuk bulan ini tidak tersedia.');
-                return;
+        }
+
+        // Buat worksheet kosong
+        const worksheet = XLSX.utils.json_to_sheet([]);
+
+        // Tambahkan judul di A1
+        XLSX.utils.sheet_add_aoa(worksheet, [[sheetTitle]], { origin: "A1" });
+
+        // Tambahkan data di A3 (supaya ada jarak dari judul)
+        XLSX.utils.sheet_add_json(worksheet, data, { origin: "A3", skipHeader: false });
+
+        // Lebar kolom otomatis
+        const colWidths = Object.keys(data[0] || {}).map(key => ({
+            wch: Math.max(key.length + 2, ...data.map(row => String(row[key] || '').length + 2))
+        }));
+        worksheet['!cols'] = colWidths;
+
+        // Merge cell judul
+        const lastColIndex = Object.keys(data[0]).length - 1;
+        worksheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: lastColIndex } }];
+
+        // Style dasar (bold judul dan header, border semua cell)
+        const range = XLSX.utils.decode_range(worksheet['!ref']);
+        for (let R = range.s.r; R <= range.e.r; R++) {
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                if (!worksheet[cellRef]) continue;
+                worksheet[cellRef].s = {
+                    font: { bold: R === 0 || R === 2 }, // Judul & header bold
+                    alignment: { horizontal: R === 0 ? 'center' : (typeof worksheet[cellRef].v === 'number' ? 'center' : 'left'), vertical: 'center' },
+                    border: {
+                        top: { style: 'thin', color: { rgb: '000000' } },
+                        bottom: { style: 'thin', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: { style: 'thin', color: { rgb: '000000' } }
+                    }
+                };
             }
-            data.push({
-                Kategori: `Data ${month} ${year}`,
-                'Total Kecelakaan': d.total || 0,
-                Meninggal: d.meninggal || 0,
-                'Luka Berat': d.lukaBerat || 0,
-                'Luka Ringan': d.lukaRingan || 0
-            });
         }
 
-        if (data.length === 0) {
-            alert('Tidak ada data untuk diunduh.');
-            return;
-        }
-
-        const worksheet = XLSX.utils.json_to_sheet(data);
+        // Simpan workbook
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Kecelakaan');
-        XLSX.writeFile(workbook, `accident-data-${year}${month !== 'all' ? '-' + month : ''}.xlsx`);
+
+        let filename = 'accident-data';
+        if (monthValue && monthValue !== 'all') {
+            filename = `piechart-data-${monthValue}-${year}`;
+        } else {
+            filename += `-${year}`;
+        }
+
+        XLSX.writeFile(workbook, `${filename}.xlsx`);
     } catch (e) {
         console.error('Error downloading Excel:', e);
         showErrorBoundary('Gagal mengunduh Excel: ' + e.message);
@@ -2521,6 +2599,8 @@ function downloadMapImage(mapContainerId, filename = 'peta-wilayah') {
 }
 //download map data
 function downloadMapDataToExcel(year) {
+    console.log("Unduh Excel untuk tahun:", year);
+
     try {
         if (typeof XLSX === 'undefined') {
             alert('SheetJS (XLSX) tidak tersedia.');
@@ -2530,41 +2610,89 @@ function downloadMapDataToExcel(year) {
         const kecamatanSource = (year === '2024') ? kecamatanData : kecamatanData2023;
         const countSource = (year === '2024') ? accidentCounts2024 : accidentCounts2023;
 
+        console.log("Data kecamatan:", kecamatanSource);
+        console.log("Data kecelakaan:", countSource);
+
         if (!kecamatanSource || !countSource) {
             alert(`Data ${year} tidak ditemukan.`);
             return;
         }
 
-        const boundaries = {
-            'Bogor Barat': 'Sebelah Utara: Berbatasan dengan Kecamatan Kemang, Kabupaten Bogor; ...',
-            'Bogor Timur': 'Sebelah Utara: Berbatasan dengan Kecamatan Sukaraja dan Kecamatan Ciawi, ...',
-            'Bogor Selatan': 'Sebelah Utara: Berbatasan dengan Kecamatan Bogor Barat dan Bogor Tengah, ...',
-            'Bogor Utara': 'Sebelah Utara: Kecamatan Kemang dan Bojong Gede, ...',
-            'Bogor Tengah': 'Sebelah Utara: Kecamatan Bogor Utara, ...',
-            'Tanah Sareal': 'Sebelah Utara: Kecamatan Bogor Utara, ...'
-        };
+        // Data tanpa kolom Batas Wilayah
+        const data = Object.entries(kecamatanSource).map(([kecamatan, info]) => ({
+            Kecamatan: kecamatan,
+            'Jumlah Kecelakaan': countSource[kecamatan] || 0,
+            Latitude: info.lat,
+            Longitude: info.lng
+        }));
 
-        const data = [];
+        // Worksheet kosong
+        const worksheet = XLSX.utils.json_to_sheet([]);
 
-        for (const [kecamatan, info] of Object.entries(kecamatanSource)) {
-            const count = countSource[kecamatan] || 0;
-            const lat = info.lat;
-            const lng = info.lng;
-            const boundary = boundaries[kecamatan] || 'Batas wilayah tidak tersedia.';
+        // Tambah judul
+        const title = [`Data Titik Kecelakaan Kota Bogor Tahun ${year}`];
+        XLSX.utils.sheet_add_aoa(worksheet, [title], { origin: "A1" });
 
-            data.push({
-                Kecamatan: kecamatan,
-                'Jumlah Kecelakaan': count,
-                Latitude: lat,
-                Longitude: lng,
-                'Batas Wilayah': boundary
-            });
+        // Tambah data mulai baris ke-3
+        XLSX.utils.sheet_add_json(worksheet, data, { origin: "A3", skipHeader: false });
+
+        // Lebar kolom otomatis
+        const colWidths = Object.keys(data[0] || {}).map(key => ({
+            wch: Math.max(key.length + 2, ...data.map(row => String(row[key] || '').length + 2))
+        }));
+        worksheet['!cols'] = colWidths;
+
+        // Merge cell untuk judul
+        const lastColIndex = Object.keys(data[0]).length - 1;
+        worksheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: lastColIndex } }];
+
+        // Styling
+        const range = XLSX.utils.decode_range(worksheet['!ref']);
+        for (let R = range.s.r; R <= range.e.r; R++) {
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                if (!worksheet[cellRef]) continue;
+
+                if (R === 0) {
+                    // Judul
+                    worksheet[cellRef].s = {
+                        font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "4F81BD" } },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                } else if (R === 2) {
+                    // Header tabel
+                    worksheet[cellRef].s = {
+                        font: { bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "305496" } },
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: {
+                            top: { style: 'thin', color: { rgb: '000000' } },
+                            bottom: { style: 'thin', color: { rgb: '000000' } },
+                            left: { style: 'thin', color: { rgb: '000000' } },
+                            right: { style: 'thin', color: { rgb: '000000' } }
+                        }
+                    };
+                } else {
+                    // Data isi
+                    worksheet[cellRef].s = {
+                        alignment: { horizontal: typeof worksheet[cellRef].v === 'number' ? 'center' : 'left', vertical: 'center' },
+                        border: {
+                            top: { style: 'thin', color: { rgb: '000000' } },
+                            bottom: { style: 'thin', color: { rgb: '000000' } },
+                            left: { style: 'thin', color: { rgb: '000000' } },
+                            right: { style: 'thin', color: { rgb: '000000' } }
+                        }
+                    };
+                }
+            }
         }
 
-        const worksheet = XLSX.utils.json_to_sheet(data);
+        // Simpan workbook
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, `Titik Peta ${year}`);
         XLSX.writeFile(workbook, `titik-laporan-${year}.xlsx`);
+
     } catch (e) {
         console.error('Gagal download Excel:', e);
         showErrorBoundary('Gagal mengunduh data peta ke Excel: ' + e.message);
@@ -2781,9 +2909,13 @@ function downloadFilteredReports() {
         const year = document.getElementById('year-filter')?.value || 'all';
         const month = document.getElementById('month-filter')?.value || 'all';
 
-        // Ambil data yang sudah difilter di table
-        let filteredReports = reports;
+        // Filter awal: hanya laporan masuk
+        let filteredReports = reports.filter(r => {
+            const statusStr = String(r.status).toLowerCase();
+            return statusStr === '0' || statusStr === 'terkirim' || statusStr.includes('masuk');
+        });
 
+        // Filter tahun
         if (year !== 'all') {
             filteredReports = filteredReports.filter(report => {
                 const reportYear = new Date(report.tanggal).getFullYear().toString();
@@ -2791,42 +2923,56 @@ function downloadFilteredReports() {
             });
         }
 
+        // Filter bulan
         if (month !== 'all') {
             filteredReports = filteredReports.filter(report => {
                 const reportMonth = new Date(report.tanggal).toLocaleString('id-ID', { month: 'long' });
-                return reportMonth === month;
+                return reportMonth.toLowerCase() === month.toLowerCase();
             });
         }
 
         if (filteredReports.length === 0) {
-            alert('Tidak ada data yang sesuai dengan filter untuk diunduh.');
+            alert('Tidak ada data laporan masuk yang sesuai filter untuk diunduh.');
             return;
         }
 
-        // Siapkan data untuk di-export
+        // Data lengkap laporan masuk
         const data = filteredReports.map(report => ({
             ID: report.id,
             Nama: report.nama,
-            Tanggal: report.tanggal,
-            Jenis: report.jenis,
-            Titik: report.titik,
+            NIK: report.nik,
+            Email: report.email,
+            Telepon: report.telepon,
             Saksi: report.saksi,
-            Kronologi: report.kronologi,
-            Status: report.status
+            Titik: report.titik,
+            Kendaraan: report.kendaraan,
+            Jenis: report.jenis,
+            'Jumlah Korban': report.jumlahKorban,
+            Tanggal: report.tanggal,
+            Status: report.status,
+            Petugas: report.petugas || '-',
+            Kronologi: report.kronologi || '-'
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(data);
+
+        // Lebar kolom otomatis biar rapi
+        worksheet['!cols'] = Object.keys(data[0]).map(key => ({
+            wch: Math.max(
+                key.length,
+                ...data.map(row => String(row[key] || '').length)
+            ) + 2
+        }));
+
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan Masuk');
 
-        // Nama file dinamis
-        const filename = `laporan-masuk-${year}${month !== 'all' ? '-' + month : '-all'}.xlsx`;
-
+        const filename = `laporan-masuk-${year}${month !== 'all' ? '-' + month : ''}.xlsx`;
         XLSX.writeFile(workbook, filename);
 
     } catch (e) {
         console.error('Error downloading filtered reports:', e);
-        showErrorBoundary('Gagal mengunduh laporan: ' + e.message);
+        showErrorBoundary('Gagal mengunduh laporan masuk: ' + e.message);
     }
 }
 
