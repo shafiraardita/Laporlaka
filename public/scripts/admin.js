@@ -4342,7 +4342,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 window.onbeforeunload = null;
 // Pastikan fungsi bisa dipanggil dari tombol di HTML
-window.updateStatus = updateStatus;
-window.savePetugas = savePetugas;
-window.openReportModal = openReportModal;
+// 🔥 Pastikan semua fungsi tombol tersedia di global scope
+if (typeof window !== "undefined") {
+  window.updateStatus = updateStatus;
+  window.savePetugas = savePetugas;
+  window.openReportModal = openReportModal;
+  window.closeReportModal = closeReportModal;
+}
+
 
