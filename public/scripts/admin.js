@@ -1392,43 +1392,43 @@ function openReportModal(reportId) {
     const status = (report.status || '').toLowerCase();
 
     // Tombol dinamis berdasarkan status
-    // Tombol dinamis berdasarkan status angka
-switch (String(report.status)) {
-  case "0": // Masuk
-    if (petugasInput) petugasInput.disabled = true;
-    buttonContainer.innerHTML = `
-      <button class="accept-button" onclick="updateStatus('${reportId}', '1')">Terima</button>
-      <button class="reject-button" onclick="updateStatus('${reportId}', '4')">Tolak</button>
-      <button class="btn cancel-btn">Batal</button>
-    `;
-    break;
+    switch (status) {
+      case 'masuk':
+        if (petugasInput) petugasInput.disabled = true;
+        buttonContainer.innerHTML = `
+          <button class="accept-button" onclick="updateStatus('${reportId}', 'diterima')">Terima</button>
+          <button class="reject-button" onclick="updateStatus('${reportId}', 'ditolak')">Tolak</button>
+          <button class="btn cancel-btn">Batal</button>
+        `;
+        break;
 
-  case "1": // Diterima
-    if (petugasInput) petugasInput.disabled = false;
-    buttonContainer.innerHTML = `
-      <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
-      <button class="btn cancel-btn">Batal</button>
-    `;
-    break;
+      case 'diterima':
+        if (petugasInput) petugasInput.disabled = false;
+        buttonContainer.innerHTML = `
+          <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
+          <button class="btn cancel-btn">Batal</button>
+        `;
+        break;
 
-  case "2": // Penanganan
-    if (petugasInput) petugasInput.disabled = false;
-    buttonContainer.innerHTML = `
-      <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
-      <button class="complete-btn" onclick="updateStatus('${reportId}', '3')">Selesai</button>
-      <button class="btn cancel-btn">Batal</button>
-    `;
-    break;
+      case 'penanganan':
+        if (petugasInput) petugasInput.disabled = false;
+        buttonContainer.innerHTML = `
+          <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
+          <button class="complete-btn" onclick="updateStatus('${reportId}', 'selesai')">Selesai</button>
+          <button class="btn cancel-btn">Batal</button>
+        `;
+        break;
 
-  case "3": // Selesai
-  case "4": // Ditolak
-  default:
-    if (petugasInput) petugasInput.disabled = true;
-    buttonContainer.innerHTML = `
-      <button class="btn cancel-btn">Batal</button>
-    `;
-    break;
-}
+      case 'selesai':
+      case 'ditolak':
+      default:
+        if (petugasInput) petugasInput.disabled = true;
+        buttonContainer.innerHTML = `
+        <button class="btn cancel-btn">Batal</button>
+        `;
+        break;
+    }
+
     // Tampilkan modal
     modal.style.display = 'block';
 
@@ -1538,17 +1538,11 @@ function savePetugas(reportId) {
 }
 
 // Fungsi untuk memperbarui status laporan
-// Fungsi untuk memperbarui status laporan
 async function updateStatus(reportId, newStatus) {
-  console.log("Tombol diklik:", reportId, newStatus); // Debug, cek tombol jalan
-
   const report = reports.find(r => r.id === reportId);
-  if (!report) {
-    console.error("Report tidak ditemukan:", reportId);
-    return;
-  }
+  if (!report) return;
 
-  // Mapping status ke nilai backend
+  // Mapping status ke nilai yang diminta backend
   const statusMap = {
     "diterima": "1",
     "ditolak": "4",
@@ -1562,44 +1556,45 @@ async function updateStatus(reportId, newStatus) {
     return;
   }
 
+  console.log("Kirim ke API dengan:", { id: reportId, status: statusValue });
+
   try {
     const formData = new FormData();
     formData.append("id", reportId);
     formData.append("status", statusValue);
-
-    const petugasInput = document.getElementById("report-petugas");
-    const petugas = petugasInput ? petugasInput.value.trim() : "";
-    formData.append("petugas", petugas);
-
-    console.log("Kirim ke API:", { id: reportId, status: statusValue, petugas });
+    const petugasInput = document.getElementById('report-petugas');
+    const petugas = petugasInput ? petugasInput.value.trim() : '';
+    formData.append("petugas", petugas);
 
     const response = await fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
       method: "POST",
-      body: formData,
+      body: formData
     });
 
-    if (!response.ok) throw new Error(`Gagal update status: ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Gagal update status di server: ${response.status}`);
+    }
 
     const result = await response.json();
     console.log("Respons dari server:", result);
 
     if (result.kode !== 200) {
-      alert("Gagal update status: " + (result.message || "Unknown error"));
-      return;
+      throw new Error(result.message || "Update status gagal.");
     }
 
     alert(`Status laporan berhasil diubah menjadi ${newStatus}.`);
+
+    // Refresh data laporan dari server
+    // await loadAllReports();
     closeModal();
-    window.location.reload(); // supaya tabel ikut refresh
+    window.location.reload();
+
+    // Render ulang halaman pelacakan
+    renderTracking(getCurrentCategory());
   } catch (err) {
     console.error("Gagal mengubah status laporan:", err);
-    alert("Terjadi kesalahan saat mengubah status laporan.");
   }
 }
-
-// Pastikan fungsi bisa dipanggil dari HTML
-window.updateStatus = updateStatus;
-
 
 // async function loadAllReports() {
 //   try {
