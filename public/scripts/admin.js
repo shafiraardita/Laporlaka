@@ -1538,11 +1538,17 @@ function savePetugas(reportId) {
 }
 
 // Fungsi untuk memperbarui status laporan
+// Fungsi untuk memperbarui status laporan
 async function updateStatus(reportId, newStatus) {
-  const report = reports.find(r => r.id === reportId);
-  if (!report) return;
+  console.log("Tombol diklik:", reportId, newStatus); // Debug, cek tombol jalan
 
-  // Mapping status ke nilai yang diminta backend
+  const report = reports.find(r => r.id === reportId);
+  if (!report) {
+    console.error("Report tidak ditemukan:", reportId);
+    return;
+  }
+
+  // Mapping status ke nilai backend
   const statusMap = {
     "diterima": "1",
     "ditolak": "4",
@@ -1556,45 +1562,44 @@ async function updateStatus(reportId, newStatus) {
     return;
   }
 
-  console.log("Kirim ke API dengan:", { id: reportId, status: statusValue });
-
   try {
     const formData = new FormData();
     formData.append("id", reportId);
     formData.append("status", statusValue);
-    const petugasInput = document.getElementById('report-petugas');
-    const petugas = petugasInput ? petugasInput.value.trim() : '';
-    formData.append("petugas", petugas);
+
+    const petugasInput = document.getElementById("report-petugas");
+    const petugas = petugasInput ? petugasInput.value.trim() : "";
+    formData.append("petugas", petugas);
+
+    console.log("Kirim ke API:", { id: reportId, status: statusValue, petugas });
 
     const response = await fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
       method: "POST",
-      body: formData
+      body: formData,
     });
 
-    if (!response.ok) {
-      throw new Error(`Gagal update status di server: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Gagal update status: ${response.status}`);
 
     const result = await response.json();
     console.log("Respons dari server:", result);
 
     if (result.kode !== 200) {
-      throw new Error(result.message || "Update status gagal.");
+      alert("Gagal update status: " + (result.message || "Unknown error"));
+      return;
     }
 
     alert(`Status laporan berhasil diubah menjadi ${newStatus}.`);
-
-    // Refresh data laporan dari server
-    // await loadAllReports();
     closeModal();
-    window.location.reload();
-
-    // Render ulang halaman pelacakan
-    renderTracking(getCurrentCategory());
+    window.location.reload(); // supaya tabel ikut refresh
   } catch (err) {
     console.error("Gagal mengubah status laporan:", err);
+    alert("Terjadi kesalahan saat mengubah status laporan.");
   }
 }
+
+// Pastikan fungsi bisa dipanggil dari HTML
+window.updateStatus = updateStatus;
+
 
 // async function loadAllReports() {
 //   try {
