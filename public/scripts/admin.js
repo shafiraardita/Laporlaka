@@ -1343,11 +1343,18 @@ function searchReportById() {
 }
 
 // Fungsi untuk membuka modal detail laporan berdasarkan kategori
+// Mapping status angka ke nama
+const statusMap = {
+  0: 'masuk',       // Terkirim
+  1: 'diterima',
+  2: 'penanganan',
+  3: 'selesai',
+  4: 'ditolak'
+};
+
+// Fungsi membuka modal laporan
 function openReportModal(reportId) {
   try {
-    console.log("Report ID yang dipilih:", reportId);
-    console.log("Data reports:", reports);
-
     const report = reports.find(r => r.id == reportId);
     if (!report) {
       alert('Laporan tidak ditemukan!');
@@ -1355,250 +1362,175 @@ function openReportModal(reportId) {
     }
 
     const modal = document.getElementById('report-modal');
-    if (!modal) {
-      console.warn('Report modal not found');
-      return;
-    }
+    if (!modal) return;
 
     // Isi field modal
     document.getElementById('report-nama').value = report.nama || '';
     document.getElementById('report-nik').value = report.nik || '';
     document.getElementById('report-email').value = report.pelapor?.email || '';
-    document.getElementById('report-telepon').value = report.no_hp || '0813';
+    document.getElementById('report-telepon').value = report.no_hp || '';
     document.getElementById('report-saksi').value = report.saksi || '';
     document.getElementById('report-titik').value = report.titik || '';
     document.getElementById('report-kendaraan').value = report.kendaraan || '-';
     document.getElementById('report-jenis').value = report.jenis || '-';
     document.getElementById('report-jumlah-korban').value = report.jumlahKorban || '-';
     document.getElementById('report-tanggal').value = report.tanggal || '';
-    document.getElementById('report-status').innerText = report.status || '-';
+    document.getElementById('report-status').innerText = statusMap[report.status] || '-';
     document.getElementById('report-kronologi').value = report.kronologi || '';
     document.getElementById('report-bukti').src = report.bukti || '';
-    document.getElementById('report-petugas').value = report.petugas || '';
     const petugasInput = document.getElementById('report-petugas');
-    if (petugasInput) {
-      petugasInput.value = escapeHTML(report.petugas || '');
-    }
+    if (petugasInput) petugasInput.value = report.petugas || '';
 
+    // Tombol
     const buttonContainer = document.querySelector('.report-buttons');
-    if (!buttonContainer) {
-      console.warn('report-buttons container not found');
-      return;
+    if (!buttonContainer) return;
+    buttonContainer.innerHTML = ''; // kosongkan dulu tombol
+
+    const statusName = statusMap[report.status] || 'masuk';
+
+    switch (statusName) {
+      case 'masuk':
+        if (petugasInput) petugasInput.disabled = true;
+        buttonContainer.innerHTML = `
+          <button class="accept-button" onclick="updateStatus('${reportId}', 'diterima')">Terima</button>
+          <button class="reject-button" onclick="updateStatus('${reportId}', 'ditolak')">Tolak</button>
+          <button class="btn cancel-btn">Batal</button>
+        `;
+        break;
+
+      case 'diterima':
+        if (petugasInput) petugasInput.disabled = false;
+        buttonContainer.innerHTML = `
+          <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
+          <button class="btn cancel-btn">Batal</button>
+        `;
+        break;
+
+      case 'penanganan':
+        if (petugasInput) petugasInput.disabled = false;
+        buttonContainer.innerHTML = `
+          <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
+          <button class="complete-btn" onclick="updateStatus('${reportId}', 'selesai')">Selesai</button>
+          <button class="btn cancel-btn">Batal</button>
+        `;
+        break;
+
+      case 'selesai':
+      case 'ditolak':
+      default:
+        if (petugasInput) petugasInput.disabled = true;
+        buttonContainer.innerHTML = `<button class="btn cancel-btn">Batal</button>`;
+        break;
     }
 
-    buttonContainer.innerHTML = ''; // Kosongkan dulu tombol
-
-    // Status normalisasi huruf besar kecil
-    const status = (report.status || '').toLowerCase();
-
-    // Tombol dinamis berdasarkan status
-    // Tombol dinamis berdasarkan status angka
-switch ((report.status || "").toLowerCase()) {
-  case "masuk":
-    if (petugasInput) petugasInput.disabled = true;
-    buttonContainer.innerHTML = `
-      <button class="accept-button" onclick="updateStatus('${reportId}', 'diterima')">Terima</button>
-      <button class="reject-button" onclick="updateStatus('${reportId}', 'ditolak')">Tolak</button>
-      <button class="btn cancel-btn">Batal</button>
-    `;
-    break;
-
-  case "diterima":
-    if (petugasInput) petugasInput.disabled = false;
-    buttonContainer.innerHTML = `
-      <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
-      <button class="btn cancel-btn">Batal</button>
-    `;
-    break;
-
-  case "penanganan":
-    if (petugasInput) petugasInput.disabled = false;
-    buttonContainer.innerHTML = `
-      <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
-      <button class="complete-btn" onclick="updateStatus('${reportId}', 'selesai')">Selesai</button>
-      <button class="btn cancel-btn">Batal</button>
-    `;
-    break;
-
-  case "selesai":
-  case "ditolak":
-  default:
-    if (petugasInput) petugasInput.disabled = true;
-    buttonContainer.innerHTML = `
-      <button class="btn cancel-btn">Batal</button>
-    `;
-    break;
-}
-    // Tampilkan modal
-    modal.style.display = 'block';
-
-    // Event listener untuk tombol Batal (harus di-bind ulang setiap kali)
-    const cancelBtn = modal.querySelector('.cancel-btn');
+    // Bind tombol Batal
+    const cancelBtn = buttonContainer.querySelector('.cancel-btn');
     if (cancelBtn) {
       cancelBtn.addEventListener('click', closeReportModal);
     }
 
+    modal.style.display = 'block';
+
   } catch (e) {
     console.error('Error opening report modal:', e);
-    showErrorBoundary('Gagal membuka modal laporan: ' + e.message);
+    alert('Gagal membuka modal laporan: ' + e.message);
   }
 }
 
-
-document.addEventListener("DOMContentLoaded", () => {
-  const bukti = document.getElementById("report-bukti");
-  const modal = document.getElementById("zoomModal");
-  const zoomedImg = document.getElementById("zoomedImage");
-  const closeBtn = modal.querySelector(".close");
-
-  if (bukti && modal && zoomedImg && closeBtn) {
-    bukti.style.cursor = "zoom-in";
-
-    bukti.addEventListener("click", () => {
-      zoomedImg.src = bukti.src;
-      modal.style.display = "block";
-    });
-
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-  }
-});
-
-// Fungsi menutup modal laporan masuk
+// Tutup modal
 function closeReportModal() {
   const modal = document.getElementById('report-modal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
+  if (modal) modal.style.display = 'none';
 }
 
-
-// Fungsi untuk menyimpan petugas dan memperbarui status
+// Simpan petugas
 function savePetugas(reportId) {
-  const report = reports.find(r => r.id === reportId);
+  const report = reports.find(r => r.id == reportId);
   if (!report) return;
 
-  const petugas = document.getElementById('report-petugas').value.trim();
-  if (!petugas && report.status === 'Diterima') {
-    alert('Petugas harus diisi sebelum menyimpan!');
+  const petugasInput = document.getElementById('report-petugas');
+  const petugas = petugasInput ? petugasInput.value.trim() : '';
+
+  if (!petugas && report.status == 1) { // Diterima
+    alert('Petugas harus diisi!');
     return;
   }
 
   report.petugas = petugas;
+  report.status = 2; // Penanganan
 
-  const statusMap = {
-    "Penanganan": "2"
-  };
+  // Kirim ke API
+  const formData = new FormData();
+  formData.append('id', reportId);
+  formData.append('status', '2'); // Penanganan
+  formData.append('petugas', petugas);
 
-  if (report.status === 'Diterima' && petugas) {
-    report.status = 'Penanganan';
-
-    // Kirim ke API
-    const statusValue = statusMap[report.status];
-    const formData = new FormData();
-    formData.append("id", reportId);
-    formData.append("status", statusValue);
-    const petugasInput = document.getElementById('report-petugas');
-    const petugas = petugasInput ? petugasInput.value.trim() : '';
-    formData.append("petugas", petugas);
-
-    fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
-      method: "POST",
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      return response.json();
-    })
-    .then(result => {
-      console.log("Respons ubah status:", result);
-      if (result.kode !== 200) {
-        alert("Gagal mengubah status di server: " + (result.message || "Unknown error."));
-      } else {
-        console.log("Status berhasil diubah ke Penanganan.");
-      }
-    })
-    .catch(err => {
-      console.error("Gagal mengirim ke API:", err);
-      alert("Gagal mengirim status ke server.");
-    });
-  }
-
-//   localStorage.setItem('reports', JSON.stringify(reports));
-  alert('Petugas diperbarui.');
-  closeModal();
-  renderTracking(getCurrentCategory());
+  fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(result => {
+    if (result.kode !== 200) {
+      alert('Gagal update status: ' + (result.message || 'Unknown error'));
+    } else {
+      alert('Petugas berhasil disimpan.');
+      closeReportModal();
+      renderTracking(getCurrentCategory());
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Terjadi kesalahan saat menyimpan petugas.');
+  });
 }
 
-// Fungsi untuk memperbarui status laporan
-// Fungsi untuk memperbarui status laporan
-async function updateStatus(reportId, newStatus) {
-  console.log("Tombol diklik:", reportId, newStatus); // Debug, cek tombol jalan
+// Update status laporan
+function updateStatus(reportId, newStatus) {
+  const report = reports.find(r => r.id == reportId);
+  if (!report) return;
 
-  const report = reports.find(r => r.id === reportId);
-  if (!report) {
-    console.error("Report tidak ditemukan:", reportId);
-    return;
-  }
-
-  // Mapping status ke nilai backend
-  const statusMap = {
-    "diterima": "1",
-    "ditolak": "4",
-    "selesai": "3",
-    "penanganan": "2"
+  const statusValueMap = {
+    'diterima': '1',
+    'ditolak': '4',
+    'penanganan': '2',
+    'selesai': '3'
   };
 
-  const statusValue = statusMap[newStatus];
-  if (!statusValue) {
-    alert("Status tidak valid.");
-    return;
-  }
+  const statusValue = statusValueMap[newStatus];
+  if (!statusValue) return alert('Status tidak valid!');
 
-  try {
-    const formData = new FormData();
-    formData.append("id", reportId);
-    formData.append("status", statusValue);
+  const petugas = document.getElementById('report-petugas')?.value.trim() || '';
 
-    const petugasInput = document.getElementById("report-petugas");
-    const petugas = petugasInput ? petugasInput.value.trim() : "";
-    formData.append("petugas", petugas);
+  const formData = new FormData();
+  formData.append('id', reportId);
+  formData.append('status', statusValue);
+  formData.append('petugas', petugas);
 
-    console.log("Kirim ke API:", { id: reportId, status: statusValue, petugas });
-
-    const response = await fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) throw new Error(`Gagal update status: ${response.status}`);
-
-    const result = await response.json();
-    console.log("Respons dari server:", result);
-
+  fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(result => {
     if (result.kode !== 200) {
-      alert("Gagal update status: " + (result.message || "Unknown error"));
-      return;
+      alert('Gagal update status: ' + (result.message || 'Unknown error'));
+    } else {
+      report.status = parseInt(statusValue);
+      alert(`Status laporan diubah menjadi ${newStatus}.`);
+      closeReportModal();
+      renderTracking(getCurrentCategory());
     }
-
-    alert(`Status laporan berhasil diubah menjadi ${newStatus}.`);
-    closeModal();
-    window.location.reload(); // supaya tabel ikut refresh
-  } catch (err) {
-    console.error("Gagal mengubah status laporan:", err);
-    alert("Terjadi kesalahan saat mengubah status laporan.");
-  }
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Terjadi kesalahan saat update status.');
+  });
 }
 
 // Pastikan fungsi bisa dipanggil dari HTML
 window.updateStatus = updateStatus;
+window.savePetugas = savePetugas;git
 
 
 // async function loadAllReports() {
