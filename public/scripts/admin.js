@@ -1393,17 +1393,17 @@ function openReportModal(reportId) {
 
     // Tombol dinamis berdasarkan status
     // Tombol dinamis berdasarkan status angka
-switch (String(report.status)) {
-  case "0": // Masuk
+switch ((report.status || "").toLowerCase()) {
+  case "masuk":
     if (petugasInput) petugasInput.disabled = true;
     buttonContainer.innerHTML = `
-      <button class="accept-button" onclick="updateStatus('${reportId}', '1')">Terima</button>
-      <button class="reject-button" onclick="updateStatus('${reportId}', '4')">Tolak</button>
+      <button class="accept-button" onclick="updateStatus('${reportId}', 'diterima')">Terima</button>
+      <button class="reject-button" onclick="updateStatus('${reportId}', 'ditolak')">Tolak</button>
       <button class="btn cancel-btn">Batal</button>
     `;
     break;
 
-  case "1": // Diterima
+  case "diterima":
     if (petugasInput) petugasInput.disabled = false;
     buttonContainer.innerHTML = `
       <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
@@ -1411,17 +1411,17 @@ switch (String(report.status)) {
     `;
     break;
 
-  case "2": // Penanganan
+  case "penanganan":
     if (petugasInput) petugasInput.disabled = false;
     buttonContainer.innerHTML = `
       <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
-      <button class="complete-btn" onclick="updateStatus('${reportId}', '3')">Selesai</button>
+      <button class="complete-btn" onclick="updateStatus('${reportId}', 'selesai')">Selesai</button>
       <button class="btn cancel-btn">Batal</button>
     `;
     break;
 
-  case "3": // Selesai
-  case "4": // Ditolak
+  case "selesai":
+  case "ditolak":
   default:
     if (petugasInput) petugasInput.disabled = true;
     buttonContainer.innerHTML = `
