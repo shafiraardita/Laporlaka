@@ -1392,43 +1392,43 @@ function openReportModal(reportId) {
     const status = (report.status || '').toLowerCase();
 
     // Tombol dinamis berdasarkan status
-    switch (status) {
-      case 'masuk':
-        if (petugasInput) petugasInput.disabled = true;
-        buttonContainer.innerHTML = `
-          <button class="accept-button" onclick="updateStatus('${reportId}', 'diterima')">Terima</button>
-          <button class="reject-button" onclick="updateStatus('${reportId}', 'ditolak')">Tolak</button>
-          <button class="btn cancel-btn">Batal</button>
-        `;
-        break;
+    // Tombol dinamis berdasarkan status angka
+switch (String(report.status)) {
+  case "0": // Masuk
+    if (petugasInput) petugasInput.disabled = true;
+    buttonContainer.innerHTML = `
+      <button class="accept-button" onclick="updateStatus('${reportId}', '1')">Terima</button>
+      <button class="reject-button" onclick="updateStatus('${reportId}', '4')">Tolak</button>
+      <button class="btn cancel-btn">Batal</button>
+    `;
+    break;
 
-      case 'diterima':
-        if (petugasInput) petugasInput.disabled = false;
-        buttonContainer.innerHTML = `
-          <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
-          <button class="btn cancel-btn">Batal</button>
-        `;
-        break;
+  case "1": // Diterima
+    if (petugasInput) petugasInput.disabled = false;
+    buttonContainer.innerHTML = `
+      <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
+      <button class="btn cancel-btn">Batal</button>
+    `;
+    break;
 
-      case 'penanganan':
-        if (petugasInput) petugasInput.disabled = false;
-        buttonContainer.innerHTML = `
-          <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
-          <button class="complete-btn" onclick="updateStatus('${reportId}', 'selesai')">Selesai</button>
-          <button class="btn cancel-btn">Batal</button>
-        `;
-        break;
+  case "2": // Penanganan
+    if (petugasInput) petugasInput.disabled = false;
+    buttonContainer.innerHTML = `
+      <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
+      <button class="complete-btn" onclick="updateStatus('${reportId}', '3')">Selesai</button>
+      <button class="btn cancel-btn">Batal</button>
+    `;
+    break;
 
-      case 'selesai':
-      case 'ditolak':
-      default:
-        if (petugasInput) petugasInput.disabled = true;
-        buttonContainer.innerHTML = `
-        <button class="btn cancel-btn">Batal</button>
-        `;
-        break;
-    }
-
+  case "3": // Selesai
+  case "4": // Ditolak
+  default:
+    if (petugasInput) petugasInput.disabled = true;
+    buttonContainer.innerHTML = `
+      <button class="btn cancel-btn">Batal</button>
+    `;
+    break;
+}
     // Tampilkan modal
     modal.style.display = 'block';
 
