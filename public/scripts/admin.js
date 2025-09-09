@@ -938,7 +938,7 @@ async function fetchLaporanMasuk() {
     };
 
     const mappedReports = data.map(item => ({
-      id: String(item.id),
+      id: item.id,
       nama: item.nama_user || '',
       nik: item.nik || '',
       email: item.email || '',
@@ -959,35 +959,8 @@ async function fetchLaporanMasuk() {
     // Simpan ke array global
     reports = mappedReports;
 
-    // 🚨 Deteksi laporan baru
-    if (reports.length > lastReportCount) {
-      const newReports = reports.slice(lastReportCount); 
-      pendingReports.push(...newReports.map(r => r.id));
-
-      showPopup("Laporan terbaru masuk");
-      playNotificationSound();
-
-      // Set ulang reminder
-      if (reminderTimeout) clearTimeout(reminderTimeout);
-      reminderTimeout = setTimeout(() => {
-        // Cek apakah masih ada laporan "Masuk"
-        const masihPending = pendingReports.some(id => {
-          const r = reports.find(rep => String(rep.id) === String(id));
-          return r && r.status === "Masuk";
-        });
-
-        if (masihPending) {
-          showPopup("Laporan terbaru masuk");
-          playNotificationSound();
-        }
-      }, 5 * 60 * 1000); // 5 menit
-    }
-
-    // Update jumlah terakhir
-    lastReportCount = reports.length;
-
     // Tampilkan di tabel laporan masuk
-    renderReportList();
+    renderReportList();   // Tampilkan tabel laporan masuk
     renderStats();      
     renderTracking(getCurrentCategory());
     renderNotifications();
@@ -2342,12 +2315,6 @@ function showPopup(message) {
 function closePopup() {
     document.getElementById("popup-notif").classList.add("hidden");
     stopNotificationSound();
-
-    // 🔥 Batalkan reminder kalau popup ditutup manual
-    if (reminderTimeout) {
-        clearTimeout(reminderTimeout);
-        reminderTimeout = null;
-    }
 }
 
 // Mainkan suara
