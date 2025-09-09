@@ -87,6 +87,28 @@ button.logout-btn:hover {
 button.logout-btn:active {
   transform: scale(0.96);
 }
+
+.custom-alert {
+  position: fixed;
+  top: -60px; /* awal tersembunyi */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #28a745;  /* hijau ala alert sukses */
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-weight: 500;
+  z-index: 9999;
+  transition: top 0.3s ease-in-out, opacity 0.3s;
+  opacity: 0;
+}
+
+.custom-alert.show {
+  top: 20px; /* muncul di atas */
+  opacity: 1;
+}
+
 /* Overlay gelap transparan */
 #logout-overlay {
   position: fixed;

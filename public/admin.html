@@ -69,11 +69,21 @@
                     </div>
                 </div>
                 <div class="notification-section">
-                    <h3>Laporan Terbaru</h3>
-                    <div class="notification-list" id="notification-list"></div>
+                <h3>Laporan Terbaru</h3>
+                <div class="notification-list" id="notification-list"></div>
                 </div>
+
                 <!-- Audio untuk notifikasi -->
                 <audio id="notif-sound" src="notif.mp3" preload="auto"></audio>
+
+                <!-- Popup Notifikasi -->
+                <div id="popup-notif" class="popup hidden">
+                <div class="popup-content">
+                    <span id="popup-text">Notifikasi</span>
+                    <button class="close-btn" onclick="closePopup()">×</button>
+                </div>
+                </div>
+
                 <div class="evaluasi-section">
                     <h3>Evaluasi</h3>
                     <p>Evaluasi data kecelakaan lalu lintas untuk meningkatkan keselamatan.</p>

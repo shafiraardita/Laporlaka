@@ -960,13 +960,13 @@ async function fetchLaporanMasuk() {
     reports = mappedReports;
 
     // Tampilkan di tabel laporan masuk
-    renderReportList();   // Tampilkan tabel laporan masuk
-    renderStats();      
+    renderReportList();
+    renderStats();
     renderTracking(getCurrentCategory());
     renderNotifications();
   } catch (error) {
     console.error("Error:", error);
-    showErrorBoundary("Gagal memuat laporan dari server.");
+    showPopup("Gagal memuat laporan dari server.");
   }
 }
 
@@ -1533,7 +1533,7 @@ function savePetugas(reportId) {
 
 //   localStorage.setItem('reports', JSON.stringify(reports));
   alert('Petugas diperbarui.');
-  closeModal();
+  closeReportModal(); 
   renderTracking(getCurrentCategory());
 }
 
@@ -1586,7 +1586,7 @@ async function updateStatus(reportId, newStatus) {
 
     // Refresh data laporan dari server
     // await loadAllReports();
-    closeModal();
+    closeReportModal();
     window.location.reload();
 
     // Render ulang halaman pelacakan
@@ -2307,8 +2307,8 @@ function showPopup(message) {
     const popup = document.getElementById("popup-notif");
     const popupText = document.getElementById("popup-text");
 
-    popupText.textContent = message;
     popup.classList.remove("hidden");
+    popupText.textContent = message;
 }
 
 // Tutup popup
@@ -2345,19 +2345,20 @@ function renderNotifications() {
         let adaMerah = false;
 
         notificationList.innerHTML = recentReports.map(report => {
-            // Kalau laporan belum ditangani (anggap status = "0" atau merah)
-            if (report.status == 0) {
+            // Kalau laporan belum ditangani (status = "Masuk")
+            if (report.status === "Masuk" || report.status === "0") {
                 adaMerah = true;
                 showPopup(`Laporan baru dari ${report.nama}`);
             }
             return `
-                <div class="notification-item ${report.status == 0 ? 'red' : ''}">
+                <div class="notification-item ${report.status === "Masuk" || report.status === "0" ? 'red' : ''}">
                     <span class="status-indicator ${report.received ? 'read' : 'unread'}"></span>
                     <div class="details">
                         <span class="name">${escapeHTML(report.nama)}</span>
                         <span class="titik-laporan">${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + '...' : report.titik || '-')}</span>
                         <span class="date">${escapeHTML(report.tanggal)}</span>
-                        <button class="action-btn" onclick="navigateToLaporanMasuk(${report.id})">
+                        <!-- Kirim ID sebagai string agar nol depan tidak hilang -->
+                        <button class="action-btn" onclick="navigateToLaporanMasuk('${report.id}')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#ffffff" viewBox="0 0 16 16">
                                 <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                                 <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
@@ -2398,16 +2399,15 @@ function navigateToLaporanMasuk(reportId) {
 
         renderReportList();
 
-        // Beri sedikit delay agar render selesai sebelum buka modal
+        // Pastikan ID diperlakukan sebagai string
         setTimeout(() => {
-            openReportModal(reportId);
+            openReportModal(String(reportId));
         }, 200);
     } catch (e) {
         console.error('Error navigating to laporan masuk:', e);
         showErrorBoundary('Gagal membuka laporan masuk: ' + e.message);
     }
 }
-
 
 let evaluasiData = [
     { id: 1, title: "Evaluasi Kecelakaan Q1 2025", description: "Analisis kecelakaan di Kecamatan Bogor Barat menunjukkan peningkatan 10% dibandingkan Q4 2024.", period: "Jan-Mar 2025" },
