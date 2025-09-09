@@ -996,7 +996,7 @@ function renderLaporanMasuk(data) {
       <td>${report.saksi}</td>
       <td>${report.kronologi}</td>
       <td>${report.status}</td>
-      <td><button onclick="bukaDetailLaporan(${report.id})">Detail</button></td>
+      <td><button onclick="bukaDetailLaporan('${report.id}')">Detail</button></td>
       <td><a href="${report.bukti}" target="_blank">Unduh</a></td>
     `;
     tableBody.appendChild(row);
@@ -1018,7 +1018,7 @@ function renderTrackingLaporan(data) {
       <td>${report.jumlah_korban}</td>
       <td>${report.titik_kejadian}</td>
       <td>${report.kronologi}</td>
-      <td><button onclick="bukaDetailTracking(${report.id})">Detail</button></td>
+      <td><button onclick="bukaDetailTracking('${report.id}')">Detail</button></td>
       <td>${report.status}</td>
     `;
     tableBody.appendChild(row);
@@ -1225,7 +1225,7 @@ function renderReportList() {
                 <td>${escapeHTML(report.kronologi?.length > 80 ? report.kronologi.substring(0, 80) + '...' : report.kronologi || '-')}</td>
                 <td><span class="report-status ${report.status?.toLowerCase()}">${escapeHTML(report.status || 'Masuk')}</span></td>
                 <td>
-                    <button onclick="openReportModal(${report.id})">
+                    <button onclick="openReportModal('${report.id}')">
                         <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 16 16">
                             <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                             <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
@@ -1348,7 +1348,7 @@ function openReportModal(reportId) {
     console.log("Report ID yang dipilih:", reportId);
     console.log("Data reports:", reports);
 
-    const report = reports.find(r => r.id == reportId);
+    const report = reports.find(r => String(r.id) === String(reportId));
     if (!report) {
       alert('Laporan tidak ditemukan!');
       return;
@@ -1482,7 +1482,7 @@ function closeReportModal() {
 
 // Fungsi untuk menyimpan petugas dan memperbarui status
 function savePetugas(reportId) {
-  const report = reports.find(r => r.id === reportId);
+  const report = reports.find(r => String(r.id) === String(reportId));
   if (!report) return;
 
   const petugas = document.getElementById('report-petugas').value.trim();
@@ -1539,7 +1539,7 @@ function savePetugas(reportId) {
 
 // Fungsi untuk memperbarui status laporan
 async function updateStatus(reportId, newStatus) {
-  const report = reports.find(r => r.id === reportId);
+  const report = reports.find(r => String(r.id) === String(reportId));
   if (!report) return;
 
   // Mapping status ke nilai yang diminta backend
@@ -2961,7 +2961,7 @@ function renderTracking(category = 'all', filteredReports = null) {
                     <td>${escapeHTML(report.titik || '-')}</td>
                     <td>${escapeHTML(shortKronologi)}</td>
                     <td>
-                        <button class="detail-btn" onclick="openReportModal(${report.id})">
+                        <button class="detail-btn" onclick="openReportModal('${report.id}')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 16 16">
                                 <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                                 <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
