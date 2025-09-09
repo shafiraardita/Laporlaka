@@ -800,7 +800,7 @@ let reports = [
 
 function validateReportsData(data) {
     return Array.isArray(data) && data.every(report =>
-        typeof report.id === 'string' &&
+        typeof report.id === 'number' &&
         typeof report.nama === 'string' &&
         typeof report.nik === 'string' &&
         typeof report.email === 'string' &&
@@ -938,7 +938,7 @@ async function fetchLaporanMasuk() {
     };
 
     const mappedReports = data.map(item => ({
-      id: item.id || '',
+      id: item.id,
       nama: item.nama_user || '',
       nik: item.nik || '',
       email: item.email || '',
@@ -1029,7 +1029,7 @@ function bukaDetailLaporan(id) {
   fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1")
     .then(res => res.json())
     .then(data => {
-      const report = data.find(r => r.id === id);
+      const report = data.find(r => r.id === id.toString());
 
       if (report) {
         document.getElementById("report-nama").value = report.nama;
@@ -1216,7 +1216,7 @@ function renderReportList() {
         paginatedReports.forEach(report => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${escapeHTML(report.id || '')}</td>
+                <td>${escapeHTML(report.id?.toString() || '')}</td>
                 <td>${escapeHTML(report.nama?.length > 30 ? report.nama.substring(0, 30) + '...' : report.nama || '-')}</td>
                 <td>${escapeHTML(report.tanggal || '-')}</td>
                 <td>${escapeHTML(report.jenis || '-')}</td>
@@ -1225,7 +1225,7 @@ function renderReportList() {
                 <td>${escapeHTML(report.kronologi?.length > 80 ? report.kronologi.substring(0, 80) + '...' : report.kronologi || '-')}</td>
                 <td><span class="report-status ${report.status?.toLowerCase()}">${escapeHTML(report.status || 'Masuk')}</span></td>
                 <td>
-                    <button onclick="openReportModal('${report.id}')">
+                    <button onclick="openReportModal(${report.id})">
                         <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 16 16">
                             <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                             <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
@@ -1405,7 +1405,7 @@ function openReportModal(reportId) {
       case 'diterima':
         if (petugasInput) petugasInput.disabled = false;
         buttonContainer.innerHTML = `
-          <button class="save-btn" onclick="savePetugas('${report.id}')">Simpan</button>
+          <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
           <button class="btn cancel-btn">Batal</button>
         `;
         break;
@@ -1413,8 +1413,8 @@ function openReportModal(reportId) {
       case 'penanganan':
         if (petugasInput) petugasInput.disabled = false;
         buttonContainer.innerHTML = `
-          <button class="save-btn" onclick="savePetugas('${report.id}')">Simpan</button>
-          <button class="complete-btn" onclick="updateStatus('${report.id}', 'selesai')">Selesai</button>
+          <button class="save-btn" onclick="savePetugas('${reportId}')">Simpan</button>
+          <button class="complete-btn" onclick="updateStatus('${reportId}', 'selesai')">Selesai</button>
           <button class="btn cancel-btn">Batal</button>
         `;
         break;
@@ -1483,7 +1483,7 @@ function closeReportModal() {
 // Fungsi untuk menyimpan petugas dan memperbarui status
 function savePetugas(reportId) {
   const report = reports.find(r => r.id === reportId);
-//   if (!report) return;
+  if (!report) return;
 
   const petugas = document.getElementById('report-petugas').value.trim();
   if (!petugas && report.status === 'Diterima') {
@@ -1557,7 +1557,6 @@ async function updateStatus(reportId, newStatus) {
   }
 
   console.log("Kirim ke API dengan:", { id: reportId, status: statusValue });
-  console.log("Tipe ID:", typeof reportId, "Isi ID:", reportId);
 
   try {
     const formData = new FormData();
@@ -1565,7 +1564,7 @@ async function updateStatus(reportId, newStatus) {
     formData.append("status", statusValue);
     const petugasInput = document.getElementById('report-petugas');
     const petugas = petugasInput ? petugasInput.value.trim() : '';
-    formData.append("petugas", petugas);
+    formData.append("petugas", petugas);
 
     const response = await fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
       method: "POST",
@@ -1757,7 +1756,7 @@ function renderTrackingTable(data) {
 
     tbody.innerHTML = pageData.map(report => `
         <tr>
-        <td>${escapeHTML(report.id )}</td>
+        <td>${escapeHTML(report.id.toString())}</td>
         <td>${escapeHTML(report.nama?.length > 30 ? report.nama.substring(0, 30) + '...' : report.nama || '-')}</td>
         <td>${escapeHTML(report.tanggal || '-')}</td>
         <td>${escapeHTML(report.jenis || '-')}</td>
@@ -2300,6 +2299,39 @@ document.addEventListener('DOMContentLoaded', () => {
     renderStats(); // ← supaya langsung muncul tanpa klik menu
 });
 
+let notifSound = document.getElementById("notif-sound");
+let isSoundPlaying = false;
+
+// Tampilkan popup
+function showPopup(message) {
+    const popup = document.getElementById("popup-notif");
+    const popupText = document.getElementById("popup-text");
+
+    popupText.textContent = message;
+    popup.classList.remove("hidden");
+}
+
+// Tutup popup
+function closePopup() {
+    document.getElementById("popup-notif").classList.add("hidden");
+    stopNotificationSound();
+}
+
+// Mainkan suara
+function playNotificationSound() {
+    if (!isSoundPlaying) {
+        notifSound.loop = true;
+        notifSound.play();
+        isSoundPlaying = true;
+    }
+}
+
+// Hentikan suara
+function stopNotificationSound() {
+    notifSound.pause();
+    notifSound.currentTime = 0;
+    isSoundPlaying = false;
+}
 
 function renderNotifications() {
     try {
@@ -2310,28 +2342,43 @@ function renderNotifications() {
             .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
             .slice(0, 5);
 
-        notificationList.innerHTML = recentReports.map(report => `
-            <div class="notification-item">
-                <span class="status-indicator ${report.received ? 'read' : 'unread'}"></span>
-                <div class="details">
-                    <span class="name">${escapeHTML(report.nama)}</span>
-                    <span class="titik-laporan">${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + '...' : report.titik || '-')}</span>
-                    <span class="date">${escapeHTML(report.tanggal)}</span>
-                    <button class="action-btn" onclick="navigateToLaporanMasuk(${report.id})">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#ffffff" viewBox="0 0 16 16">
-                            <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
-                            <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
-                        </svg>
-                    </button>
+        let adaMerah = false;
+
+        notificationList.innerHTML = recentReports.map(report => {
+            // Kalau laporan belum ditangani (anggap status = "0" atau merah)
+            if (report.status == 0) {
+                adaMerah = true;
+                showPopup(`Laporan baru dari ${report.nama}`);
+            }
+            return `
+                <div class="notification-item ${report.status == 0 ? 'red' : ''}">
+                    <span class="status-indicator ${report.received ? 'read' : 'unread'}"></span>
+                    <div class="details">
+                        <span class="name">${escapeHTML(report.nama)}</span>
+                        <span class="titik-laporan">${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + '...' : report.titik || '-')}</span>
+                        <span class="date">${escapeHTML(report.tanggal)}</span>
+                        <button class="action-btn" onclick="navigateToLaporanMasuk(${report.id})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#ffffff" viewBox="0 0 16 16">
+                                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+
+        // Kalau ada laporan merah → bunyikan suara
+        if (adaMerah) {
+            playNotificationSound();
+        } else {
+            stopNotificationSound();
+        }
     } catch (e) {
         console.error('Error rendering notifications:', e);
         showErrorBoundary('Gagal memuat notifikasi: ' + e.message);
     }
 }
-
 
 function navigateToLaporanMasuk(reportId) {
     try {
@@ -2854,7 +2901,7 @@ function renderTracking(filteredReports = null) {
     const displayReports = filteredReports || reports;
     trackingTableBody.innerHTML = displayReports.map(report => `
         <tr>
-            <td>${escapeHTML(report.id)}</td>
+            <td>${escapeHTML(report.id.toString())}</td>
             <td>${escapeHTML(report.nama)}</td>
             <td>${escapeHTML(report.tanggal)}</td>
             <td>${escapeHTML(report.status)}</td>
@@ -2905,7 +2952,7 @@ function renderTracking(category = 'all', filteredReports = null) {
 
             return `
                 <tr>
-                    <td>${escapeHTML(report.id)}</td>
+                    <td>${escapeHTML(report.id.toString())}</td>
                     <td>${escapeHTML(report.nama)}</td>
                     <td>${escapeHTML(report.tanggal)}</td>
                     <td>${escapeHTML(report.jenis || '-')}</td>
@@ -4342,13 +4389,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 window.onbeforeunload = null;
-// Pastikan fungsi bisa dipanggil dari tombol di HTML
-// 🔥 Pastikan semua fungsi tombol tersedia di global scope
-if (typeof window !== "undefined") {
-  window.updateStatus = updateStatus;
-  window.savePetugas = savePetugas;
-  window.openReportModal = openReportModal;
-  window.closeReportModal = closeReportModal;
-}
-
-
