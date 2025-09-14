@@ -2304,25 +2304,13 @@ function renderNotifications() {
         const notificationList = document.getElementById('notification-list');
         if (!notificationList) return;
 
-        // Ambil hanya laporan yang belum selesai & belum ditolak
-        const filteredReports = reports.filter(r => r.status !== "3" && r.status !== "4");
-
-        // Urutkan berdasarkan tanggal terbaru lalu ambil 5
-        const recentReports = filteredReports
+        const recentReports = [...reports]
             .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
             .slice(0, 5);
 
         notificationList.innerHTML = recentReports.map(report => {
-            // Tentukan warna berdasarkan status
-            let statusClass = "";
-            if (report.status === "0") {
-                statusClass = "red"; // laporan baru masuk
-            } else if (report.status === "1" || report.status === "2") {
-                statusClass = "grey"; // laporan sudah diterima / sedang penanganan
-            }
-
             return `
-                <div class="notification-item ${statusClass}">
+                <div class="notification-item ${report.status === "Masuk" || report.status === "0" ? 'red' : ''}">
                     <div class="details">
                         <span class="name"><b>${escapeHTML(report.nama)}</b></span><br>
                         <span class="titik-laporan">${escapeHTML(
@@ -2336,7 +2324,6 @@ function renderNotifications() {
                 </div>
             `;
         }).join('');
-
     } catch (e) {
         console.error('Error rendering notifications:', e);
         showErrorBoundary('Gagal memuat notifikasi: ' + e.message);
