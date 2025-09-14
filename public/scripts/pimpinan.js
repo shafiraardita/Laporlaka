@@ -1480,35 +1480,50 @@ document.addEventListener('DOMContentLoaded', () => {
 // Tambahkan fungsi renderNotifications() di pimpinan.js jika belum ada
 function renderNotifications() {
     try {
-        const notificationList = document.getElementById('notification-list');
+        const notificationList = document.getElementById("notification-list");
         if (!notificationList) return;
 
-        const recentReports = [...reports]
+        // Ambil hanya laporan yang belum selesai (3) & belum ditolak (4)
+        const filteredReports = reports.filter(r => r.status !== "Selesai" && r.status !== "Ditolak");
+
+        // Urutkan dari terbaru, ambil 5
+        const recentReports = [...filteredReports]
             .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
             .slice(0, 5);
 
-        notificationList.innerHTML = recentReports.map(report => `
-            <div class="notification-item">
-                <span class="status-indicator ${report.received ? 'read' : 'unread'}"></span>
-                <div class="details">
-                    <span class="name">${escapeHTML(report.nama)}</span>
-                    <span class="titik-laporan">${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + '...' : report.titik || '-')}</span>
-                    <span class="date">${escapeHTML(report.tanggal)}</span>
-                    <button class="action-btn" onclick="navigateToLaporanMasuk(${report.id})">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#ffffff" viewBox="0 0 16 16">
-                            <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
-                            <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
-                        </svg>
-                    </button>
+        notificationList.innerHTML = recentReports.map(report => {
+            let statusClass = "read"; // default abu
+
+            if (report.status === "Masuk") {
+                statusClass = "unread"; // merah
+            } else if (report.status === "Diterima" || report.status === "Penanganan") {
+                statusClass = "read";   // abu
+            }
+
+            return `
+                <div class="notification-item">
+                    <span class="status-indicator ${statusClass}"></span>
+                    <div class="details">
+                        <span class="name">${escapeHTML(report.nama)}</span>
+                        <span class="titik-laporan">
+                            ${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + "..." : report.titik || "-")}
+                        </span>
+                        <span class="date">${escapeHTML(report.tanggal)}</span>
+                        <button class="action-btn" onclick="navigateToLaporanMasuk('${report.id}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#ffffff" viewBox="0 0 16 16">
+                                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join("");
+
     } catch (e) {
-        console.error('Error rendering notifications:', e);
-        showErrorBoundary('Gagal memuat notifikasi: ' + e.message);
+        console.error("Error rendering notifications:", e);
     }
 }
-
 
 function navigateToLaporanMasuk(reportId) {
     try {
