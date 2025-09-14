@@ -755,48 +755,7 @@ function generateReportId() {
 
 const baseTimestamp = 1741959840000;
 idCounter = 0;
-let reports = [
-    { id: generateReportId(), nama: "Robi Maulana", nik: "1234567890123456", email: "robi.maulana@example.com", telepon: "081234567890", tanggal: "2024-03-25 17:30", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident1.jpg", saksi: "Budi Santoso", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang" },
-    { id: generateReportId(), nama: "Siti Kayla", nik: "6543210987654321", email: "siti.kayla@example.com", telepon: "081987654321", tanggal: "2024-02-22 10:11", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident2.jpg", saksi: "Ani Lestari", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Zikrillah", nik: "9876543210123456", email: "zikrillah@example.com", telepon: "081234567891", tanggal: "2024-03-18 05:25", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident3.jpg", saksi: "Rudi Hartono", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Aditya Pratama", nik: "1234567890123457", email: "aditya.pratama@example.com", telepon: "081234567892", tanggal: "2024-04-01 09:00", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident4.jpg", saksi: "Dedi Susanto", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Dian Puspita", nik: "3210987654321098", email: "dianpuspita@example.com", telepon: "081345678901", tanggal: "2024-01-03 14:20", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident5.jpg", saksi: "Lisa Maharani", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Fajar Nugroho", nik: "1234509876543210", email: "fajarnugroho@example.com", telepon: "081456789012", tanggal: "2024-04-04 12:00", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident6.jpg", saksi: "Yusuf Maulana", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Rina Apriani", nik: "6789012345678901", email: "rina.apriani@example.com", telepon: "081234567893", tanggal: "2024-02-05 17:00", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident7.jpg", saksi: "Dodi Wirawan", petugas: "", received: true, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Bayu Firmansyah", nik: "7890123456789012", email: "bayu.firmansyah@example.com", telepon: "081234567894", tanggal: "2024-04-06 08:10", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident8.jpg", saksi: "Irfan Setiawan", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Fitriani", nik: "8901234567890123", email: "fitriani@example.com", telepon: "081234567895", tanggal: "2024-05-07 20:30", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident9.jpg", saksi: "Nova Sari", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Agus Widodo", nik: "9012345678901234", email: "agus.widodo@example.com", telepon: "081234567896", tanggal: "2024-06-08 11:45", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident10.jpg", saksi: "Reza Purnama", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Intan Permata", nik: "2345678901234567", email: "intan.permata@example.com", telepon: "081234567897", tanggal: "2024-05-09 13:50", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident11.jpg", saksi: "Wulan Sari", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Gilang Saputra", nik: "3456789012345678", email: "gilang.saputra@example.com", telepon: "081234567898", tanggal: "2024-06-10 16:05", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident12.jpg", saksi: "Taufik Hidayat", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Mega Sari", nik: "4567890123456789", email: "mega.sari@example.com", telepon: "081234567899", tanggal: "2024-01-11 07:25", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident13.jpg", saksi: "Siska Nursanti", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Rizky Dwi Putra", nik: "5678901234567890", email: "rizky.dwi@example.com", telepon: "081234567800", tanggal: "2024-02-12 10:10", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident14.jpg", saksi: "Andini Fitria", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Lutfi Aulia", nik: "6789012345678901", email: "lutfi.aulia@example.com", telepon: "081234567801", tanggal: "2024-03-13 18:40", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident15.jpg", saksi: "Erik Setiawan", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Tania Maharani", nik: "7890123456789012", email: "tania.maharani@example.com", telepon: "081234567802", tanggal: "2024-05-14 15:15", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident16.jpg", saksi: "Arif Kurniawan", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Alfian Ramadhan", nik: "8901234567890123", email: "alfian.ramadhan@example.com", telepon: "081234567803", tanggal: "2024-06-15 09:30", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident17.jpg", saksi: "Ratna Komalasari", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Desi Arisanti", nik: "9012345678901234", email: "desi.arisanti@example.com", telepon: "081234567804", tanggal: "2024-07-16 19:00", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident18.jpg", saksi: "Hasan Alwi", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Imam Hidayat", nik: "0123456789012345", email: "imam.hidayat@example.com", telepon: "081234567805", tanggal: "2024-08-17 06:55", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident19.jpg", saksi: "Yuni Kartika", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Dewi Lestari", nik: "1234567890123450", email: "dewi.lestari@example.com", telepon: "081234567806", tanggal: "2024-01-18 08:45", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident20.jpg", saksi: "Tomi Sutrisno", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Andi Pratama", nik: "1234567890123451", email: "andi.pratama@example.com", telepon: "081234567807", tanggal: "2024-02-19 14:25", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident21.jpg", saksi: "Rina Wulandari", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan beruntun", jumlahKorban: "3", kronologi: "Motor bertabrakan dengan mobil dan truk karena rem blong" },
-    { id: generateReportId(), nama: "Riska Amelia", nik: "1234567890123452", email: "riska.amelia@example.com", telepon: "081234567808", tanggal: "2024-03-20 09:15", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident22.jpg", saksi: "Hendra Wijaya", petugas: "", received: false, kendaraan: "roda 4", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Mobil tergelincir di jalan licin akibat hujan" },
-    { id: generateReportId(), nama: "Bima Sakti", nik: "1234567890123453", email: "bima.sakti@example.com", telepon: "081234567809", tanggal: "2024-04-21 16:40", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident23.jpg", saksi: "Siti Aminah", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan dengan pejalan kaki", jumlahKorban: "2", kronologi: "Motor menabrak pejalan kaki yang sedang menyeberang" },
-    { id: generateReportId(), nama: "Nia Ramadhani", nik: "1234567890123454", email: "nia.ramadhani@example.com", telepon: "081234567810", tanggal: "2024-05-22 11:50", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident24.jpg", saksi: "Eko Prasetyo", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor jatuh karena menghindari lubang di jalan" },
-    { id: generateReportId(), nama: "Hadi Santoso", nik: "1234567890123455", email: "hadi.santoso@example.com", telepon: "081234567811", tanggal: "2024-06-23 07:30", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident25.jpg", saksi: "Ayu Lestari", petugas: "", received: false, kendaraan: "roda 4", jenis: "Tabrakan beruntun", jumlahKorban: "4", kronologi: "Mobil menabrak kendaraan lain karena kelalaian pengemudi" },
-    { id: generateReportId(), nama: "Lina Marlina", nik: "1234567890123458", email: "lina.marlina@example.com", telepon: "081234567812", tanggal: "2024-07-24 18:20", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident26.jpg", saksi: "Doni Hermawan", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "2", kronologi: "Motor tergelincir akibat jalanan basah" },
-    { id: generateReportId(), nama: "Rudi Hartono", nik: "1234567890123459", email: "rudi.hartono@example.com", telepon: "081234567813", tanggal: "2024-08-25 13:10", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident27.jpg", saksi: "Maya Sari", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan dengan kendaraan lain", jumlahKorban: "3", kronologi: "Motor menabrak mobil yang sedang berhenti di lampu merah" },
-    { id: generateReportId(), nama: "Eka Putri", nik: "1234567890123460", email: "eka.putri@example.com", telepon: "081234567814", tanggal: "2024-09-26 10:05", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident28.jpg", saksi: "Bambang Susilo", petugas: "", received: false, kendaraan: "roda 4", jenis: "Kecelakaan tunggal", jumlahKorban: "2", kronologi: "Mobil menabrak pembatas jalan karena pengemudi mengantuk" },
-    { id: generateReportId(), nama: "Surya Wijaya", nik: "1234567890123461", email: "surya.wijaya@example.com", telepon: "081234567815", tanggal: "2024-10-27 15:55", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident29.jpg", saksi: "Rina Wulandari", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor jatuh karena kehilangan keseimbangan" },
-    { id: generateReportId(), nama: "Ayu Lestari", nik: "1234567890123462", email: "ayu.lestari@example.com", telepon: "081234567816", tanggal: "2024-04-28 08:40", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident30.jpg", saksi: "Faisal Rahman", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan beruntun", jumlahKorban: "3", kronologi: "Motor bertabrakan dengan dua kendaraan lain di persimpangan" },
-    { id: generateReportId(), nama: "Dedi Susanto", nik: "1234567890123463", email: "dedi.susanto@example.com", telepon: "081234567817", tanggal: "2023-01-29 17:00", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident31.jpg", saksi: "Nia Ramadhani", petugas: "", received: false, kendaraan: "roda 4", jenis: "Kecelakaan tunggal", jumlahKorban: "2", kronologi: "Mobil tergelincir dan menabrak pohon di pinggir jalan" },
-    { id: generateReportId(), nama: "Maya Sari", nik: "1234567890123464", email: "maya.sari@example.com", telepon: "081234567818", tanggal: "2023-04-30 12:30", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident32.jpg", saksi: "Andi Pratama", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor jatuh karena ban kempes" },
-    { id: generateReportId(), nama: "Bambang Susilo", nik: "1234567890123465", email: "bambang.susilo@example.com", telepon: "081234567819", tanggal: "2023-02-01 09:20", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident33.jpg", saksi: "Surya Wijaya", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan dengan pejalan kaki", jumlahKorban: "2", kronologi: "Motor menabrak pejalan kaki di zebra crossing" },
-    { id: generateReportId(), nama: "Faisal Rahman", nik: "1234567890123466", email: "faisal.rahman@example.com", telepon: "081234567820", tanggal: "2023-05-03 14:45", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident34.jpg", saksi: "Lina Marlina", petugas: "", received: false, kendaraan: "roda 4", jenis: "Tabrakan beruntun", jumlahKorban: "5", kronologi: "Mobil menabrak beberapa kendaraan karena pengemudi mabuk" },
-    { id: generateReportId(), nama: "Rina Wulandari", nik: "1234567890123467", email: "rina.wulandari@example.com", telepon: "081234567821", tanggal: "2023-05-03 11:15", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident35.jpg", saksi: "Hadi Santoso", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor menabrak trotoar karena kehilangan kendali" },
-    { id: generateReportId(), nama: "Tomi Sutrisno", nik: "1234567890123468", email: "tomi.sutrisno@example.com", telepon: "081234567822", tanggal: "2023-02-04 16:30", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident36.jpg", saksi: "Riska Amelia", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "2", kronologi: "Motor tergelincir di tikungan tajam" },
-    { id: generateReportId(), nama: "Yuni Kartika", nik: "1234567890123469", email: "yuni.kartika@example.com", telepon: "081234567823", tanggal: "2023-03-05 08:50", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident37.jpg", saksi: "Bima Sakti", petugas: "", received: false, kendaraan: "roda 4", jenis: "Kecelakaan tunggal", jumlahKorban: "3", kronologi: "Mobil menabrak pembatas jalan akibat kabut tebal" },
-    { id: generateReportId(), nama: "Hendra Wijaya", nik: "1234567890123470", email: "hendra.wijaya@example.com", telepon: "081234567824", tanggal: "2023-04-06 13:40", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident38.jpg", saksi: "Eka Putri", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan dengan kendaraan lain", jumlahKorban: "2", kronologi: "Motor menabrak mobil yang sedang parkir" },
-    { id: generateReportId(), nama: "Siti Aminah", nik: "1234567890123471", email: "siti.aminah@example.com", telepon: "081234567825", tanggal: "2023-06-07 10:25", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident39.jpg", saksi: "Rudi Hartono", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor jatuh karena jalanan berlubang" },
-    { id: generateReportId(), nama: "Eko Prasetyo", nik: "1234567890123472", email: "eko.prasetyo@example.com", telepon: "081234567826", tanggal: "2023-06-08 15:10", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident40.jpg", saksi: "Maya Sari", petugas: "", received: false, kendaraan: "roda 4", jenis: "Tabrakan beruntun", jumlahKorban: "4", kronologi: "Mobil bertabrakan dengan kendaraan lain di jalan tol" }
-];
+let reports = [];
 
 function validateReportsData(data) {
     return Array.isArray(data) && data.every(report =>
@@ -2304,31 +2263,51 @@ function renderNotifications() {
         const notificationList = document.getElementById('notification-list');
         if (!notificationList) return;
 
-        const recentReports = [...reports]
+        // Ambil hanya laporan yang bukan selesai (3) atau ditolak (4)
+        const filteredReports = reports.filter(r => r.status !== "3" && r.status !== "4");
+
+        // Urutkan dari terbaru
+        const recentReports = [...filteredReports]
             .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
             .slice(0, 5);
 
         notificationList.innerHTML = recentReports.map(report => {
+            let statusClass = "read"; // default abu
+
+            // Mapping status ke warna dot
+            if (report.status === "Masuk") {
+            statusClass = "unread"; // merah
+            } else if (report.status === "Diterima" || report.status === "Penanganan") {
+            statusClass = "read"; // abu
+            }
+
+
             return `
-                <div class="notification-item ${report.status === "Masuk" || report.status === "0" ? 'red' : ''}">
+                <div class="notification-item">
+                    <span class="status-indicator ${statusClass}"></span>
                     <div class="details">
-                        <span class="name"><b>${escapeHTML(report.nama)}</b></span><br>
-                        <span class="titik-laporan">${escapeHTML(
-                            report.titik?.length > 40 ? report.titik.substring(0, 40) + '...' : report.titik || '-'
-                        )}</span><br>
+                        <span class="name">${escapeHTML(report.nama)}</span>
+                        <span class="titik-laporan">
+                            ${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + '...' : report.titik || '-')}
+                        </span>
                         <span class="date">${escapeHTML(report.tanggal)}</span>
                         <button class="action-btn" onclick="navigateToLaporanMasuk('${report.id}')">
-                            Lihat
+                            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#ffffff" viewBox="0 0 16 16">
+                                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+                            </svg>
                         </button>
                     </div>
                 </div>
             `;
         }).join('');
+
     } catch (e) {
         console.error('Error rendering notifications:', e);
         showErrorBoundary('Gagal memuat notifikasi: ' + e.message);
     }
 }
+
 
 function navigateToLaporanMasuk(reportId) {
     try {
