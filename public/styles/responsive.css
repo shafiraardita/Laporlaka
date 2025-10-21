@@ -192,7 +192,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;
+    height: 100%;
     width: 240px;
     background-color: #ffffff;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
