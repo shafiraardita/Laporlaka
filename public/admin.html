@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sistem Monitoring</title>
     <link rel="stylesheet" href="styles/admin.css">
+    <link rel="stylesheet" href="styles/responsive.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -14,35 +15,58 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <img src="https://img.icons8.com/ios-filled/50/000000/pdf.png" alt="Download PDF" style="width: 28px; height: 28px;" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://maps.googleapis.com/maps/api/js?key=AKTUAL_API_KEY_KAMU&libraries=geometry,drawing&callback=initMap" async defer></script>
 </head>
 <body>
     <header class="header">
-        <div class="logo">
-            <span class="dot"></span>
-            <span class="logo-text">LaporLaka</span>
-        </div>
-        <div class="user-info">
-            <button class="logout-btn" onclick="handleLogout()">Keluar</button>
-            <span class="user-name">Pengguna: <span id="username">admin</span></span>
-            <img id="profile-icon-header" src="assets/user.png" alt="Profile Icon" class="profile-icon-header">
-        </div>
-    </header>
+  <button id="collapseSidebar" class="collapse-btn text-[#375B85] text-2xl p-2">
+    ☰
+  </button>  
+  <div class="user-info">
+    <button class="logout-btn" onclick="handleLogout()">Keluar</button>
+    <span class="user-name">Pengguna: <span id="username">admin</span></span>
+  </div>
+</header>
 
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <img id="sidebar-profile-icon" src="assets/user.png" alt="Profile Icon" class="profile-icon">
-            <span class="sidebar-title">admin</span>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="#home" class="nav-item" data-section="home-section">Beranda</a>
-            <a href="#laporan-masuk" class="nav-item" data-section="laporan-masuk-section">Laporan Masuk</a>
-            <a href="#monitoring" class="nav-item" data-section="monitoring-section">Monitoring Data</a>
-            <a href="#titik-laporan" class="nav-item" data-section="titik-laporan-section">Titik Laporan</a>
-            <a href="#tracking" class="nav-item" data-section="tracking-section">Pelacakan Laporan</a>
-            <a href="#manage-pengguna" class="nav-item" data-section="manage-pengguna-section">Manajemen Pengguna</a>
-        </nav>
-    </div>
+   <div class="sidebar">
+  <div id="sidebar-profile-btn" class="sidebar-header flex items-center justify-start gap-2 p-3 cursor-pointer">
+  <img id="sidebar-profile-icon" src="assets/user.png" alt="Profile Icon" class="profile-icon w-8 h-8">
+  <span class="sidebar-title font-semibold text-[#375B85]">admin</span>
+</div>
+
+  <nav class="sidebar-nav flex flex-col mt-2">
+    <a href="#home" class="nav-item flex items-center justify-start gap-2 pl-3 pr-2 py-2" data-section="home-section">
+      <i class="fas fa-home w-5 text-[#375B85]"></i>
+      <span class="nav-text">Beranda</span>
+    </a>
+    <a href="#laporan-masuk" class="nav-item flex items-center justify-start gap-2 pl-3 pr-2 py-2" data-section="laporan-masuk-section">
+      <i class="fas fa-inbox w-5 text-[#375B85]"></i>
+      <span class="nav-text">Laporan Masuk</span>
+    </a>
+    <a href="#monitoring" class="nav-item flex items-center justify-start gap-2 pl-3 pr-2 py-2" data-section="monitoring-section">
+      <i class="fas fa-chart-line w-5 text-[#375B85]"></i>
+      <span class="nav-text">Monitoring Data</span>
+    </a>
+    <a href="#titik-laporan" class="nav-item flex items-center justify-start gap-2 pl-3 pr-2 py-2" data-section="titik-laporan-section">
+      <i class="fas fa-map-marker-alt w-5 text-[#375B85]"></i>
+      <span class="nav-text">Titik Laporan</span>
+    </a>
+    <a href="#tracking" class="nav-item flex items-center justify-start gap-2 pl-3 pr-2 py-2" data-section="tracking-section">
+      <i class="fas fa-route w-5 text-[#375B85]"></i>
+      <span class="nav-text">Pelacakan Laporan</span>
+    </a>
+    <a href="#manage-petugas" class="nav-item flex items-center justify-start gap-2 pl-3 pr-2 py-2" data-section="manage-petugas-section">
+      <i class="fas fa-user-shield w-5 text-[#375B85]"></i>
+      <span class="nav-text">Manajemen Petugas</span>
+    </a>
+    <a href="#manage-pengguna" class="nav-item flex items-center justify-start gap-2 pl-3 pr-2 py-2" data-section="manage-pengguna-section">
+      <i class="fas fa-users w-5 text-[#375B85]"></i>
+      <span class="nav-text">Manajemen Pengguna</span>
+    </a>
+  </nav>
+</div>
+
 
     <main class="main-content">
         <section id="home-section" class="content-section">
@@ -241,78 +265,110 @@
 </section>
         
 <section id="manage-pengguna-section" class="content-section">
-    <h2>Manajemen Pengguna</h2>
-    <div class="section-content">
-        <button id="add-user-btn">Tambah Pengguna</button>
+  <h2>Manajemen Pengguna</h2>
+  <div style="margin-top: 10px; text-align: right;">
+  <button onclick="openAddUserModal()" 
+          style="background:#007bff; color:#fff; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;">
+    + Tambah Pengguna
+  </button>
+</div>
 
-        <!-- Modal Tambah Pengguna -->
-        <div id="user-modal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="modal-close" id="user-modal-close">×</span>
-                <h3>Manajemen Pengguna</h3>
-                <form id="add-user-form">
-                    <label>
-                        Nama:
-                        <input type="text" id="user-nama" required>
-                    </label>
-                    <label>
-                        NIK:
-                        <input type="text" id="user-nik" required>
-                    </label>
-                    <label>
-                        Email:
-                        <input type="email" id="user-email" required>
-                    </label>
-                    <label>
-                        Telepon:
-                        <input type="text" id="user-telepon" required>
-                    </label>
-                    <label>
-                        Alamat:
-                        <input type="text" id="user-alamat" required>
-                    </label>
-                    <button type="submit" id="save-user-btn">Simpan</button>
-                    <button type="button" id="cancel-user-btn">Batal</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Filter dan Search -->
-        <div class="user-controls" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
-            <input type="text" id="user-search" placeholder="Cari pengguna..." style="flex: 1; padding: 6px;" />
-            <select id="user-sort" style="padding: 6px; min-width: 200px;">
-                <option value="az">Urutkan A-Z</option>
-                <option value="za">Urutkan Z-A</option>
-                <option value="terbaru">Aktif Terbaru</option>
-                <option value="terlama">Aktif Terlama</option>
-            </select>
-        </div>
-
-        <!-- Tabel Data Pengguna -->
-        <div class="table-card">
-            <table class="user-table" style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr>
-                        <th>Nama</th>
-                        <th>Email</th>
-                        <th>Terakhir Aktif</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="user-table-body">
-                    <!-- Diisi dari JS -->
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="pagination-center" style="text-align: center; margin-top: 20px;">
-            <button id="prev-page">Kembali</button>
-            <button id="next-page">Lanjut</button>
-        </div>
+  <div class="section-content">
+    <!-- Filter pencarian & urutkan -->
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
+      <input 
+        type="text" 
+        id="approved-user-search" 
+        placeholder="Cari pengguna..." 
+        style="flex: 1; padding: 6px;" 
+        oninput="searchUsers('approved')" 
+      />
+      <select 
+        id="approved-user-sort" 
+        style="padding: 6px; min-width: 200px;" 
+        onchange="sortUsers('approved')"
+      >
+        <option value="az">Urutkan A-Z</option>
+        <option value="za">Urutkan Z-A</option>
+        <option value="terbaru">Aktif Terbaru</option>
+        <option value="terlama">Aktif Terlama</option>
+      </select>
     </div>
+
+    <!-- Tabel daftar pengguna -->
+    <div class="table-card">
+      <h3>Daftar Pengguna</h3>
+      <table class="user-table" style="width: 100%; border-collapse: collapse; text-align:center;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nama</th>
+            <th>Email</th>
+            <th>Password</th>
+            <th>No HP</th>
+            <th>NIK</th>
+            <th>Kategori</th>
+            <th>Terakhir Aktif</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="approved-user-table-body">
+          <!-- Data dari JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>
 
+<!-- Modal Tambah/Edit User -->
+<div id="user-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+  <div style="background:#fff; max-width:500px; margin:60px auto; padding:20px; border-radius:10px; position:relative;">
+    <h3 id="user-modal-title">Edit User</h3>
+
+    <input type="hidden" id="user-id">
+
+    <div style="margin-bottom:10px;">
+      <label>Nama:</label>
+      <input type="text" id="user-nama" style="width:100%; padding:6px;">
+    </div>
+
+    <div style="margin-bottom:10px;">
+      <label>Email:</label>
+      <input type="email" id="user-email" style="width:100%; padding:6px;">
+    </div>
+
+    <div style="margin-bottom:10px;">
+      <label>No HP:</label>
+      <input type="text" id="user-nohp" style="width:100%; padding:6px;">
+    </div>
+
+    <div style="margin-bottom:10px;">
+      <label>NIK:</label>
+      <input type="text" id="user-nik" style="width:100%; padding:6px;">
+    </div>
+
+    <div style="margin-bottom:10px;">
+      <label>Kategori:</label>
+      <select id="user-kategori" style="width:100%; padding:6px;">
+        <option value="User">User</option>
+        <option value="Petugas">Petugas</option>
+        <option value="Admin">Admin</option>
+        <option value="Pimpinan">Pimpinan</option>
+      </select>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+      <button id="save-user-btn" style="padding:8px 14px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;">
+        Simpan
+      </button>
+      <button id="cancel-user-btn" style="padding:8px 14px; background:#ccc; border:none; border-radius:6px; cursor:pointer;">
+        Batal
+      </button>
+    </div>
+
+    <button id="user-modal-close" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:20px; cursor:pointer;">×</button>
+  </div>
+</div>
 
         <section id="tracking-section" class="content-section">
     <h2>Pelacakan Laporan Kecelakaan</h2>
@@ -410,27 +466,122 @@
 </section>
 
         <div id="report-modal" class="modal" style="display:none;">
-    <div class="modal-content">
-        <span class="modal-close" onclick="closeModal()">×</span>
-        <h2>Detail Laporan</h2>
-        <div class="modal-body">
-            <p><strong>Nama:</strong> <input type="text" id="report-nama" readonly></p>
-            <p><strong>NIK:</strong> <input type="text" id="report-nik" readonly></p>
-            <p><strong>Email:</strong> <input type="text" id="report-email" readonly></p>
-            <p><strong>Telepon:</strong> <input type="text" id="report-telepon" readonly></p>
-            <p><strong>Saksi:</strong> <input type="text" id="report-saksi" readonly></p>
-            <p><strong>Titik Kecelakaan:</strong> <input type="text" id="report-titik" readonly></p>
-            <p><strong>Kendaraan yang Terlibat:</strong> <input type="text" id="report-kendaraan" readonly></p>
-            <p><strong>Jenis Kecelakaan:</strong> <input type="text" id="report-jenis" readonly></p>
-            <p><strong>Jumlah Korban:</strong> <input type="text" id="report-jumlah-korban" readonly></p>
-            <p><strong>Tanggal:</strong> <input type="text" id="report-tanggal" readonly></p>
-            <p><strong>Status:</strong> <span id="report-status"></span></p>
-            <p><strong>Petugas:</strong> <input type="text" id="report-petugas" value=""></p>
-            <p><strong>Bukti:</strong> <img id="report-bukti" src="" alt="Bukti Kecelakaan" style="max-width: 200px;"></p>
-            <p><strong>Kronologi Kecelakaan:</strong> <textarea id="report-kronologi" readonly></textarea></p>
-        </div>
-        <div class="report-buttons"></div>
+  <div class="modal-content">
+  <span class="modal-close" onclick="closeModal()">×</span>
+  <h2>Detail Laporan</h2>
+
+  <!-- ================= DATA PELAPOR ================= -->
+  <div class="modal-section">
+    <h3>Data Pelapor</h3>
+    <div class="modal-grid-2">
+      <div class="form-group">
+        <label>Nama:</label>
+        <input type="text" id="report-nama" readonly>
+      </div>
+      <div class="form-group">
+        <label>NIK:</label>
+        <input type="text" id="report-nik" readonly>
+      </div>
+      <div class="form-group">
+        <label>Email:</label>
+        <input type="text" id="report-email" readonly>
+      </div>
+      <div class="form-group">
+        <label>Telepon:</label>
+        <input type="text" id="report-telepon" readonly>
+      </div>
+      <div class="form-group full-width">
+        <label>Saksi:</label>
+        <input type="text" id="report-saksi" readonly>
+      </div>
     </div>
+  </div>
+
+  <!-- ================= DATA KORBAN ================= -->
+  <div class="modal-section">
+    <h3>Data Korban</h3>
+    <div class="modal-grid-2">
+      <div class="form-group">
+        <label>Jenis Kecelakaan:</label>
+        <input type="text" id="report-jenis" readonly>
+      </div>
+      <div class="form-group">
+        <label>Kendaraan:</label>
+        <input type="text" id="report-kendaraan" readonly>
+      </div>
+      <div class="form-group">
+        <label>Jumlah Korban:</label>
+        <input type="text" id="report-jumlah-korban" readonly>
+      </div>
+      <div class="form-group">
+        <label>Titik Kecelakaan:</label>
+        <input type="text" id="report-titik" readonly>
+      </div>
+      <div class="form-group">
+        <label>Tanggal:</label>
+        <input type="text" id="report-tanggal" readonly>
+      </div>
+      <div class="form-group">
+        <label>Status:</label>
+        <input type="text" id="report-status" readonly>
+      </div>
+      <div class="form-group full-width">
+        <label>Bukti:</label>
+        <img id="report-bukti" src="" alt="Bukti Kecelakaan">
+      </div>
+      <div class="form-group full-width">
+        <label>Kronologi:</label>
+        <textarea id="report-kronologi" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+<!-- ================= DATA PETUGAS ================= -->
+<div class="modal-section">
+  <h3>Data Petugas</h3>
+  <div class="modal-grid-2">
+    
+    <!-- Nama Petugas -->
+    <div class="form-group full-width">
+      <label>Nama Petugas:</label>
+      <select id="report-petugas">
+        <option value="">-- Pilih Petugas --</option>
+      </select>
+    </div>
+
+    <!-- Input file untuk upload bukti -->
+    <div class="form-group full-width">
+      <label>Upload Bukti Selesai:</label>
+      <input type="file" id="report-foto-petugas" accept="image/*">
+    </div>
+
+    <!-- Preview foto bukti dari API -->
+    <div class="form-group full-width">
+      <label>Foto Bukti Selesai (Dari Petugas):</label>
+      <img
+        id="report-bukti-petugas"
+        src=""
+        alt="Bukti Selesai Petugas"
+        style="display:none; max-width:250px; margin-top:10px; border-radius:8px;"
+      >
+    </div>
+
+    <!-- Keterangan selesai -->
+    <div class="form-group full-width">
+      <label>Keterangan Selesai:</label>
+      <textarea
+        id="report-keterangan"
+        placeholder="Masukkan keterangan selesai..."
+      ></textarea>
+    </div>
+
+  </div>
+
+  <!-- 🟢 Hanya satu tombol simpan di sini -->
+  <div class="report-buttons"></div>
+</div>
+    <div class="report-buttons"></div>
+  </div>
 </div>
 
         <!-- Modal for Evaluasi -->
@@ -497,6 +648,80 @@
             </div>
         </div>
 
+  <!-- ================= MANAGEMEN PETUGAS ================= -->
+<section id="manage-petugas-section" class="content-section">
+  <h2>Manajemen Petugas</h2>
+  <div class="section-content">
+
+    <!-- Tombol Tambah Petugas -->
+    <div class="header-bar">
+      <button class="btn btn-add" onclick="openAddPetugasModal()">
+        + Tambah Petugas
+      </button>
+    </div>
+
+    <!-- Filter Pencarian & Urutkan -->
+    <div class="filter-bar">
+      <input type="text" id="search-petugas" placeholder="Cari Petugas..." oninput="searchPetugas()">
+      <select id="sort-petugas" onchange="sortPetugas()">
+        <option value="az">A-Z</option>
+        <option value="za">Z-A</option>
+        <option value="newest">Terbaru</option>
+        <option value="oldest">Terlama</option>
+      </select>
+    </div>
+
+    <!-- Tabel Daftar Petugas -->
+    <div class="table-container">
+      <table id="petugasTable" class="user-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama Petugas</th>
+            <th>Unit / Instansi</th>
+            <th style="text-align:center;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="petugas-table-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-center">
+      <button onclick="prevPetugasPage()">Kembali</button>
+      <span id="petugas-page-info">Halaman 1 dari 1</span>
+      <button onclick="nextPetugasPage()">Lanjut</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= MODAL TAMBAH / EDIT PETUGAS ================= -->
+<div id="petugasModal" class="modal-petugas">
+  <div class="modal-content-petugas">
+    <span class="close" onclick="closePetugasModal()">&times;</span>
+    <h3 id="modal-petugas-title">Tambah Petugas</h3>
+
+    <form id="petugas-form" onsubmit="savePetugas(event)">
+      <div class="modal-form-grid">
+        <div class="form-group">
+          <label for="petugas-nama">Nama Petugas</label>
+          <input type="text" id="petugas-nama" placeholder="Masukkan nama" required>
+        </div>
+        <div class="form-group">
+          <label for="petugas-unit">Unit / Instansi</label>
+          <input type="text" id="petugas-unit" placeholder="Masukkan unit / instansi" required>
+        </div>
+      </div>
+
+      <div class="modal-btn">
+        <button type="submit" class="btn-save">Simpan</button>
+        <button type="button" class="btn-cancel" onclick="closePetugasModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
         <div id="error-boundary" class="error-boundary"></div>
     </main>
     <!-- Include the external JavaScript file -->
@@ -505,6 +730,19 @@
   <span class="close">&times;</span>
   <img id="zoomedImage" src="" alt="Zoomed Bukti">
 </div>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const collapseBtn = document.getElementById("collapseSidebar");
+  const sidebar = document.querySelector(".sidebar");
+
+  if (collapseBtn && sidebar) {
+    collapseBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("expanded");
+    });
+  }
+});
+</script>
 </body>
 </html>
 <script>
@@ -514,4 +752,28 @@
 </script>
 <script>
   console.log("Anda sudah masuk ke halaman admin");
+  document.addEventListener("DOMContentLoaded", function () {
+  const collapseBtn = document.getElementById("collapseSidebar");
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.createElement("div");
+  overlay.className = "sidebar-overlay";
+  document.body.appendChild(overlay);
+
+  // Toggle collapse (desktop)
+  collapseBtn.addEventListener("click", () => {
+    if (window.innerWidth > 768) {
+      sidebar.classList.toggle("collapsed");
+    } else {
+      sidebar.classList.toggle("active");
+      overlay.classList.toggle("active");
+    }
+  });
+
+  overlay.addEventListener("click", () => {
+  sidebar.classList.remove("active");
+  overlay.classList.remove("active");
+    
+  });
+});
 </script>
+

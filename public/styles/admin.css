@@ -15,37 +15,36 @@ body {
 }
 
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
-    background: #375B85;
-    position: fixed;
-    width: 100%;
-    top: 0;
-    z-index: 1000;
-    height: 50px;
-    font-family: Arial, sans-serif;
-    border-bottom: 1px solid #375B85;
+  background-color: #375B85;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  z-index: 100;
 }
 
 .logo {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dot {
-    width: 10px;
-    height: 10px;
-    background: #98DED9;
-    border-radius: 50%;
-    margin-right: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #00c1d4;
 }
 
 .logo-text {
-    font-size: 20px;
-    font-weight: bold;
-    color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .we-are-hiring {
@@ -58,8 +57,15 @@ body {
 }
 
 .user-info {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;   /* ✅ Posisikan ke kanan */
+  position: absolute;          /* Agar bisa menempel ke kanan header */
+  top: 50%;                    /* Tengah secara vertikal */
+  right: 20px;                 /* ✅ Jarak dari sisi kanan layar */
+  transform: translateY(-50%); /* Rata tengah vertikal */
+  gap: 10px;                   /* Jarak antar elemen (logout & ikon profil) */
+  z-index: 150;                /* Supaya di atas elemen lain */
 }
 
 button.logout-btn {
@@ -87,28 +93,6 @@ button.logout-btn:hover {
 button.logout-btn:active {
   transform: scale(0.96);
 }
-
-.custom-alert {
-  position: fixed;
-  top: -60px; /* awal tersembunyi */
-  left: 50%;
-  transform: translateX(-50%);
-  background: #28a745;  /* hijau ala alert sukses */
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  font-weight: 500;
-  z-index: 9999;
-  transition: top 0.3s ease-in-out, opacity 0.3s;
-  opacity: 0;
-}
-
-.custom-alert.show {
-  top: 20px; /* muncul di atas */
-  opacity: 1;
-}
-
 /* Overlay gelap transparan */
 #logout-overlay {
   position: fixed;
@@ -236,38 +220,603 @@ button.logout-btn:active {
 .reject-button:hover {
   background-color: #c82333;
 }
-
-* Tombol Simpan */
-button[onclick^="savePetugas"] {
-  background-color: #4CAF50;
-  color: white;
+#petugas-section {
+  background: #eef8f2;
+  border: 1px solid #c6e5d4;
+}
+/* ==================== MANAJEMEN PETUGAS ==================== */
+#manage-petugas-section {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin-top: 20px;
 }
 
-button[onclick^="savePetugas"]:hover {
-  background-color: #45a049;
+#manage-petugas-section h2 {
+  color: #375b85;
+  font-size: 20px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #375b85;
+  padding-bottom: 8px;
 }
 
-/* Tombol Selesai */
-button[onclick*="'Selesai'"] {
-  background-color: #2196F3;
-  color: white;
+/* ======== FILTER & SEARCH ======== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
 }
 
-button[onc/lick*="'Selesai'"]:hover {
-  background-color: #1976D2;
-}
-.complete-btn {
-  background-color: #2196F3; /* Hijau */
-  color: white;
-  border: none;
-  padding: 10px 16px;
+.filter-bar input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1dae6;
   border-radius: 6px;
+  font-size: 13px;
+  color: #333;
+  transition: border-color 0.3s ease;
+}
+
+.filter-bar input[type="text"]:focus {
+  border-color: #375b85;
+  outline: none;
+  box-shadow: 0 0 4px rgba(55,91,133,0.2);
+}
+
+.filter-bar select {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1dae6;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ======== TABEL PETUGAS ======== */
+/* ======== KONTAINER TABEL PETUGAS ======== */
+.table-container {
+  width: 100%;
+  margin: 0;                          /* Hilangkan margin supaya sejajar kiri-kanan */
+  padding: 0 10px;                    /* Tambahkan sedikit jarak dalam */
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;                   /* Scroll horizontal jika layar kecil */
+  box-sizing: border-box;
+}
+
+/* Buat tabel mengikuti lebar penuh container */
+#petugasTable {
+  width: 100%;
+  min-width: 600px;                   /* Supaya kolom tidak mepet di layar kecil */
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  table-layout: fixed;                /* Lebar kolom proporsional */
+}
+
+/* Header tabel */
+#petugasTable thead {
+  background-color: #375b85;
+}
+
+#petugasTable th {
+  color: #375b85;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+
+/* Isi tabel */
+#petugasTable td {
+  background-color: #f9f9f9;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: #333;
+  border-bottom: 1px solid #e0e7f3;
+  word-wrap: break-word;
+}
+
+/* Hover */
+#petugasTable tr:hover td {
+  background-color: #eef3fa;
+  transition: 0.2s ease;
+}
+
+/* Kolom aksi */
+#petugasTable td:last-child {
+  text-align: center;
+  width: 110px;
+}
+
+/* ======== BUTTON AKSI ======== */
+/* ======== TOMBOL AKSI IKON UMUM ======== */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background-color: #f4f6fb;         /* latar belakang netral */
+  color: #375b85;                    /* warna default ikon */
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin: 0 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.btn-icon:hover {
+  transform: scale(1.1);
+  background-color: #e9edf5;
+}
+
+/* ======== VARIASI KHUSUS BERDASARKAN AKSI ======== */
+
+/* Edit (ikon hijau) */
+.btn-icon.edit i,
+.btn-icon[title="Edit"] i {
+  color: #28a745; /* hijau */
+}
+
+.btn-icon.edit:hover i,
+.btn-icon[title="Edit"]:hover i {
+  color: #218838;
+}
+
+/* Hapus (ikon merah) */
+.btn-icon.btn-delete i,
+.btn-icon[title="Hapus"] i {
+  color: #dc3545; /* merah */
+}
+
+.btn-icon.btn-delete:hover i,
+.btn-icon[title="Hapus"]:hover i {
+  color: #b02a37;
+}
+
+/* Bisa tambahkan variasi lain jika perlu */
+.btn-icon.view i,
+.btn-icon[title="Lihat Detail"] i {
+  color: #375b85; /* biru utama */
+}
+.btn-icon.view:hover i {
+  color: #2c4768;
+}
+
+/* ======== PAGINATION ======== */
+.pagination-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.pagination-center button {
+  background: #375b85;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
+.pagination-center button:hover {
+  background: #2c4768;
+}
+
+/* ======== MODAL TAMBAH PETUGAS ======== */
+.modal-petugas {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-petugas.show {
+  display: flex;
+}
+
+.modal-content-petugas {
+  background: #ffffff;
+  padding: 25px 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+  width: 420px;
+  max-width: 95%;
+  position: relative;
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+.modal-content-petugas .close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.modal-content-petugas .close:hover { color: #000; }
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Konten modal */
+.modal-content-petugas {
+  background: #ffffff;
+  padding: 25px 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+  width: 480px;
+  max-width: 95%;
+  animation: modalFadeIn 0.25s ease-out;
+  transform: translate(0, 0); /* reset posisi */
+  position: relative;
+}
+
+/* Tombol close “×” */
+.modal-content-petugas .close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.modal-content-petugas .close:hover {
+  color: #000;
+}
+
+/* Header */
+.modal-content-petugas h3 {
+  color: #375b85;
+  font-size: 18px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+/* Grid form dua kolom */
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.modal-form-grid .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-form-grid label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.modal-form-grid input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: border-color 0.3s ease;
+}
+
+.modal-form-grid input:focus {
+  border-color: #375b85;
+  box-shadow: 0 0 4px rgba(55,91,133,0.3);
+  outline: none;
+}
+
+/* Tombol di modal */
+.modal-btn {
+  display: flex;
+  justify-content: center;   /* ubah dari flex-end → center */
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.modal-btn button {
+  padding: 8px 16px;
+  min-width: 90px;           /* agar ukuran tombol seragam */
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+/* Tombol Simpan */
+.btn-save {
+  background-color: #375b85;
+  color: #fff;
+}
+
+.btn-save:hover {
+  background-color: #2c4768;
+  transform: scale(1.05);
+}
+
+/* Tombol Batal */
+.btn-cancel {
+  background-color: #ccc;
+  color: #333;
+}
+
+.btn-cancel:hover {
+  background-color: #b5b5b5;
+  transform: scale(1.05);
+}
+
+
+/* Animasi muncul */
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 .complete-btn:hover {
   background-color: #1976D2; /* Bitu lebih gelap saat hover */
+}
+/* Wrapper tiap bagian (Pelapor, Korban, Petugas) */
+/* Wrapper section */
+.report-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #dce6f1;
+  border-radius: 10px;
+  background: #f9fbfd;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Heading tiap section */
+.report-section h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #375B85;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 5px;
+}
+
+/* Field */
+.report-section p {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #333;
+}
+
+.report-section input,
+.report-section textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-section input:focus,
+.report-section textarea:focus {
+  border-color: #375B85;
+  box-shadow: 0 0 5px rgba(55, 91, 133, 0.2);
+  outline: none;
+}
+
+.report-section textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+/* ==================== Dropdown Nama Petugas (Pelacakan) ==================== */
+#report-petugas {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+  transition: 0.2s;
+  appearance: none; /* Hilangkan default arrow browser */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg fill='%23375b85' height='20' viewBox='0 0 20 20' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.516 7.548L10 12.032l4.484-4.484L16 8.564l-6 6-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+#report-petugas:hover {
+  border-color: #375b85;
+}
+
+#report-petugas:focus {
+  border-color: #375b85;
+  box-shadow: 0 0 4px rgba(55, 91, 133, 0.4);
+}
+
+/* Styling opsi di dropdown */
+#report-petugas option {
+  padding: 6px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Status badge */
+#report-status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.status-diterima {
+  background: #e6f4ff;
+  color: #1a73e8;
+  border: 1px solid #b3d8ff;
+}
+.status-penanganan {
+  background: #fff8e1;
+  color: #f57c00;
+  border: 1px solid #ffd54f;
+}
+.status-selesai {
+  background: #e6f9f0;
+  color: #1e7e34;
+  border: 1px solid #a5d6a7;
+}
+.status-ditolak {
+  background: #fdecea;
+  color: #d32f2f;
+  border: 1px solid #f5c6cb;
+}
+/* Wrapper semua bukti */
+/* Wrapper bukti */
+.bukti-wrapper {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+/* .modal img {
+  display: none;
+} */
+#report-bukti-petugas {
+  max-width: 250px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+/* Container gambar */
+#report-bukti {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: flex-start;
+}
+
+/* Gambar bukti */
+#report-bukti img, #report-bukti {
+  width: 300px;        /* bisa diubah sesuai kebutuhan */
+  height: auto;        /* proporsional */
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  object-fit: cover;   /* pastikan tidak terdistorsi */
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover efek */
+#report-bukti img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Modal zoom */
+#zoomModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#zoomModal img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+}
+
+#zoomModal .close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: #fff;
+  font-size: 36px;
+  cursor: pointer;
+}
+
+/* Bagian Petugas hijau lembut */
+#petugas-section {
+  background: #eef8f2;
+  border: 1px solid #c6e5d4;
+}
+
+/* Input & Textarea */
+.report-section input,
+.report-section textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-section input:focus,
+.report-section textarea:focus {
+  border-color: #375B85;
+  box-shadow: 0 0 5px rgba(55, 91, 133, 0.2);
+  outline: none;
+}
+
+/* Gambar bukti */
+#report-bukti {
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  max-width: 200px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+#report-bukti:hover {
+  transform: scale(1.05);
+}
+
+/* Bagian Petugas dibedakan warnanya */
+#petugas-section {
+  background: #eef8f2;
+  border: 1px solid #c6e5d4;
+}
+
+#petugas-section textarea {
+  min-height: 80px;
+  resize: vertical;
 }
 /* Tombol Batal */
 #logout-cancel-btn, #save-user-btn{
@@ -299,41 +848,188 @@ button[onc/lick*="'Selesai'"]:hover {
     transform: scale(1.1);
 }
 
+/* ================================
+   SIDEBAR STYLING (ADMIN DESKTOP)
+   ================================ */
+
+/* Container sidebar */
 .sidebar {
-    width: 250px;
-    height: 300px;
-    background: #ffffff;
-    color: #375B85;
-    position: fixed;
-    height: calc(200vh - 100px);
-    top: 30px;
-    left: 0;
-    padding-top: 20px;
-    transition: width 0.3s;
-    overflow-y: auto;
-    font-family: Arial, sans-serif;
+  position: fixed;
+  top: 60px; /* sejajar header */
+  left: -250px;
+  width: 250px;
+  height: calc(100vh - 60px);
+  background-color: #ffffff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  border-right: 1px solid #e5e7eb;
+  transition: left 0.3s ease-in-out;
+  z-index: 99;
 }
 
+/* Sidebar Header */
 .sidebar-header {
-    display: flex;
-    align-items: center;
-    padding: 10px 20px;
-    border-bottom: 1px solid #375B85;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sidebar-header .profile-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.sidebar-title {
+  color: #375B85;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 8px;
+  margin-top: 10px;
+}
+
+/* Sidebar Menu Item */
+.sidebar-nav .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #374151;
+  text-decoration: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}/* ================================
+   PERBAIKAN SPASI SIDEBAR
+   ================================ */
+
+/* Sidebar container */
+.sidebar {
+  background-color: #ffffff;
+  height: 100vh;
+  width: 240px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  /* Hapus space-between agar tidak ada jarak besar antar bagian */
+  justify-content: flex-start;
+  border-right: 1px solid #e5e7eb;
+  position: fixed;
+  top: 50px;
+  left: 0;
+  transition: all 0.3s ease;
+  z-index: 10;
+  padding-top: 0; /* pastikan tidak ada jarak dari atas */
+}
+
+/* Header sidebar */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 10px 20px; /* kurangi padding bawah */
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Navigasi sidebar */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* kurangi jarak antar menu */
+  padding: 8px 8px 20px 8px; /* padding bawah kecil */
+  margin-top: 0; /* hilangkan margin atas */
+}
+
+/* Item menu */
+.sidebar-nav .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* sedikit lebih dekat antara ikon dan teks */
+  color: #374151;
+  text-decoration: none;
+  padding: 8px 14px; /* lebih ringkas secara vertikal */
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+/* Hover effect */
+.sidebar-nav .nav-item:hover {
+  background-color: #f4f7fa;
+  color: #375B85;
+}
+
+/* Ikon di menu */
+.sidebar-nav .nav-item i {
+  font-size: 16px;
+  color: #375B85;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Teks di menu */
+.sidebar-nav .nav-text {
+  white-space: nowrap;
+}
+
+/* Aktif state */
+.sidebar-nav .nav-item.active {
+  background-color: #e7eef8;
+  color: #375B85;
+  font-weight: 600;
+}
+
+/* Garis kiri indikator menu aktif */
+.sidebar-nav .nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  background-color: #375B85;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Hover ikon aktif */
+.sidebar-nav .nav-item.active i {
+  color: #2c4768;
+}
+
+/* Tombol toggle kecil (khusus tampil di responsive.css) */
+.collapse-btn {
+  background: none;         /* Hilangkan background */
+  border: none;             /* Hilangkan border */
+  color: #375B85;           /* Warna ikon */
+  font-size: 1.8rem;        /* Ukuran ikon */
+  cursor: pointer;          /* Ubah cursor jadi pointer */
+  position: absolute;
+  top: 12px;                /* Jarak dari atas */
+  left: 12px;               /* Posisikan di kiri sidebar */
+  z-index: 110;             /* Supaya di atas elemen lain */
+  padding: 0;               /* Hilangkan padding bawaan */
+  margin: 0;
+  line-height: 1;           /* Hindari ruang tambahan vertikal */
+  transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .profile-icon {
     width: 30px;
     height: 30px;
     margin-right: 10px;
-}
-
-.sidebar-title {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.sidebar-nav {
-    margin-top: 20px;
 }
 
 .nav-item {
@@ -351,8 +1047,8 @@ button[onc/lick*="'Selesai'"]:hover {
 }
 
 .main-content {
-    margin-left: 235px;
-    padding: 60px 10px 20px;
+    margin-left: 220px;
+    padding: 60px 20px 20px;
     width: calc(100% - 250px);
     min-height: 100vh;
     overflow-y: auto;
@@ -372,6 +1068,7 @@ button[onc/lick*="'Selesai'"]:hover {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     margin-bottom: 20px;
+    margin-top: 10px;
     max-width: 100%;
     width: 100%;
 }
@@ -689,7 +1386,7 @@ h3 {
 }
 
 /* === Tampilan Modal Evaluasi Mirip Detail Laporan === */
-#evaluasi-modal .modal-content {
+#evaluasi-modal {
     max-width: 800px;
     margin: 5% auto;
     background-color: #fff;
@@ -1053,6 +1750,47 @@ input, textarea {
     transform: scale(1.05);
 }
 /* User manajemen */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  margin-right: 10px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: #ccc;
+  border-radius: 34px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 50%;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: #4CAF50;
+}
+input:checked + .slider:before {
+  transform: translateX(28px);
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -1075,6 +1813,116 @@ input, textarea {
     font-size: 20px;
     cursor: pointer;
 }
+/* ======== MODAL LAPORAN ======== */
+.modal-content {
+  background: #fff;
+  padding: 25px 35px;
+  border-radius: 10px;
+  width: 900px;
+  max-width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  animation: modalFadeIn 0.3s ease;
+  margin: 0 auto;
+}
+
+/* Judul utama modal */
+.modal-content h2 {
+  text-align: center;
+  color: #375b85;
+  font-size: 20px;
+  font-weight: 700;
+  border-bottom: 3px solid #375b85;
+  display: inline-block;
+  padding-bottom: 4px;
+  margin: 10px auto 20px auto;
+  width: 100%;
+}
+
+/* ======== PEMISAH BAGIAN ======== */
+.modal-section {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e1e7f3;
+}
+
+.modal-section:last-of-type {
+  border-bottom: none;
+}
+
+.modal-section h3 {
+  color: #375b85;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  border-left: 4px solid #375b85;
+  padding-left: 8px;
+}
+
+/* ======== GRID DUA KOLOM ======== */
+.modal-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+
+/* ======== FORM ELEMENTS ======== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1px solid #d0d7e3;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #333;
+  width: 100%;
+  resize: none;
+  background-color: #f9fbff;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #375b85;
+  background-color: #fff;
+  box-shadow: 0 0 5px rgba(55,91,133,0.25);
+  outline: none;
+}
+
+/* Full width untuk kolom panjang */
+.full-width {
+  grid-column: 1 / 3;
+}
+
+/* ======== GAMBAR ======== */
+.form-group img {
+  display: block;
+  max-width: 220px;
+  border-radius: 6px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+}
+
+/* Animasi muncul modal */
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 
 .modal-content {
     background: #fff;
@@ -1360,22 +2208,6 @@ button[onclick^="downloadFilteredTracking"] svg {
     border: 1px solid #ccc;
     font-size: 12px;
     vertical-align: middle;
-}
-
-
-/* Responsivitas */
-@media (max-width: 600px) {
-    .modal-content {
-        padding: 20px;
-    }
-
-    .modal-body {
-        grid-template-columns: 1fr;
-    }
-
-    .modal-body img {
-        grid-column: span 1;
-    }
 }
 
 .monitoring-filters {
@@ -1664,22 +2496,6 @@ h4 {
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* Responsivitas */
-@media (max-width: 480px) {
-    .add-user-content {
-        width: 90%;
-        padding: 15px;
-    }
-
-    .add-user-content .btn-group {
-        flex-direction: column;
-    }
-
-    .add-user-content button {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-}
 .user-table th, #report-table th, #tracking-table th,
 .user-table td, #report-table td, #tracking-table td {
     padding: 10px;
@@ -1840,23 +2656,7 @@ h4 {
 #download-month-btn:hover, #download-year-btn:hover {
     background-color: #2a4666;
 }
-/* Responsive Text */
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 20px;
-      }
-      .start-btn {
-        font-size: 14px;
-        padding: 10px 16px;
-      }
-    }
 
-    @media (max-width: 480px) {
-      .main-page {
-        flex-direction: column;
-        text-align: center;
-      }
-    }
 .chart-wrapper {
     background: #ffffff;
     padding: 20px;
@@ -2405,12 +3205,12 @@ background-color: #375B85;
         padding: 6px;
         margin-left: auto;
         border-radius: 4px;
-        transition: background 0.3s ease, transform 0.2s ease;
+        transition:  transform 0.2s ease;
         touch-action: manipulation; /* Improve touch responsiveness */
     }
 
     .hamburger-btn:hover {
-        background: rgba(255, 255, 255, 0.15);
+        background: none !important;
         transform: scale(1.05);
     }
 
@@ -2997,4 +3797,140 @@ background-color: #375B85;
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+/* ======================================================
+   RESPONSIVE SIDEBAR BEHAVIOR
+   ====================================================== */
+
+/* Default (Desktop) */
+.sidebar {
+  width: 230px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* COLLAPSED SIDEBAR (untuk tablet & toggle manual) */
+.sidebar.collapsed {
+  width: 80px;
+}
+.sidebar.collapsed .sidebar-title,
+.sidebar.collapsed .nav-text {
+  display: none;
+}
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  gap: 0;
+}
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+/* Tombol collapse */
+.collapse-btn {
+  background: none;         /* Hilangkan background */
+  border: none;             /* Hilangkan border */
+  color: #375B85;           /* Warna ikon */
+  font-size: 1.8rem;        /* Ukuran ikon */
+  cursor: pointer;          /* Ubah cursor jadi pointer */
+  position: absolute;
+  top: 12px;                /* Jarak dari atas */
+  left: 12px;               /* Posisikan di kiri sidebar */
+  z-index: 110;             /* Supaya di atas elemen lain */
+  padding: 0;               /* Hilangkan padding bawaan */
+  margin: 0;
+  line-height: 1;           /* Hindari ruang tambahan vertikal */
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+/* ===========================
+   📱 Mobile: Sidebar Slide
+   =========================== */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 220px;
+    transform: translateX(-100%);
+    background-color: #0b5132;
+    z-index: 50;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .collapse-btn {
+    right: 15px;
+    top: 15px;
+    background: none;
+  }
+
+  /* Sidebar Header di mobile */
+  .sidebar-header {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  /* Overlay untuk background gelap */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    display: none;
+  }
+  .sidebar-overlay.active {
+    display: block;
+  }
+}
+
+/* ===========================
+   💻 Tablet (768px–1024px)
+   =========================== */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .sidebar {
+    width: 200px;
+  }
+  .sidebar.collapsed {
+    width: 75px;
+  }
+  .sidebar-nav .nav-item {
+    gap: 8px;
+  }
+  .sidebar-header .profile-icon {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+/* ===========================
+   📺 Small Desktop (1024px–1366px)
+   =========================== */
+@media (max-width: 1366px) {
+  .sidebar {
+    width: 220px;
+  }
+  .sidebar.collapsed {
+    width: 70px;
+  }
+  .nav-item {
+    padding: 8px 12px;
+  }
+  .nav-item i {
+    font-size: 15px;
+  }
+}
+/* Main content bergeser otomatis */
+.main-content {
+  margin-left: 220px;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+/* Saat sidebar ditutup (kelas .collapsed aktif) */
+.sidebar.collapsed ~ .main-content {
+  margin-left: 70px;
+  width: calc(100% - 70px);
 }

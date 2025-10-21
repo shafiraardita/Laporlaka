@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sistem Monitoring</title>
     <link rel="stylesheet" href="styles/admin.css">
+    <link rel="stylesheet" href="styles/responsive.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -12,35 +13,51 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <img src="https://img.icons8.com/ios-filled/50/000000/pdf.png" alt="Download PDF" style="width: 28px; height: 28px;" />
     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=geometry,drawing&callback=initMap" async defer></script>
 </head>
 <body>
+    <body>
     <header class="header">
-        <div class="logo">
-            <span class="dot"></span>
-            <span class="logo-text">LaporLaka</span>
-        </div>
+  <button id="collapseSidebar" class="collapse-btn text-[#375B85] text-2xl p-2">
+    ☰
+  </button>
         <div class="user-info">
 <button class="logout-btn" onclick="handleLogout()">Keluar</button>
-            <span class="user-name">Pengguna: <span id="username">Pimpinan</span></span>
-            <img id="profile-icon-header" src="assets/user.png" alt="Profile Icon" class="profile-icon-header">
-        </div>
-    </header>
+<span class="user-name">Pengguna: <span id="username">Pimpinan</span></span>
+</div>
+</header>
 
     <div class="sidebar">
-        <div class="sidebar-header">
-            <img id="sidebar-profile-icon" src="assets/user.png" alt="Profile Icon" class="profile-icon">
-            <span class="sidebar-title">Pimpinan</span>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="#home" class="nav-item" data-section="home-section">Beranda</a>
-            <a href="#laporan-masuk" class="nav-item" data-section="laporan-masuk-section">Laporan Masuk</a>
-            <a href="#monitoring" class="nav-item" data-section="monitoring-section">Monitoring Data</a>
-            <a href="#titik-laporan" class="nav-item" data-section="titik-laporan-section">Titik Laporan</a>
-            <a href="#tracking" class="nav-item" data-section="tracking-section">Pelacakan Laporan</a>
-        </nav>
-    </div>
+  <div id="sidebar-profile-btn" class="sidebar-header flex items-center justify-start gap-2 p-3 cursor-pointer">
+  <img id="sidebar-profile-icon" src="assets/user.png" alt="Profile Icon" class="profile-icon w-8 h-8">
+  <span class="sidebar-title font-semibold text-[#375B85]">admin</span>
+  </div>
+
+  <nav class="sidebar-nav flex flex-col gap-2 mt-2">
+    <a href="#home" class="nav-item flex items-center gap-3 px-4 py-2" data-section="home-section">
+      <i class="fas fa-home w-5 text-[#375B85]"></i>
+      <span class="nav-text">Beranda</span>
+    </a>
+    <a href="#laporan-masuk" class="nav-item flex items-center gap-3 px-4 py-2" data-section="laporan-masuk-section">
+      <i class="fas fa-inbox w-5 text-[#375B85]"></i>
+      <span class="nav-text">Laporan Masuk</span>
+    </a>
+    <a href="#monitoring" class="nav-item flex items-center gap-3 px-4 py-2" data-section="monitoring-section">
+      <i class="fas fa-chart-line w-5 text-[#375B85]"></i>
+      <span class="nav-text">Monitoring Data</span>
+    </a>
+    <a href="#titik-laporan" class="nav-item flex items-center gap-3 px-4 py-2" data-section="titik-laporan-section">
+      <i class="fas fa-map-marker-alt w-5 text-[#375B85]"></i>
+      <span class="nav-text">Titik Laporan</span>
+    </a>
+    <a href="#tracking" class="nav-item flex items-center gap-3 px-4 py-2" data-section="tracking-section">
+      <i class="fas fa-route w-5 text-[#375B85]"></i>
+      <span class="nav-text">Pelacakan Laporan</span>
+    </a>
+  </nav>
+</div>
 
     <main class="main-content">
         <section id="home-section" class="content-section">
@@ -177,30 +194,108 @@
     </div>
 </div>
 
-<!-- Modal for Report Details -->
-        <div class="modal" id="report-modal" style="display: none;">
-            <div class="modal-content">
-                <span class="modal-close" onclick="closeModal()">×</span>
-                <h2>Detail Laporan</h2>
-                <div class="modal-body">
-                    <p><strong>Nama:</strong> <span id="report-nama"></span></p>
-                    <p><strong>NIK:</strong> <span id="report-nik"></span></p>
-                    <p><strong>Email:</strong> <span id="report-email"></span></p>
-                    <p><strong>Telepon:</strong> <span id="report-telepon"></span></p>
-                    <p><strong>Saksi:</strong> <span id="report-saksi"></span></p>
-                    <p><strong>Titik Kecelakaan:</strong> <span id="report-titik"></span></p>
-                    <p><strong>Kendaraan yang Terlibat:</strong> <span id="report-kendaraan"></span></p>
-                    <p><strong>Jenis Kecelakaan:</strong> <span id="report-jenis"></span></p>
-                    <p><strong>Jumlah Korban:</strong> <span id="report-jumlah-korban"></span></p>
-                    <p><strong>Tanggal:</strong> <span id="report-tanggal"></span></p>
-                    <p><strong>Status:</strong> <span id="report-status"></span></p>
-                    <p><strong>Petugas:</strong> <input type="text" id="report-petugas" value=""></p>
-                    <p><strong>Bukti:</strong> <img id="report-bukti" src="" alt="Bukti Kecelakaan" style="max-width: 200px;"></p>
-                    <p><strong>Kronologi kecelakaan:</strong> <span id="report-kronologi"></span></p>
-                </div>
-                <div class="report-buttons"></div>
-            </div>
+<!-- ================= MODAL DETAIL LAPORAN (PIMPINAN) ================= -->
+<div class="modal" id="report-modal" style="display: none;">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeModal()">×</span>
+    <h2>Detail Laporan</h2>
+
+    <!-- ============ DATA PELAPOR ============ -->
+    <div class="modal-section">
+      <h3>Data Pelapor</h3>
+      <div class="modal-grid-2">
+        <div class="form-group">
+          <label>Nama:</label>
+          <span id="report-nama">-</span>
         </div>
+        <div class="form-group">
+          <label>NIK:</label>
+          <span id="report-nik">-</span>
+        </div>
+        <div class="form-group">
+          <label>Email:</label>
+          <span id="report-email">-</span>
+        </div>
+        <div class="form-group">
+          <label>Telepon:</label>
+          <span id="report-telepon">-</span>
+        </div>
+        <div class="form-group full-width">
+          <label>Saksi:</label>
+          <span id="report-saksi">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DATA KORBAN / LAPORAN ============ -->
+    <div class="modal-section">
+      <h3>Data Kecelakaan</h3>
+      <div class="modal-grid-2">
+        <div class="form-group">
+          <label>Jenis Kecelakaan:</label>
+          <span id="report-jenis">-</span>
+        </div>
+        <div class="form-group">
+          <label>Kendaraan:</label>
+          <span id="report-kendaraan">-</span>
+        </div>
+        <div class="form-group">
+          <label>Jumlah Korban:</label>
+          <span id="report-jumlah-korban">-</span>
+        </div>
+        <div class="form-group">
+          <label>Titik Kejadian:</label>
+          <span id="report-titik">-</span>
+        </div>
+        <div class="form-group">
+          <label>Tanggal:</label>
+          <span id="report-tanggal">-</span>
+        </div>
+        <div class="form-group">
+          <label>Status:</label>
+          <span id="report-status">-</span>
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Bukti Kecelakaan:</label>
+        <img id="report-bukti" src="" alt="Bukti Kecelakaan"
+          style="max-width: 100%; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;">
+      </div>
+
+      <div class="form-group full-width">
+        <label>Kronologi:</label>
+        <p id="report-kronologi" class="text-area-view">-</p>
+      </div>
+    </div>
+<!-- ================= DATA PETUGAS ================= -->
+<!-- === Data Petugas === -->
+<div class="modal-section">
+  <h3>Data Petugas</h3>
+  <div class="modal-grid-2">
+    <div class="form-group full-width">
+      <label>Nama Petugas:</label>
+      <span id="report-petugas">-</span>
+    </div>
+
+    <div class="form-group full-width">
+      <label>Bukti Selesai:</label>
+      <img id="report-foto-petugas" src="" alt="Bukti Selesai"
+           style="max-width: 100%; border-radius: 8px; margin-top: 5px; display: none;" />
+    </div>
+
+    <div class="form-group full-width">
+      <label>Keterangan Selesai:</label>
+      <p id="report-keterangan" class="text-area-view">-</p>
+    </div>
+  </div>
+</div>
+    <div class="report-buttons" style="text-align: right;">
+      <button class="btn cancel-btn" onclick="closeModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
 
 <section id="laporan-masuk-section" class="content-section">
     <h2>Laporan Masuk</h2>
@@ -386,12 +481,12 @@
         <div class="report-buttons"></div>
     </div>
 </div>
-
         <!-- Modal for Evaluasi -->
+        <div id="modal-overlay"></div>
         <div class="modal" id="evaluasi-modal" style="display: none;">
             <div class="modal-content">
                 <span class="modal-close">×</span>
-                <h2>Evaluasi</h2>
+                <h2>Ubah Evaluasi</h2>
                 <div class="modal-body">
                     <div class="profile-field">
                         <label>Judul:</label>
@@ -417,7 +512,27 @@
 </body>
 </html>
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    initializeAdminPage();
-  });
+    document.addEventListener("DOMContentLoaded", function () {
+  const collapseBtn = document.getElementById("collapseSidebar");
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.createElement("div");
+  overlay.className = "sidebar-overlay";
+  document.body.appendChild(overlay);
+
+  if (collapseBtn && sidebar) {
+    collapseBtn.addEventListener("click", () => {
+      if (window.innerWidth > 768) {
+        sidebar.classList.toggle("collapsed");
+      } else {
+        sidebar.classList.toggle("active");
+        overlay.classList.toggle("active");
+      }
+    });
+
+    overlay.addEventListener("click", () => {
+      sidebar.classList.remove("active");
+      overlay.classList.remove("active");
+    });
+  }
+});
 </script>

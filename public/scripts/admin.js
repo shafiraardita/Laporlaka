@@ -191,7 +191,10 @@ function initializeAdminPage() {
                         renderNotifications();
                         renderEvaluasiCards();
                     } else if (sectionId === 'manage-pengguna-section') {
-                        renderUserList();
+                        loadUsers();
+                    } else if (sectionId === "manage-petugas-section") {
+                    renderPetugas();
+
                         setupAddUserModal(); // ← Tambahkan ini agar modal bisa berfungsi
                     } else if (sectionId === 'tracking-section') {
                         renderTracking();
@@ -199,6 +202,10 @@ function initializeAdminPage() {
                     initMap();
                     toggleMapByYear(); // tampilkan peta sesuai tahun
                     }
+                    else if (sectionId === "manage-petugas-section") {
+                    renderPetugas(); // tampilkan daftar petugas 
+                    }
+
 
                 } else {
                     throw new Error(`Section ${sectionId} not found`);
@@ -245,122 +252,132 @@ function initializeAdminPage() {
     if (downloadChartBtn) downloadChartBtn.addEventListener('click', downloadChart);
     if (downloadExcelBtn) downloadExcelBtn.addEventListener('click', downloadExcel);
 }
+// === Klik profil di sidebar membuka halaman profil admin ===
+const sidebarProfileBtn = document.getElementById("sidebar-profile-btn");
+if (sidebarProfileBtn) {
+  sidebarProfileBtn.addEventListener("click", () => {
+    document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+    const profilSection = document.getElementById("profil-section");
+    if (profilSection) profilSection.style.display = "block";
+    document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+    loadProfileData(); // Pastikan data tampil saat halaman profil dibuka
+  });
+}
 
+// === Data Awal Profil ===
 let originalProfileData = {
-    nama: "",
-    email: "",
-    nik: "",
-    jabatan: "",
-    telepon: "",
-    photo: null
+  nama: "admin",
+  email: "admin@example.com",
+  nik: "0000000000000000",
+  jabatan: "Administrator",
+  telepon: "081234567890",
+  photo: null
 };
 
+// === Fungsi Validasi Data ===
 function validateProfileData(data) {
-    return data && 
-        typeof data.nama === 'string' &&
-        typeof data.email === 'string' &&
-        typeof data.nik === 'string' &&
-        typeof data.jabatan === 'string' &&
-        typeof data.telepon === 'string' &&
-        (data.photo === null || typeof data.photo === 'string');
+  return data &&
+    typeof data.nama === "string" &&
+    typeof data.email === "string" &&
+    typeof data.nik === "string" &&
+    typeof data.jabatan === "string" &&
+    typeof data.telepon === "string" &&
+    (data.photo === null || typeof data.photo === "string");
 }
 
-originalProfileData = validateStoredData('profileData', originalProfileData, validateProfileData);
-function closeUserModal() {  // Hapus spasi antara 'closeUser' dan 'Modal'
-    console.log('Close button clicked');
-    const modal = document.getElementById('user-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+// === Fungsi Memuat Data Profil dari localStorage ===
+function loadProfileData() {
+  try {
+    const stored = localStorage.getItem("profileData");
+    let data = stored ? JSON.parse(stored) : originalProfileData;
+
+    if (!validateProfileData(data)) data = originalProfileData;
+
+    // Tampilkan ke form input
+    document.getElementById("profil-username").value = data.nama || "";
+    document.getElementById("profil-email").value = data.email || "";
+    document.getElementById("profil-nik").value = data.nik || "";
+    document.getElementById("profil-jabatan").value = data.jabatan || "";
+    document.getElementById("profil-telepon").value = data.telepon || "";
+
+    // Perbarui tampilan nama di header/sidebar
+    const usernameDisplay = document.getElementById("username");
+    const sidebarTitle = document.querySelector(".sidebar-title");
+    if (usernameDisplay) usernameDisplay.textContent = data.nama;
+    if (sidebarTitle) sidebarTitle.textContent = data.nama;
+  } catch (e) {
+    console.error("Gagal memuat data profil:", e);
+  }
 }
 
-// Fungsi untuk menutup modal pengguna
-function closeUserModal() {
-    const modal = document.getElementById('user-modal');
-    if (modal) {
-        modal.style.display = 'none';
-        console.log('User modal closed');
-    }
-}
+// === Navigasi antar section dari sidebar ===
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", function (e) {
+    e.preventDefault();
 
-// Mendapatkan elemen tombol close dan cancel
-const closeBtn = document.getElementById('user-modal-close');
-const cancelBtn = document.getElementById('cancel-user-btn');
+    // Ambil target section
+    const targetId = this.getAttribute("data-section");
 
-// Menambahkan event listener untuk tombol close
-if (closeBtn) {
-    closeBtn.addEventListener('click', closeUserModal);
-} else {
-    console.error('Element with ID "user-modal-close" not found');
-}
+    // Sembunyikan semua section
+    document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
 
-// Menambahkan event listener untuk tombol cancel
-if (cancelBtn) {
-    cancelBtn.addEventListener('click', closeUserModal);
-} else {
-    console.error('Element with ID "cancel-user-btn" not found');
-}
+    // Tampilkan section yang sesuai
+    const targetSection = document.getElementById(targetId);
+    if (targetSection) targetSection.style.display = "block";
 
+    // Update status aktif
+    document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+    this.classList.add("active");
+  });
+});
+
+// === Fungsi Menyimpan Data Profil ===
 function saveProfile() {
-    try {
-        const nama = document.getElementById('profil-username')?.value.trim();
-        const email = document.getElementById('profil-email')?.value.trim();
-        const nik = document.getElementById('profil-nik')?.value.trim();
-        const jabatan = document.getElementById('profil-jabatan')?.value.trim();
-        const telepon = document.getElementById('profil-telepon')?.value.trim();
+  try {
+    const nama = document.getElementById("profil-username")?.value.trim();
+    const email = document.getElementById("profil-email")?.value.trim();
+    const nik = document.getElementById("profil-nik")?.value.trim();
+    const jabatan = document.getElementById("profil-jabatan")?.value.trim();
+    const telepon = document.getElementById("profil-telepon")?.value.trim();
 
-        // Validasi wajib isi
-        if (!nama || !email || !nik || !jabatan || !telepon) {
-            alert('Semua field profil harus diisi!');
-            return;
-        }
-
-        // Validasi email
-        const emailPattern = /^\S+@\S+\.\S+$/;
-        if (!emailPattern.test(email)) {
-            alert('Email tidak valid!');
-            return;
-        }
-
-        // Validasi NIK (16 digit angka)
-        if (!/^\d{16}$/.test(nik)) {
-            alert('NIK harus 16 digit!');
-            return;
-        }
-
-        // Validasi nomor telepon (10–12 digit angka)
-        if (!/^\d{10,12}$/.test(telepon)) {
-            alert('Nomor telepon harus 10–12 digit!');
-            return;
-        }
-
-        // Simpan data ke localStorage
-        const updatedData = { nama, email, nik, jabatan, telepon };
-        localStorage.setItem('profileData', JSON.stringify(updatedData));
-
-        // Optional: update variabel global jika dipakai
-        if (typeof originalProfileData !== 'undefined') {
-            originalProfileData = updatedData;
-        }
-
-        alert('Profil berhasil disimpan!');
-        loadProfileData(); // Menampilkan data terbaru ke form
-
-        // Perbarui nama di tampilan (header/sidebar)
-        const usernameDisplay = document.getElementById('username');
-        const sidebarTitle = document.querySelector('.sidebar-title');
-        if (usernameDisplay) usernameDisplay.textContent = nama;
-        if (sidebarTitle) sidebarTitle.textContent = nama;
-
-    } catch (e) {
-        console.error('Error saving profile:', e);
-        if (typeof showErrorBoundary === 'function') {
-            showErrorBoundary('Gagal menyimpan profil: ' + e.message);
-        } else {
-            alert('Terjadi kesalahan saat menyimpan profil.');
-        }
+    // Validasi
+    if (!nama || !email || !nik || !jabatan || !telepon) {
+      alert("Semua field profil harus diisi!");
+      return;
     }
+
+    const emailPattern = /^\S+@\S+\.\S+$/;
+    if (!emailPattern.test(email)) {
+      alert("Email tidak valid!");
+      return;
+    }
+
+    if (!/^\d{16}$/.test(nik)) {
+      alert("NIK harus 16 digit!");
+      return;
+    }
+
+    if (!/^\d{10,13}$/.test(telepon)) {
+      alert("Nomor telepon harus 10–13 digit angka!");
+      return;
+    }
+
+    // Simpan ke localStorage
+    const updatedData = { nama, email, nik, jabatan, telepon };
+    localStorage.setItem("profileData", JSON.stringify(updatedData));
+    originalProfileData = updatedData;
+
+    alert("✅ Profil berhasil disimpan!");
+    loadProfileData(); // Refresh data terbaru
+
+  } catch (e) {
+    console.error("Error saat menyimpan profil:", e);
+    alert("❌ Terjadi kesalahan saat menyimpan profil!");
+  }
 }
+
+// === Jalankan load saat halaman pertama kali dibuka ===
+document.addEventListener("DOMContentLoaded", loadProfileData);
 
 function cancelProfile() {
     const modal = document.getElementById('profile-section'); // Sesuaikan ID-nya
@@ -912,7 +929,9 @@ async function fetchLaporanMasuk() {
       kendaraan: item.kendaraan || '',
       jenis: item.jenis_kecelakaan || '',
       jumlahKorban: item.jumlah_korban || '',
-      kronologi: item.kronologi || ''
+      kronologi: item.kronologi || '',
+      bukti_selesai: item.bukti_selesai || '',
+      keterangan_selesai: item.keterangan_selesai || ''
     }));
 
     // Simpan ke array global
@@ -983,32 +1002,92 @@ function renderTrackingLaporan(data) {
     tableBody.appendChild(row);
   });
 }
+async function bukaDetailLaporan(id) {
+  try {
+    const res = await fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1");
+    const data = await res.json();
+    console.log("Data API:", data);
 
-function bukaDetailLaporan(id) {
-  fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1")
-    .then(res => res.json())
-    .then(data => {
-      const report = data.find(r => r.id === id.toString());
+    const report = data.find(r => r.id === id.toString());
+    if (!report) return alert("Laporan tidak ditemukan!");
 
-      if (report) {
-        document.getElementById("report-nama").value = report.nama;
-        document.getElementById("report-nik").value = report.nik;
-        document.getElementById("report-email").value = report.email;
-        document.getElementById("report-no_hp").value = report.no_hp;
-        document.getElementById("report-saksi").value = report.saksi;
-        document.getElementById("report-titik").value = report.titik_kejadian;
-        document.getElementById("report-kendaraan").value = report.kendaraan;
-        document.getElementById("report-jenis").value = report.jenis_kecelakaan;
-        document.getElementById("report-jumlah-korban").value = report.jumlah_korban;
-        document.getElementById("report-tanggal").value = report.tanggal;
-        document.getElementById("report-status").innerText = report.status;
-        document.getElementById("report-petugas").value = report.petugas;
-        document.getElementById("report-bukti").src = report.bukti;
-        document.getElementById("report-kronologi").value = report.kronologi;
-        document.getElementById("report-modal").style.display = "block";
-      }
-    });
+    console.log("📋 Laporan ditemukan:", report);
+
+    // --- Isi Data Pelapor
+    document.getElementById("report-nama").value = report.nama_user || "";
+    document.getElementById("report-nik").value = report.nik || "";
+    document.getElementById("report-email").value = report.email || "";
+    // --- Buat input nomor telepon tetap tampil dan bisa diklik
+    const teleponInput = document.getElementById("report-telepon");
+    if (teleponInput) {
+    const nomor = (report.no_hp || "").replace(/\D/g, ""); // hanya angka
+    teleponInput.value = report.no_hp || "";
+    teleponInput.readOnly = true; // agar tidak bisa diubah sembarangan
+
+    // Ubah kursor dan beri warna/link hint
+    teleponInput.style.cursor = "pointer";
+    teleponInput.style.color = "#25D366"; // warna khas WhatsApp
+    teleponInput.style.fontWeight = "600";
+    teleponInput.title = "Klik untuk chat via WhatsApp";
+
+    // Tambahkan event klik untuk buka chat
+    teleponInput.onclick = () => {
+        if (nomor) {
+        const waLink = `https://wa.me/${nomor}`;
+        window.open(waLink, "_blank");
+        } else {
+        alert("Nomor WhatsApp tidak tersedia.");
+        }
+    };
+    }
+    document.getElementById("report-saksi").value = report.saksi_1 || "";
+
+    // --- Isi Data Laporan
+    document.getElementById("report-titik").value = report.alamat || "";
+    document.getElementById("report-kendaraan").value = report.kendaraan || "";
+    document.getElementById("report-jenis").value = report.jenis_kecelakaan || "";
+    document.getElementById("report-jumlah-korban").value = report.jumlah_korban || "";
+    document.getElementById("report-tanggal").value = report.tanggal || "";
+    document.getElementById("report-status").value = report.status || "";
+    document.getElementById("report-bukti").src = Array.isArray(report.foto) ? report.foto[0] : report.foto;
+    document.getElementById("report-kronologi").value = report.kronologi || "";
+
+    // --- Data Petugas & Bukti Selesai
+    const petugasInput = document.getElementById("report-petugas");
+    const fotoPetugasInput = document.getElementById("report-foto-petugas");
+    const buktiPetugasImg = document.getElementById("report-bukti-petugas");
+    const keteranganInput = document.getElementById("report-keterangan");
+
+    petugasInput.value = report.petugas || "";
+    keteranganInput.value = report.keterangan_selesai || "";
+
+    // ✅ Perbaikan utama di sini
+    if (report.bukti_selesai && report.bukti_selesai !== "null" && report.bukti_selesai !== "") {
+      console.log("📸 Menampilkan bukti:", report.bukti_selesai);
+      buktiPetugasImg.src = report.bukti_selesai;
+      buktiPetugasImg.style.display = "block";
+    } else {
+      console.warn("❌ Tidak ada bukti selesai ditemukan.");
+      buktiPetugasImg.src = "";
+      buktiPetugasImg.style.display = "none";
+    }
+
+    // --- Status yang bisa diedit
+    const editable = report.status === "2"; // hanya saat penanganan
+    petugasInput.disabled = !editable;
+    fotoPetugasInput.disabled = !editable;
+    keteranganInput.readOnly = !editable;
+
+    // --- Tampilkan modal
+    document.getElementById("report-modal").style.display = "block";
+
+  } catch (error) {
+    console.error("❌ Gagal memuat detail laporan:", error);
+    alert("Terjadi kesalahan saat memuat data laporan.");
+  }
 }
+
+
 
 function unduhLaporan(id) {
   alert(`Unduh laporan dengan ID: ${id}`);
@@ -1323,7 +1402,28 @@ function openReportModal(reportId) {
     document.getElementById('report-nama').value = report.nama || '';
     document.getElementById('report-nik').value = report.nik || '';
     document.getElementById('report-email').value = report.pelapor?.email || '';
-    document.getElementById('report-telepon').value = report.no_hp || '0813';
+    document.getElementById('report-telepon').value = report.no_hp || '';
+    // === Buat klik nomor telepon langsung ke WhatsApp ===
+    const teleponInput = document.getElementById('report-telepon');
+    if (teleponInput) {
+    let nomor = (report.no_hp || "").replace(/\D/g, "");
+    if (nomor.startsWith("0")) nomor = "62" + nomor.slice(1);
+    teleponInput.readOnly = true;
+    teleponInput.style.cursor = "pointer";
+    teleponInput.style.color = "#00000";
+    teleponInput.title = "Klik untuk chat via WhatsApp";
+
+    teleponInput.onclick = null;
+    teleponInput.addEventListener("click", () => {
+        if (nomor) {
+        const waLink = `https://wa.me/${nomor}`;
+        console.log("🔗 Buka WhatsApp:", waLink);
+        window.open(waLink, "_blank");
+        } else {
+        alert("Nomor WhatsApp tidak tersedia.");
+        }
+    });
+    }
     document.getElementById('report-saksi').value = report.saksi || '';
     document.getElementById('report-titik').value = report.titik || '';
     document.getElementById('report-kendaraan').value = report.kendaraan || '-';
@@ -1337,6 +1437,25 @@ function openReportModal(reportId) {
     const petugasInput = document.getElementById('report-petugas');
     if (petugasInput) {
       petugasInput.value = escapeHTML(report.petugas || '');
+    }
+    // === Tambahkan bagian ini untuk menampilkan bukti dan keterangan selesai ===
+    const buktiPetugasImg = document.getElementById("report-bukti-petugas");
+    const keteranganInput = document.getElementById("report-keterangan");
+
+    // Jika elemen keterangan selesai ada di modal
+    if (keteranganInput) {
+    keteranganInput.value = report.keterangan_selesai || '';
+    }
+
+    // Jika elemen bukti selesai ada di modal
+    if (buktiPetugasImg) {
+    if (report.bukti_selesai && report.bukti_selesai !== 'null' && report.bukti_selesai !== '') {
+        buktiPetugasImg.src = report.bukti_selesai;
+        buktiPetugasImg.style.display = 'block';
+    } else {
+        buktiPetugasImg.src = '';
+        buktiPetugasImg.style.display = 'none';
+    }
     }
 
     const buttonContainer = document.querySelector('.report-buttons');
@@ -1396,13 +1515,13 @@ function openReportModal(reportId) {
     if (cancelBtn) {
       cancelBtn.addEventListener('click', closeReportModal);
     }
+    
 
   } catch (e) {
     console.error('Error opening report modal:', e);
     showErrorBoundary('Gagal membuka modal laporan: ' + e.message);
   }
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
   const bukti = document.getElementById("report-bukti");
@@ -1437,58 +1556,112 @@ function closeReportModal() {
     modal.style.display = 'none';
   }
 }
+async function saveLaporan() {
+  try {
+    const laporanId = currentReportId;  // pastikan kamu punya variabel ID laporan
+    const petugas = document.getElementById("report-petugas").value;
+    const keterangan = document.getElementById("report-keterangan").value.trim();
+    const file = document.getElementById("report-foto-petugas").files[0];
 
+    if (!petugas) {
+      alert("Pilih petugas terlebih dahulu");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("id", laporanId);
+    formData.append("petugas", petugas);
+    formData.append("keterangan_selesai", keterangan);
+    if (file) {
+      formData.append("bukti_selesai", file);
+    }
+
+    const response = await fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      alert("Laporan berhasil diperbarui");
+      closeModal();
+      // reload / refresh tampilan laporan atau pelacakan
+    } else {
+      alert("Gagal memperbarui laporan: " + (result.message || "error"));
+    }
+
+  } catch (err) {
+    console.error("Error saat saveLaporan:", err);
+    alert("Terjadi kesalahan saat menyimpan laporan");
+  }
+}
 
 // Fungsi untuk menyimpan petugas dan memperbarui status
 function savePetugas(reportId) {
   const report = reports.find(r => String(r.id) === String(reportId));
   if (!report) return;
 
-  const petugas = document.getElementById('report-petugas').value.trim();
+  const petugasSelect = document.getElementById('report-petugas');
+  const fotoPetugasInput = document.getElementById('report-foto-petugas');
+  const keteranganInput = document.getElementById('report-keterangan');
+
+  const petugas = petugasSelect ? petugasSelect.value.trim() : '';
+  const keteranganSelesai = keteranganInput ? keteranganInput.value.trim() : '';
+  const fotoSelesai = fotoPetugasInput ? fotoPetugasInput.files[0] : null;
+
   if (!petugas && report.status === 'Diterima') {
     alert('Petugas harus diisi sebelum menyimpan!');
     return;
   }
 
-  report.petugas = petugas;
-
+  // Mapping status agar sesuai dengan API
   const statusMap = {
-    "Penanganan": "2"
+    "Diterima": "2",      // jadi Penanganan
+    "Penanganan": "3"     // jadi Selesai
   };
 
+  // Jika diterima → ubah jadi penanganan
+  // Jika sedang penanganan dan sudah ada bukti → ubah jadi selesai
+  let newStatus = report.status;
   if (report.status === 'Diterima' && petugas) {
-    report.status = 'Penanganan';
-
-    // Kirim ke API
-    const statusValue = statusMap[report.status];
-    const formData = new FormData();
-    formData.append("id", reportId);
-    formData.append("status", statusValue);
-    const petugasInput = document.getElementById('report-petugas');
-    const petugas = petugasInput ? petugasInput.value.trim() : '';
-    formData.append("petugas", petugas);
-
-    fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
-      method: "POST",
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      return response.json();
-    })
-    .then(result => {
-      console.log("Respons ubah status:", result);
-      if (result.kode !== 200) {
-        alert("Gagal mengubah status di server: " + (result.message || "Unknown error."));
-      } else {
-        console.log("Status berhasil diubah ke Penanganan.");
-      }
-    })
-    .catch(err => {
-      console.error("Gagal mengirim ke API:", err);
-      alert("Gagal mengirim status ke server.");
-    });
+    newStatus = "Penanganan";
+  } else if (report.status === 'Penanganan' && (fotoSelesai || keteranganSelesai)) {
+    newStatus = "Selesai";
   }
+
+  report.petugas = petugas;
+  report.keterangan_selesai = keteranganSelesai;
+
+  // === Kirim ke API ===
+  const formData = new FormData();
+  formData.append("id", reportId);
+  formData.append("petugas", petugas);
+  formData.append("status", statusMap[newStatus] || report.status);
+  if (fotoSelesai) formData.append("bukti_selesai", fotoSelesai);
+  if (keteranganSelesai) formData.append("keterangan_selesai", keteranganSelesai);
+
+  fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
+    method: "POST",
+    body: formData
+  })
+  .then(response => {
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    return response.json();
+  })
+  .then(result => {
+    console.log("Respons ubah status:", result);
+    if (result.kode === 200) {
+      alert(`Laporan berhasil diperbarui menjadi ${newStatus}.`);
+      closeReportModal();
+      renderTracking(getCurrentCategory());
+    } else {
+      alert("Gagal menyimpan ke server: " + (result.message || "Unknown error."));
+    }
+  })
+  .catch(err => {
+    console.error("Gagal mengirim ke API:", err);
+    alert("Terjadi kesalahan koneksi ke server.");
+  });
 
 //   localStorage.setItem('reports', JSON.stringify(reports));
   alert('Petugas diperbarui.');
@@ -2308,6 +2481,111 @@ function renderNotifications() {
     }
 }
 
+// === Notifikasi Laporan Baru + Suara Sirine ===
+// === Notifikasi Popup + Sirine Otomatis dari API ===
+
+// Inisialisasi variabel
+let lastReportCount = 0;
+const sirineAudio = new Audio("assets/sirine.mp3");
+sirineAudio.loop = true; // suara berulang terus sampai ditutup
+
+// Fungsi tampilkan popup di atas tengah
+function showNewReportPopup(count) {
+  // Hapus popup lama (jika masih ada)
+  const oldPopup = document.querySelector(".new-report-popup");
+  if (oldPopup) oldPopup.remove();
+
+  const popup = document.createElement("div");
+  popup.className = "new-report-popup";
+  popup.innerHTML = `
+    <div class="popup-content">
+      🚨 <strong>Laporan Baru Masuk!</strong>
+      <button id="popup-close">Tutup</button>
+    </div>
+  `;
+  popup.style.cssText = `
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #e63946;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 10px;
+  font-size: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  animation: popupFade 0.5s ease;
+  text-align: center;
+`;
+  // Animasi popup + efek sirine berdenyut
+  const style = document.createElement("style");
+  style.innerHTML = `
+    @keyframes popupFade {
+      from { opacity: 0; transform: translate(-50%, -20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px #ff4d4d; }
+      50% { box-shadow: 0 0 30px #ff0000; }
+      100% { box-shadow: 0 0 10px #ff4d4d; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  document.body.appendChild(popup);
+
+  // Tombol "Tutup"
+  document.getElementById("popup-close").onclick = () => {
+    popup.remove();
+    sirineAudio.pause();
+    sirineAudio.currentTime = 0;
+  };
+}
+
+// Fungsi cek laporan dari API
+async function checkNewReportsFromAPI() {
+  try {
+    const response = await fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1");
+    const data = await response.json();
+
+    // Ambil laporan baru (status = 0 berarti "Terkirim")
+    const newReports = data.filter(r => r.status === "0");
+
+    // Jika ada laporan baru sejak terakhir kali
+    if (lastReportCount !== 0 && newReports.length > lastReportCount) {
+      const diff = newReports.length - lastReportCount;
+      showNewReportPopup(diff);
+      sirineAudio.play().catch(err => console.warn("⚠️ Audio tidak dapat diputar otomatis:", err));
+    }
+
+    // Update jumlah terakhir
+    lastReportCount = newReports.length;
+  } catch (err) {
+    console.error("❌ Gagal mengambil data laporan:", err);
+  }
+}
+
+// Jalankan otomatis setiap 5 detik
+setInterval(checkNewReportsFromAPI, 5000);
+
+// Jalankan pertama kali saat halaman dibuka
+checkNewReportsFromAPI();
+
+// Aktifkan izin audio setelah klik pertama
+document.addEventListener("click", () => {
+  sirineAudio.play().then(() => {
+    sirineAudio.pause();
+    sirineAudio.currentTime = 0;
+    console.log("✅ Audio diaktifkan, popup akan bunyi otomatis berikutnya.");
+  }).catch(() => {});
+}, { once: true });
+
+
 
 function navigateToLaporanMasuk(reportId) {
     try {
@@ -2470,336 +2748,597 @@ function saveEvaluasi(evaluasiId) {
         showErrorBoundary('Gagal menyimpan evaluasi: ' + e.message);
     }
 }
+let approvedUsers = [];
+let pendingUsers = [];
 
-let users = [
-    { id: 1, nama: "Admin Satu", nik: "3201123456789012", email: "admin1@example.com", telepon: "081234567890", alamat: "Jl. Raya Bogor No. 1", lastActive: "2025-05-04 10:00" },
-    { id: 2, nama: "Admin Dua", nik: "3201123456789013", email: "admin2@example.com", telepon: "081234567891", alamat: "Jl. Pajajaran No. 2", lastActive: "2025-05-03 15:30" },
-    { id: 3, nama: "Shafira Putri Ardita", nik: "3201123456789014", email: "shafiraardita0@gmail.com", telepon: "081234567892", alamat: "Jl. Raya Cibungbulang No. 1", lastActive: "2025-05-02 20:29" },
-    { id: 4, nama: "Muhamad Farhan Supriadi", nik: "3201123456789015", email: "mfarhansupriadi@gmail.com", telepon: "081234567893", alamat: "Jl. Bojongtengah No. 2", lastActive: "2025-05-02 01:20" },
-    { id: 5, nama: "Adinda dwi suryani", nik: "3201123456789016", email: "adindadwi@gmail.com", telepon: "081234567894", alamat: "Jl. Bojong Gede", lastActive: "2024-10-09 20:11" },
-    { id: 6, nama: "Amelia dwi ananda", nik: "3201123456789017", email: "ameliadwi@gmail.com", telepon: "081234567895", alamat: "Jl. Parung", lastActive: "2024-10-22 11:30" },
-    { id: 7, nama: "Dwi larasati", nik: "3201123456789018", email: "dwilarasati@example.com", telepon: "081234567896", alamat: "Jl. Raya parung", lastActive: "2025-05-04 12:31" },
-    { id: 8, nama: "Nurul alfiah", nik: "3201123456789019", email: "nurulalfiah@example.com", telepon: "081234567897", alamat: "Jl. Raya nanggung", lastActive: "2025-05-03 14:01" },
-    { id: 9, nama: "Nabilah", nik: "3201123456789020", email: "nabilah@gmail.com", telepon: "081234567898", alamat: "Jl. Raya semplak bogor", lastActive: "2025-05-02 18:29" },
-    { id: 10, nama: "Regina Aprillia", nik: "3201123456789021", email: "reginaaprillia@gmail.com", telepon: "081234567899", alamat: "Jl. Raya Sentul", lastActive: "2025-05-02 06:45" },
-    { id: 11, nama: "Ajeng mufidah", nik: "3201123456789022", email: "ajengmufidah@gmail.com", telepon: "081234567880", alamat: "Jl. Raya Citereup", lastActive: "2024-10-09 19:22" },
-    { id: 12, nama: "Mutia rahmadiah", nik: "3201123456789023", email: "mutiarahmadian@gmail.com", telepon: "081234567881", alamat: "Jl. Bojong gede no 1", lastActive: "2024-10-22 03:30" },
-];
+// Ambil data dari API
+async function loadUsers() {
+  try {
+    const res = await fetch("https://dragonmontainapi.com/user_edit.php");
+    const data = await res.json();
 
-function validateUsersData(data) {
-    return Array.isArray(data) && data.every(user =>
-        typeof user.id === 'number' &&
-        typeof user.nama === 'string' &&
-        typeof user.email === 'string' &&
-        typeof user.telepon === 'string' &&
-        typeof user.nik === 'string' &&
-        typeof user.alamat === 'string' &&
-        typeof user.lastActive === 'string'
-    );
+    // Pastikan hasil API berupa array
+    if (!Array.isArray(data)) throw new Error("Data API tidak valid");
+
+    approvedUsers = data;
+    pendingUsers = []; // kalau API nanti punya status, bisa difilter di sini
+
+    renderUsers("approved", approvedUsers);
+  } catch (err) {
+    console.error("Gagal memuat data pengguna:", err);
+
+    // fallback dummy data
+    approvedUsers = [
+      {
+        id: 1,
+        nama: "Admin Satu",
+        email: "admin1@example.com",
+        password: "123456",
+        no_hp: "081234567890",
+        nik: "3201123456789012",
+        kategori: "Admin",
+        foto: "",
+        terakhir_aktif: "2025-10-15 08:00:00"
+      },
+      {
+        id: 2,
+        nama: "Shafira Putri Ardita",
+        email: "shafiraardita0@gmail.com",
+        password: "******",
+        no_hp: "081234567892",
+        nik: "3201123456789014",
+        kategori: "Admin",
+        foto: "",
+        terakhir_aktif: "2025-10-15 08:15:00"
+      }
+    ];
+
+    renderUsers("approved", approvedUsers);
+  }
 }
 
-users = validateStoredData('users', users, validateUsersData);
+// ===== Fungsi untuk Menampilkan Data ke Tabel =====
+function renderUsers(type, users) {
+  const tableBody = document.getElementById("approved-user-table-body");
+  if (!tableBody) return;
 
-function renderUserList() {
-    try {
-        const userTableBody = document.getElementById('user-table-body');
-        if (!userTableBody) {
-            console.warn('User table body not found');
-            return;
-        }
+  tableBody.innerHTML = "";
 
-        const searchQuery = document.getElementById('user-search')?.value.trim().toLowerCase();
-        const sortOption = document.getElementById('user-sort')?.value || 'terbaru';
+  if (!users || users.length === 0) {
+    tableBody.innerHTML = `
+      <tr><td colspan="9" style="text-align:center; color:gray;">Belum ada data pengguna</td></tr>
+    `;
+    return;
+  }
 
-        let filteredUsers = [...users];
-
-        // Pencarian berdasarkan nama/email
-        if (searchQuery) {
-            filteredUsers = filteredUsers.filter(user =>
-                user.nama.toLowerCase().includes(searchQuery) ||
-                user.email.toLowerCase().includes(searchQuery)
-            );
-        }
-
-        // Urutkan berdasarkan opsi filter
-        switch (sortOption) {
-            case 'az':
-                filteredUsers.sort((a, b) => a.nama.localeCompare(b.nama));
-                break;
-            case 'za':
-                filteredUsers.sort((a, b) => b.nama.localeCompare(a.nama));
-                break;
-            case 'terbaru':
-                filteredUsers.sort((a, b) => new Date(b.lastActive || b.updated_at || b.created_at) - new Date(a.lastActive || a.updated_at || a.created_at));
-                break;
-            case 'terlama':
-                filteredUsers.sort((a, b) => new Date(a.lastActive || a.updated_at || a.created_at) - new Date(b.lastActive || b.updated_at || b.created_at));
-                break;
-            default:
-                // Default tetap ID terbaru ke atas
-                filteredUsers.sort((a, b) => b.id - a.id);
-        }
-
-        // Pagination
-        const start = (currentPage - 1) * reportsPerPage;
-        const end = start + reportsPerPage;
-        const paginatedUsers = filteredUsers.slice(start, end);
-
-        // Render
-        userTableBody.innerHTML = paginatedUsers.map(user => `
-            <tr>
-                <td>${escapeHTML(user.nama)}</td>
-                <td>${escapeHTML(user.email)}</td>
-                <td>${escapeHTML(user.lastActive || '-')}</td>
-                <td class="action-buttons">
-                    <button class="edit-btn" onclick="openUserModal(${user.id})" title="Ubah">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                            <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
-                        </svg>
-                    </button>
-                    <button class="delete-btn" onclick="deleteUser(${user.id})" title="Hapus">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3h11V2h-11v1z"/>
-                        </svg>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-
-        updatePagination(filteredUsers.length);
-    } catch (e) {
-        console.error('Error rendering user list:', e);
-        showErrorBoundary('Gagal memuat daftar pengguna: ' + e.message);
-    }
+  users.forEach((user, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${user.id || index + 1}</td>
+      <td>${user.nama || "-"}</td>
+      <td>${user.email || "-"}</td>
+      <td>${user.password ? "••••••" : "-"}</td>
+      <td>${user.no_hp || "-"}</td>
+      <td>${user.nik || "-"}</td>
+      <td>${user.kategori || "-"}</td>
+      <td>${user.terakhir_aktif || "-"}</td>
+      <td>
+        <button class="btn-edit" onclick="editUser(${user.id})">Edit</button>
+        <button class="btn-delete" onclick="deleteUser(${user.id})">Hapus</button>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
 }
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("user-search");
-  const sortSelect = document.getElementById("user-sort");
 
-  if (searchInput) {
-    searchInput.addEventListener("input", () => {
-      currentPage = 1;
-      renderUserList();
+// Jalankan saat halaman selesai dimuat
+document.addEventListener("DOMContentLoaded", loadUsers);
+
+// --- Modal Tambah User ---
+function setupAddUserModal() {
+  const addBtn = document.getElementById("add-user-btn");
+  const modal = document.getElementById("user-modal");
+  const closeBtn = document.getElementById("user-modal-close");
+  const cancelBtn = document.getElementById("cancel-user-btn");
+
+  if (addBtn && modal) {
+    addBtn.addEventListener("click", () => {
+      modal.style.display = "block";
     });
   }
 
-  if (sortSelect) {
-    sortSelect.addEventListener("change", () => {
-      currentPage = 1;
-      renderUserList();
+  const closeModal = () => {
+    if (modal) modal.style.display = "none";
+  };
+
+  if (closeBtn) closeBtn.addEventListener("click", closeModal);
+  if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+}
+
+// Render ke tabel
+function renderUsers(type, users) {
+  const container = document.getElementById(`${type}-user-table-body`);
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  users.forEach(user => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${user.id}</td>
+      <td>${user.nama || "-"}</td>
+      <td>${user.email || "-"}</td>
+      <td>••••••••</td>
+      <td>${user.no_hp || "-"}</td>
+      <td>${user.nik || "-"}</td>
+      <td>${user.kategori || "-"}</td>
+      <td>${user.last_active || "-"}</td> <!-- 🔥 Tambahan kolom terakhir aktif -->
+      <td style="display:flex; gap:8px; justify-content:center;">
+        <!-- Tombol Edit -->
+        <button onclick="editUser('${user.id}')" 
+                title="Edit User"
+                style="background:none; border:none; cursor:pointer; color:#375B85;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 
+                     3a.5.5 0 0 1 0 .708l-9.5 9.5a.5.5 
+                     0 0 1-.168.11l-5 2a.5.5 0 0 
+                     1-.65-.65l2-5a.5.5 0 0 
+                     1 .11-.168l9.5-9.5zM11.207 
+                     2L3 10.207V13h2.793L14 4.793 
+                     11.207 2z"/>
+          </svg>
+        </button>
+
+        <!-- Tombol Hapus -->
+        <button onclick="deleteUser('${user.id}')" 
+                title="Hapus User"
+                style="background:none; border:none; cursor:pointer; color:#e74c3c;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M5.5 5.5A.5.5 0 0 1 6 
+                     6v6a.5.5 0 0 1-1 0V6a.5.5 
+                     0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 
+                     .5.5v6a.5.5 0 0 1-1 0V6a.5.5 
+                     0 0 1 .5-.5zm3 .5a.5.5 0 0 
+                     0-1 0v6a.5.5 0 0 0 1 
+                     0V6z"/>
+            <path fill-rule="evenodd" 
+                  d="M14.5 3a1 1 0 0 
+                     1-1 1H13v9a2 2 0 0 1-2 
+                     2H5a2 2 0 0 1-2-2V4h-.5a1 
+                     1 0 0 1 0-2H5V1a1 1 0 0 
+                     1 1-1h4a1 1 0 0 1 1 
+                     1v1h2.5a1 1 0 0 
+                     1 1 1zM6 1v1h4V1H6zM4 
+                     4v9a1 1 0 0 0 1 
+                     1h6a1 1 0 0 0 1-1V4H4z"/>
+          </svg>
+        </button>
+      </td>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function editUser(userId) {
+  const user = approvedUsers.find(u => String(u.id) === String(userId));
+  if (!user) {
+    alert("User tidak ditemukan!");
+    return;
+  }
+
+  // Isi field modal
+  document.getElementById("user-id").value = user.id;
+  document.getElementById("user-nama").value = user.nama || "";
+  document.getElementById("user-email").value = user.email || "";
+  document.getElementById("user-nohp").value = user.no_hp || "";
+  document.getElementById("user-nik").value = user.nik || "";
+  document.getElementById("user-kategori").value = user.kategori || "User";
+
+  document.getElementById("user-modal-title").textContent = "Edit User";
+  document.getElementById("user-modal").style.display = "block";
+
+  // ---- Tombol Simpan ----
+  const saveBtn = document.getElementById("save-user-btn");
+
+  // Hapus listener lama dulu supaya tidak dobel
+  saveBtn.replaceWith(saveBtn.cloneNode(true));
+  const newSaveBtn = document.getElementById("save-user-btn");
+
+  newSaveBtn.addEventListener("click", async () => {
+    const id = document.getElementById("user-id").value;
+    const nama = document.getElementById("user-nama").value.trim();
+    const email = document.getElementById("user-email").value.trim();
+    const no_hp = document.getElementById("user-nohp").value.trim();
+    const nik = document.getElementById("user-nik").value.trim();
+    const kategori = document.getElementById("user-kategori").value;
+
+    if (!nama || !email || !nik) {
+      alert("Nama, Email, dan NIK wajib diisi!");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("id", id);
+      formData.append("nama", nama);
+      formData.append("email", email);
+      formData.append("no_hp", no_hp);
+      formData.append("nik", nik);
+      formData.append("kategori", kategori);
+
+      const res = await fetch("https://dragonmontainapi.com/edit_user.php", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await res.json();
+      console.log("📌 Respons edit_user.php:", result);
+
+      if (result.kode === 200) {
+        alert("✅ User berhasil diperbarui!");
+        document.getElementById("user-modal").style.display = "none";
+        loadUsers();
+      } else {
+        alert("❌ Gagal update user: " + (result.message || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("⚠️ Error update user:", err);
+      alert("Terjadi kesalahan saat update user.");
+    }
+  });
+}
+
+async function deleteUser(userId) {
+  if (!confirm("Yakin ingin menghapus user ini?")) return;
+
+  try {
+    const formData = new FormData();
+    formData.append("id", userId);
+
+    const res = await fetch("https://dragonmontainapi.com/delete_user.php", {
+      method: "POST",
+      body: formData
     });
+
+    const result = await res.json();
+    console.log("Respons hapus user:", result);
+
+    if (result.kode === 200) {
+      alert("User berhasil dihapus!");
+      loadUsers();
+    } else {
+      alert("Gagal hapus user: " + (result.message || "Unknown error"));
+    }
+  } catch (err) {
+    console.error("Error delete user:", err);
+    alert("Terjadi kesalahan saat menghapus user.");
+  }
+}
+
+// Sorting
+function sortUsers(type) {
+  const sortValue = document.getElementById(
+    type === "approved" ? "approved-user-sort" : "pending-user-sort"
+  ).value;
+
+  let data = type === "approved" ? [...approvedUsers] : [...pendingUsers];
+
+  if (sortValue === "az") {
+    data.sort((a, b) => a.nama.localeCompare(b.nama));
+  } else if (sortValue === "za") {
+    data.sort((a, b) => b.nama.localeCompare(a.nama));
+  } else if (sortValue === "terbaru") {
+    data.sort((a, b) => new Date(b.created_at || Date.now()) - new Date(a.created_at || Date.now()));
+  } else if (sortValue === "terlama") {
+    data.sort((a, b) => new Date(a.created_at || Date.now()) - new Date(b.created_at || Date.now()));
+  }
+
+  renderUsers(type, data);
+}
+
+// Fungsi aksi
+function editUser(userId) {
+  const user = approvedUsers.find(u => String(u.id) === String(userId));
+  if (!user) {
+    alert("User tidak ditemukan!");
+    return;
+  }
+
+  // Isi form modal dengan data user
+  document.getElementById("user-id").value = user.id;
+  document.getElementById("user-nama").value = user.nama || "";
+  document.getElementById("user-email").value = user.email || "";
+  document.getElementById("user-nohp").value = user.no_hp || "";
+  document.getElementById("user-nik").value = user.nik || "";
+  document.getElementById("user-kategori").value = user.kategori || "User";
+
+  // Ubah judul modal jadi "Edit User"
+  document.getElementById("user-modal-title").textContent = "Edit User";
+
+  // Tampilkan modal
+  document.getElementById("user-modal").style.display = "block";
+}
+
+function deleteUser(id) {
+  if (confirm("Yakin hapus user ID " + id + "?")) {
+    alert("User " + id + " dihapus (belum terhubung ke API hapus)");
+  }
+}
+
+// Jalankan saat halaman siap
+document.addEventListener("DOMContentLoaded", loadUsers);
+
+
+// ==================== Manajemen Petugas ====================
+
+// Data awal petugas (dummy, bisa diganti dari API/DB)
+let petugasList = JSON.parse(localStorage.getItem("petugasList")) || [
+  { id: 1, nama: "Budi Santoso", unit: "Lantas Polresta Bogor" },
+  { id: 2, nama: "Siti Rahma", unit: "Dinas Perhubungan" },
+  { id: 3, nama: "Andi Pratama", unit: "Damkar Kota Bogor" }
+];
+
+let currentPetugasPage = 1;
+const petugasPerPage = 5;
+let editingPetugasId = null;
+
+// ==================== RENDER DATA PETUGAS ====================
+function renderPetugas() {
+  const tbody = document.getElementById("petugas-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const start = (currentPetugasPage - 1) * petugasPerPage;
+  const end = start + petugasPerPage;
+  const pageData = petugasList.slice(start, end);
+
+  if (pageData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada data petugas</td></tr>`;
+  } else {
+    pageData.forEach((p, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${start + index + 1}</td>
+        <td>${p.nama}</td>
+        <td>${p.unit}</td>
+        <td style="text-align:center;">
+          <button class="btn-icon btn-edit" onclick="editPetugas(${p.id})" title="Edit">
+            <i class="fa-solid fa-edit"></i>
+          </button>
+          <button class="btn-icon btn-delete" onclick="deletePetugas(${p.id})" title="Hapus">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>`;
+      tbody.appendChild(row);
+    });
+  }
+
+  const pageInfo = document.getElementById("petugas-page-info");
+  if (pageInfo) {
+    const totalPages = Math.max(1, Math.ceil(petugasList.length / petugasPerPage));
+    pageInfo.textContent = `Halaman ${currentPetugasPage} dari ${totalPages}`;
+  }
+
+  updatePetugasDropdown();
+  localStorage.setItem("petugasList", JSON.stringify(petugasList)); // Simpan otomatis
+}
+
+// ==================== UPDATE DROPDOWN ====================
+function updatePetugasDropdown() {
+  const select = document.getElementById("report-petugas");
+  if (!select) return;
+  select.innerHTML = `<option value="">-- Pilih Petugas --</option>`;
+  petugasList.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.nama;
+    opt.textContent = `${p.nama} - ${p.unit}`;
+    select.appendChild(opt);
+  });
+}
+// === Modal Tambah / Edit Petugas ===
+function openAddPetugasModal() {
+  const modal = document.getElementById("petugasModal");
+  if (modal) {
+    modal.style.display = "flex"; // tampilkan modal di tengah
+  }
+}
+
+function closePetugasModal() {
+  const modal = document.getElementById("petugasModal");
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
+
+// Tutup modal jika klik di luar area
+window.addEventListener("click", (e) => {
+  const modal = document.getElementById("petugasModal");
+  if (e.target === modal) {
+    closePetugasModal();
   }
 });
 
-function setupAddUserModal() {
-    const addUserBtn = document.getElementById('add-user-btn');
-    const modal = document.getElementById('user-modal');
-    const closeBtn = modal?.querySelector('.modal-close');
-    const cancelBtn = document.getElementById('cancel-user-btn');
-    const form = document.getElementById('add-user-form');
+// ==================== MODAL CONTROL ====================
+function openPetugasModal(isEdit = false, id = null) {
+  const modal = document.getElementById("petugasModal");
+  const title = document.getElementById("modal-petugas-title");
+  const form = document.getElementById("petugas-form");
 
-    // Saat tombol tambah diklik → tampilkan modal
-    const saveBtn = document.getElementById('save-user-btn');
-    if (saveBtn) {
-        saveBtn.onclick = (e) => {
-            e.preventDefault(); // Cegah submit bawaan
-            addUser(); // Jalankan fungsi tambah
-        };
-    }
+  if (!modal || !form) return;
 
-    if (addUserBtn && modal) {
-        addUserBtn.addEventListener('click', () => {
-            if (form) form.reset(); // reset input form
-            modal.style.display = 'flex';
-        });
-    }
+  form.reset();
+  editingPetugasId = null;
 
-    // Tombol "×" menutup modal
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
+  if (isEdit && id) {
+    const petugas = petugasList.find(p => p.id === id);
+    if (petugas) {
+      document.getElementById("petugas-nama").value = petugas.nama;
+      document.getElementById("petugas-unit").value = petugas.unit;
+      title.textContent = "Edit Petugas";
+      editingPetugasId = id;
     }
+  } else {
+    title.textContent = "Tambah Petugas";
+  }
 
-    // Tombol "Batal" menutup modal
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
-    }
+  modal.style.display = "flex";
 }
 
-function openUserModal(userId) {
-    try {
-        const modal = document.getElementById('user-modal');
-        if (!modal) {
-            console.warn('User modal not found');
-            return;
-        }
+function closePetugasModal() {
+  const modal = document.getElementById("petugasModal");
+  if (modal) modal.style.display = "none";
+  editingPetugasId = null;
+}
 
-        document.getElementById('user-nama').value = '';
-        document.getElementById('user-nik').value = '';
-        document.getElementById('user-email').value = '';
-        document.getElementById('user-telepon').value = '';
-        document.getElementById('user-alamat').value = '';
-        document.getElementById('user-last-active').textContent = 'N/A';
+// Tutup modal jika klik di luar area modal (tidak ganggu modal lain)
+window.addEventListener("click", (event) => {
+  const modal = document.getElementById("petugasModal");
+  if (modal && event.target === modal) {
+    closePetugasModal();
+  }
+});
 
-        const saveBtn = document.getElementById('save-user-btn');
-        const cancelBtn = document.getElementById('cancel-user-btn');
-        if (saveBtn) saveBtn.onclick = addUser;
-        if (cancelBtn) cancelBtn.onclick = () => closeModal('user-modal');
+// ==================== SIMPAN / EDIT DATA PETUGAS ====================
+async function savePetugas(reportId) {
+  console.log("🟢 Fungsi savePetugas() terpanggil dengan ID:", reportId);
 
-        modal.style.display = 'flex';
-    } catch (e) {
-        console.error('Error opening add user modal:', e);
-        showErrorBoundary('Gagal membuka modal tambah pengguna: ' + e.message);
+  try {
+    const report = reports.find(r => String(r.id) === String(reportId));
+    if (!report) {
+      console.error("❌ Laporan tidak ditemukan di array reports");
+      alert("Laporan tidak ditemukan.");
+      return;
     }
-}
 
-function addUser() {
-    try {
-        const nama = document.getElementById('user-nama')?.value.trim();
-        const nik = document.getElementById('user-nik')?.value.trim();
-        const email = document.getElementById('user-email')?.value.trim();
-        const telepon = document.getElementById('user-telepon')?.value.trim();
-        const alamat = document.getElementById('user-alamat')?.value.trim();
+    const petugas = document.getElementById("report-petugas")?.value.trim() || "";
+    const keterangan = document.getElementById("report-keterangan")?.value.trim() || "";
+    const buktiFile = document.getElementById("report-foto-petugas")?.files[0] || null;
 
-        if (!nama || !nik || !email || !telepon || !alamat) {
-            alert('Semua field wajib diisi!');
-            return;
-        }
+    console.log("📋 Input dari form:", { petugas, keterangan, buktiFile });
 
-        const newUser = {
-            id: Date.now(),
-            nama,
-            nik,
-            email,
-            telepon,
-            alamat,
-            lastActive: new Date().toISOString().slice(0, 16).replace('T', ' ')
-        };
-
-        // Tambahkan ke paling atas
-        users.unshift(newUser);
-        localStorage.setItem('users', JSON.stringify(users));
-
-        alert('Pengguna berhasil ditambahkan!');
-        closeModal('user-modal');
-        renderUserList(); // Tampilkan ulang tabel
-    } catch (e) {
-        console.error('Gagal menambahkan pengguna:', e);
-        showErrorBoundary('Gagal menambahkan pengguna: ' + e.message);
+    if (!petugas) {
+      alert("Nama petugas wajib diisi!");
+      return;
     }
-}
 
-
-function openUserModal(userId) {
-    try {
-        const user = users.find(u => u.id === userId);
-        if (!user) {
-            alert('Pengguna tidak ditemukan!');
-            return;
-        }
-
-        const modal = document.getElementById('user-modal');
-        if (!modal) {
-            console.warn('User modal not found');
-            return;
-        }
-
-        document.getElementById('user-nama').value = escapeHTML(user.nama);
-        document.getElementById('user-nik').value = escapeHTML(user.nik);
-        document.getElementById('user-email').value = escapeHTML(user.email);
-        document.getElementById('user-telepon').value = escapeHTML(user.telepon);
-        document.getElementById('user-alamat').value = escapeHTML(user.alamat);
-        document.getElementById('user-last-active').textContent = escapeHTML(user.lastActive);
-
-        const saveBtn = document.getElementById('save-user-btn');
-        const cancelBtn = document.getElementById('cancel-user-btn');
-        if (saveBtn) saveBtn.onclick = () => saveUser(userId);
-        if (cancelBtn) cancelBtn.onclick = () => closeModal('user-modal');
-
-        modal.style.display = 'flex';
-    } catch (e) {
-        console.error('Error opening user modal:', e);
-        showErrorBoundary('Gagal membuka modal pengguna: ' + e.message);
+    // Tentukan status baru
+    let newStatus = report.status;
+    if (report.status === "Diterima" && petugas) {
+      newStatus = "Penanganan";
+    } else if (report.status === "Penanganan" && (keterangan || buktiFile)) {
+      newStatus = "Selesai";
     }
-}
 
-function saveUser(userId) {
-    try {
-        const user = users.find(u => u.id === userId);
-        if (!user) {
-            alert('Pengguna tidak ditemukan!');
-            return;
-        }
+    const statusMap = {
+      "Masuk": "0",
+      "Diterima": "1",
+      "Penanganan": "2",
+      "Selesai": "3",
+      "Ditolak": "4"
+    };
 
-        const nama = document.getElementById('user-nama')?.value.trim();
-        const nik = document.getElementById('user-nik')?.value.trim();
-        const email = document.getElementById('user-email')?.value.trim();
-        const telepon = document.getElementById('user-telepon')?.value.trim();
-        const alamat = document.getElementById('user-alamat')?.value.trim();
+    const formData = new FormData();
+    formData.append("id", reportId);
+    formData.append("petugas", petugas);
+    formData.append("status", statusMap[newStatus]);
+    formData.append("keterangan_selesai", keterangan);
+    if (buktiFile) formData.append("bukti_selesai", buktiFile);
 
-        if (!nama || !nik || !email || !telepon || !alamat) {
-            alert('Semua field pengguna harus diisi!');
-            return;
-        }
+    console.log("🛰️ Data dikirim ke API:", Object.fromEntries(formData));
 
-        if (!/^\S+@\S+\.\S+$/.test(email)) {
-            alert('Email tidak valid!');
-            return;
-        }
+    const res = await fetch("https://dragonmontainapi.com/ubah_status_laporan.php", {
+      method: "POST",
+      body: formData
+    });
 
-        if (!/^\d{16}$/.test(nik)) {
-            alert('NIK harus 16 digit!');
-            return;
-        }
+    console.log("🌐 Status HTTP:", res.status);
 
-        if (!/^\d{10,12}$/.test(telepon)) {
-            alert('Nomor telepon harus 10-12 digit!');
-            return;
-        }
+    const result = await res.json();
+    console.log("📩 Respons API:", result);
 
-        user.nama = nama;
-        user.nik = nik;
-        user.email = email;
-        user.telepon = telepon;
-        user.alamat = alamat;
-        user.lastActive = new Date().toISOString().replace('T', ' ').substring(0, 16);
-
-        localStorage.setItem('users', JSON.stringify(users));
-        alert('Pengguna berhasil diperbarui!');
-        closeModal('user-modal');
-        renderUserList();
-    } catch (e) {
-        console.error('Error saving user:', e);
-        showErrorBoundary('Gagal menyimpan pengguna: ' + e.message);
+    if (result.kode === 200 || result.status === "success") {
+      alert(`✅ Laporan berhasil diperbarui menjadi ${newStatus}`);
+      await syncReportsFromAPI(); // refresh data laporan
+      closeReportModal();
+    } else {
+      alert("❌ Gagal menyimpan: " + (result.message || "Terjadi kesalahan."));
     }
+
+  } catch (err) {
+    console.error("🚨 Error di savePetugas:", err);
+    alert("Terjadi kesalahan saat menyimpan data ke server.");
+  }
 }
-function closeUserModal() {
-    const modal = document.getElementById('user-modal');
-    if (modal) modal.style.display = 'none';
-}
-document.getElementById('cancel-user-btn').onclick = function () {
-    closeUserModal();
-};
 
 
-function deleteUser(userId) {
-    try {
-        if (!confirm('Apakah Anda yakin ingin menghapus pengguna ini?')) return;
-
-        users = users.filter(u => u.id !== userId);
-        localStorage.setItem('users', JSON.stringify(users));
-        alert('Pengguna berhasil dihapus!');
-        renderUserList();
-    } catch (e) {
-        console.error('Error deleting user:', e);
-        showErrorBoundary('Gagal menghapus pengguna: ' + e.message);
-    }
+// ==================== EDIT & HAPUS ====================
+function editPetugas(id) {
+  openPetugasModal(true, id);
 }
+
+function deletePetugas(id) {
+  if (confirm("Yakin ingin menghapus petugas ini?")) {
+    petugasList = petugasList.filter(p => p.id !== id);
+    localStorage.setItem("petugasList", JSON.stringify(petugasList));
+    renderPetugas();
+    updatePetugasDropdown();
+  }
+}
+
+// ==================== PAGINATION ====================
+function prevPetugasPage() {
+  if (currentPetugasPage > 1) {
+    currentPetugasPage--;
+    renderPetugas();
+  }
+}
+
+function nextPetugasPage() {
+  const totalPages = Math.ceil(petugasList.length / petugasPerPage);
+  if (currentPetugasPage < totalPages) {
+    currentPetugasPage++;
+    renderPetugas();
+  }
+}
+
+// ==================== PENCARIAN ====================
+function searchPetugas() {
+  const keyword = document.getElementById("search-petugas").value.toLowerCase();
+  const tbody = document.getElementById("petugas-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const hasil = petugasList.filter(
+    p => p.nama.toLowerCase().includes(keyword) || p.unit.toLowerCase().includes(keyword)
+  );
+
+  if (hasil.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Tidak ada hasil</td></tr>`;
+    return;
+  }
+
+  hasil.forEach((p, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${p.nama}</td>
+      <td>${p.unit}</td>
+      <td style="text-align:center;">
+        <button class="btn-icon btn-edit" onclick="editPetugas(${p.id})" title="Edit">
+          <i class="fa-solid fa-edit"></i>
+        </button>
+        <button class="btn-icon btn-delete" onclick="deletePetugas(${p.id})" title="Hapus">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </td>`;
+    tbody.appendChild(row);
+  });
+}
+
+// ==================== INISIALISASI ====================
+document.addEventListener("DOMContentLoaded", renderPetugas);
+
+
 function searchTracking() {
     try {
         const keyword = document.getElementById('tracking-search')?.value.trim().toLowerCase();
@@ -4240,6 +4779,13 @@ function viewDetail(id) {
 // Inisialisasi saat halaman dimuat
 document.addEventListener("DOMContentLoaded", () => {
     applyFilters();
+});
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    renderPetugas();
+  } catch (e) {
+    console.warn("Render petugas dilewati sementara:", e);
+  }
 });
 
 // Modifikasi initializeAdminPage

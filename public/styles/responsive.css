@@ -1,0 +1,760 @@
+/* ======================================================
+   RESPONSIVE.CSS (Diperbaiki)
+   Responsif lengkap untuk Dashboard Admin (Tailwind-based)
+   Perbaikan: 
+   - Hilangkan margin-left pada main-content di mobile untuk mencegah konten terlalu ke kanan.
+   - Sidebar di mobile: hidden (transform: translateX(-100%)) saat tidak aktif, tanpa width kecil yang meninggalkan garis abu (border).
+   - Pastikan sidebar slide-in mulus tanpa meninggalkan artefak seperti garis abu.
+   - Satukan aturan media query untuk menghindari konflik.
+   - Sidebar collapsed hanya untuk desktop/tablet, di mobile gunakan slide-in/out.
+   ====================================================== */
+
+/* ======== RESPONSIF (untuk layar kecil) ======== */
+@media (max-width: 992px) {
+  .table-container {
+    padding: 0 5px;
+  }
+
+  #petugasTable th, #petugasTable td {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  #petugasTable {
+    min-width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .btn-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+}
+/* Responsif */
+@media (max-width: 600px) {
+  .modal-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* ======== RESPONSIF ======== */
+@media (max-width: 768px) {
+  .modal-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+}
+/* Responsivitas */
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 20px;
+    }
+
+    .modal-body {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-body img {
+        grid-column: span 1;
+    }
+}
+/* Responsivitas */
+@media (max-width: 480px) {
+    .add-user-content {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .add-user-content .btn-group {
+        flex-direction: column;
+    }
+
+    .add-user-content button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* Responsive Text */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 20px;
+      }
+      .start-btn {
+        font-size: 14px;
+        padding: 10px 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-page {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+/* ========== HEADER ========== */
+@media (max-width: 1024px) {
+  .header {
+    @apply flex-wrap justify-between p-3 text-sm;
+  }
+
+  .logo-text {
+    @apply text-base;
+  }
+
+  .user-info {
+    @apply flex-wrap justify-center gap-2;
+  }
+
+  .logout-btn {
+    @apply px-2 py-1 text-xs;
+  }
+}
+
+/* ========== SIDEBAR & MAIN CONTENT (Perbaikan Utama) ========== */
+
+/* Default (Desktop > 768px): Sidebar fixed, bisa collapse */
+@media (min-width: 769px) {
+  .sidebar {
+    position: fixed;
+    top: 50px; /* Sesuaikan dengan height header */
+    left: 0;
+    height: calc(100vh - 50px);
+    width: 240px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-right: 1px solid #e5e7eb;
+    transition: width 0.3s ease-in-out;
+    z-index: 20;
+  }
+
+  .sidebar.collapsed {
+    width: 80px;
+  }
+
+  .sidebar.collapsed .sidebar-title,
+  .sidebar.collapsed .nav-text {
+    display: none;
+  }
+
+  .sidebar.collapsed .nav-item {
+    justify-content: center;
+    gap: 0;
+  }
+
+  .sidebar.collapsed .sidebar-header {
+    justify-content: center;
+  }
+
+  .main-content {
+    margin-left: 240px;
+    transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+    width: calc(100% - 240px);
+  }
+
+  .sidebar.collapsed ~ .main-content {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+
+  /* Tombol collapse untuk desktop */
+  .collapse-btn {
+    position: absolute;
+    top: 12px;
+    right: -20px; /* Sesuaikan agar tidak overlapping */
+    background: none;
+    color: white;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s;
+    z-index: 60;
+  }
+
+}
+
+/* Mobile (<= 768px): Sidebar slide-in, no margin on main-content, no garis abu saat hidden */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 240px;
+    background-color: #ffffff;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 50;
+    border-right: none; /* Hilangkan border agar tidak ada garis abu saat hidden */
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0 !important; /* Perbaikan: Hilangkan margin-left sepenuhnya */
+    width: 100%;
+    padding-top: 60px; /* Sesuaikan dengan header */
+    transition: none;
+  }
+
+  /* Tombol hamburger untuk toggle sidebar */
+  .hamburger-btn {
+    display: block;
+    font-size: 24px;
+    color: #ffffff;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    left: 10px;
+    top: 12px;
+    z-index: 60;
+  }
+
+  /* Overlay gelap saat sidebar aktif */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    display: none;
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Refined Mobile Styles (dari kode asli, disesuaikan) */
+  html, body {
+    overflow-x: hidden; /* Perbaiki overflow */
+    overflow-y: auto;
+    width: 100%;
+    min-height: 100vh;
+    min-width: 320px;
+  }
+
+  .header {
+    padding: 8px 12px;
+    height: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: hidden;
+    min-width: 320px;
+    flex-wrap: nowrap;
+    background: linear-gradient(to bottom, #375B85, #2c4768);
+  }
+
+  .hamburger-btn {
+    display: block;
+    font-size: 20px;
+    padding: 6px;
+    border-radius: 4px;
+    transition:  transform 0.2s ease;
+  }
+
+  .hamburger-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
+  }
+
+  .logo-text {
+    font-size: 15px;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .we-are-hiring {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    white-space: nowrap;
+    background: rgba(255, 109, 0, 0.2);
+  }
+
+  .user-name {
+    font-size: 11px;
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+
+  .profile-icon-header {
+  width: 32px;                    /* Sedikit lebih besar biar jelas */
+  height: 32px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  cursor: pointer;
+  object-fit: cover;
+  position: absolute;             /* ✅ pastikan posisinya bisa bebas */
+  right: 20px;                    /* ✅ jarak dari sisi kanan layar */
+  top: 50%;                       /* sejajarkan vertikal */
+  transform: translateY(-50%);    /* ratakan posisi tengah vertikal */
+  z-index: 150;                   /* agar tidak ketutupan elemen lain */
+}
+
+  .sidebar-header {
+    padding: 10px;
+    justify-content: flex-start;
+    border-bottom: 1px solid #e0e7f3;
+  }
+
+  .sidebar-title {
+    font-size: 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #375B85;
+  }
+
+  .profile-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+  }
+
+  .nav-item {
+    padding: 10px;
+    font-size: 12px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    transition: background 0.3s ease;
+    border-radius: 4px;
+    margin: 0 4px;
+  }
+
+  .nav-item:hover, .nav-item.active {
+    background: #e0e7f3;
+    font-weight: 600;
+  }
+
+  .content-section {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    min-width: 320px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .stats-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    min-width: 300px;
+  }
+
+  /* ... (sisanya dari kode asli untuk mobile, seperti stats-card, notification, dll.) */
+}
+
+/* ========== TABLE RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .table-container {
+    @apply overflow-x-auto w-full;
+  }
+
+  table {
+    @apply text-xs block whitespace-nowrap;
+  }
+
+  th, td {
+    @apply px-2 py-1;
+  }
+
+  .user-table,
+  #report-table,
+  #tracking-table {
+    @apply w-full;
+  }
+}
+
+/* ========== FORM DAN FILTER ========== */
+@media (max-width: 768px) {
+  input, select, textarea, button {
+    @apply text-xs;
+  }
+
+  .profile-field {
+    @apply flex flex-col gap-1;
+  }
+
+  .profile-buttons {
+    @apply flex flex-col gap-2;
+  }
+}
+
+/* ========== MAP SECTION ========== */
+@media (max-width: 768px) {
+  .map-container {
+    @apply p-2 gap-2;
+  }
+
+  .map-download-btn {
+    @apply text-xs px-2 py-1;
+  }
+
+  #map-2023,
+  #map-2024 {
+    @apply h-[300px];
+  }
+}
+
+/* ========== MODAL ========== */
+@media (max-width: 640px) {
+  .modal-content {
+    @apply text-xs w-11/12 max-w-xs;
+  }
+
+  .modal-body {
+    @apply flex flex-col gap-2;
+  }
+
+  .modal-content h2 {
+    @apply text-base;
+  }
+}
+
+/* ========== BUTTONS ========== */
+@media (max-width: 480px) {
+  button {
+    @apply text-xs px-2 py-1;
+  }
+
+  .download-btn svg {
+    @apply hidden;
+  }
+}
+
+/* ========== FOOTER & MISC ========== */
+@media (max-width: 640px) {
+  .section-content {
+    @apply p-3;
+  }
+
+  h2 {
+    @apply text-base;
+  }
+
+  h3 {
+    @apply text-sm;
+  }
+
+  p {
+    @apply text-xs;
+  }
+}
+
+/* ========== SMOOTH TRANSITION UNTUK SLIDE SIDEBAR ========== */
+.sidebar {
+  transition: width 0.3s ease, transform 0.3s ease;
+}
+
+.main-content {
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar.active ~ .main-content {
+  @apply ml-0;
+}
+
+ /* ======== SIDEBAR MOBILE HANYA IKON ======== */
+@media (max-width: 768px) {
+  /* Sembunyikan teks di sidebar mobile */
+  .sidebar .nav-text,
+  .sidebar .sidebar-title {
+    display: none !important;
+  }
+
+  /* Sidebar lebih sempit untuk ikon saja */
+  .sidebar {
+    width: 70px !important;
+    padding-top: 60px; /* agar tidak tertabrak header */
+  }
+
+  /* Rata tengah untuk ikon, biar terlihat rapi */
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin-top: 5px;
+    padding: 20px 35px 3px 3px;
+  }
+
+  .sidebar-nav .nav-item {
+    justify-content: center;
+    padding: 10px 0;
+  }
+
+  .sidebar-nav .nav-item i {
+    font-size: 20px;
+    color: #375B85;
+  }
+
+  /* Sembunyikan garis atau border */
+  .sidebar-header {
+    border-bottom: none;
+    margin-top: 10px;
+  }
+
+  /* Main content jangan ketimpa sidebar */
+  .main-content {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  /* Pastikan tombol hamburger tetap berfungsi */
+  .hamburger-btn {
+    display: block !important;
+  }
+}
+/* ===== HEADER RESPONSIF DENGAN LAYOUT RAPI ===== */
+@media (max-width: 768px) {
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* ✅ Bagi ruang antara kiri dan kanan */
+    padding: 0 14px;
+    height: 70px;
+    background-color: #375B85;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+  }
+
+  /* Bagian kiri (logo + tombol hamburger) */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0; /* ✅ Agar tidak tertekan oleh user-info */
+  }
+
+  /* Bagian kanan (logout + profil) */
+  .user-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0; /* ✅ Jangan biarkan menyusut dan menabrak */
+    margin-left: auto; /* ✅ Pastikan tetap di kanan */
+  }
+
+  /* Tombol logout */
+  .logout-btn {
+    background-color: #dc3545;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap; /* ✅ Agar teks tidak pecah ke bawah */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .logout-btn:hover {
+    background-color: #b92c3a;
+  }
+
+  /* Foto profil */
+  .profile-icon-header {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 4px; /* ✅ Sedikit jarak agar tidak menempel tombol logout */
+  }
+}
+/* === Overlay abu-abu transparan === */
+#modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35); /* efek transparan lembut */
+  z-index: 998;
+  display: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Tampilkan overlay */
+#modal-overlay.show {
+  display: block;
+}
+
+/* === Modal Evaluasi Tengah === */
+#evaluasi-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: none;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  padding: 25px 20px;
+  width: 100%;
+  max-width: 500px;
+  z-index: 999;
+  display: none;
+  transition: all 0.3s ease;
+}
+
+/* Saat aktif */
+#evaluasi-modal.show {
+  display: block;
+}
+
+/* Tombol tutup */
+#evaluasi-modal .modal-close {
+  position: absolute;
+  top: 12px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
+}
+
+/* Judul */
+#evaluasi-modal h2 {
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+/* Field input */
+#evaluasi-modal .profile-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+#evaluasi-modal .profile-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+#evaluasi-modal .profile-field input,
+#evaluasi-modal .profile-field textarea {
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+}
+
+/* Tombol */
+#evaluasi-modal .save-btn,
+#evaluasi-modal .cancel-btn {
+  display: inline-block;
+  width: 48%;
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+#evaluasi-modal .save-btn {
+  background: #375B85;
+  color: white;
+}
+
+#evaluasi-modal .cancel-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+/* Responsif tablet */
+@media (max-width: 1024px) {
+  #evaluasi-modal {
+    max-width: 90%;
+    padding: 20px 16px;
+  }
+
+  #evaluasi-modal h2 {
+    font-size: 17px;
+  }
+
+  #evaluasi-modal .save-btn,
+  #evaluasi-modal .cancel-btn {
+    font-size: 12px;
+  }
+}
+
+/* Responsif mobile */
+@media (max-width: 768px) {
+  #evaluasi-modal {
+    max-width: 95%;
+    padding: 16px 12px;
+  }
+
+  #evaluasi-modal h2 {
+    font-size: 15px;
+  }
+
+  #evaluasi-modal .profile-field label {
+    font-size: 12px;
+  }
+
+  #evaluasi-modal .profile-field input,
+  #evaluasi-modal .profile-field textarea {
+    font-size: 12px;
+  }
+
+  #evaluasi-modal .save-btn,
+  #evaluasi-modal .cancel-btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+
+/* Responsif layar kecil */
+@media (max-width: 480px) {
+  #evaluasi-modal {
+    max-width: 90%;
+    padding: 14px 10px;
+  }
+
+  #evaluasi-modal h2 {
+    font-size: 14px;
+  }
+
+  #evaluasi-modal .profile-field label {
+    font-size: 11px;
+  }
+
+  #evaluasi-modal .profile-field input,
+  #evaluasi-modal .profile-field textarea {
+    font-size: 11px;
+  }
+
+  #evaluasi-modal .save-btn,
+  #evaluasi-modal .cancel-btn {
+    font-size: 11px;
+  }
+}

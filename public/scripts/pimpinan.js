@@ -247,75 +247,132 @@ function initializeAdminPage() {
     if (downloadExcelBtn) downloadExcelBtn.addEventListener('click', downloadExcel);
 }
 
+// === Klik profil di sidebar membuka halaman profil admin ===
+const sidebarProfileBtn = document.getElementById("sidebar-profile-btn");
+if (sidebarProfileBtn) {
+  sidebarProfileBtn.addEventListener("click", () => {
+    document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+    const profilSection = document.getElementById("profil-section");
+    if (profilSection) profilSection.style.display = "block";
+    document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+    loadProfileData(); // Pastikan data tampil saat halaman profil dibuka
+  });
+}
+
+// === Data Awal Profil ===
 let originalProfileData = {
-    nama: "",
-    email: "",
-    nik: "",
-    jabatan: "",
-    telepon: "",
-    photo: null
+  nama: "admin",
+  email: "admin@example.com",
+  nik: "0000000000000000",
+  jabatan: "Administrator",
+  telepon: "081234567890",
+  photo: null
 };
 
+// === Fungsi Validasi Data ===
 function validateProfileData(data) {
-    return data && 
-        typeof data.nama === 'string' &&
-        typeof data.email === 'string' &&
-        typeof data.nik === 'string' &&
-        typeof data.jabatan === 'string' &&
-        typeof data.telepon === 'string' &&
-        (data.photo === null || typeof data.photo === 'string');
+  return data &&
+    typeof data.nama === "string" &&
+    typeof data.email === "string" &&
+    typeof data.nik === "string" &&
+    typeof data.jabatan === "string" &&
+    typeof data.telepon === "string" &&
+    (data.photo === null || typeof data.photo === "string");
 }
 
-originalProfileData = validateStoredData('profileData', originalProfileData, validateProfileData);
+// === Fungsi Memuat Data Profil dari localStorage ===
+function loadProfileData() {
+  try {
+    const stored = localStorage.getItem("profileData");
+    let data = stored ? JSON.parse(stored) : originalProfileData;
 
+    if (!validateProfileData(data)) data = originalProfileData;
+
+    // Tampilkan ke form input
+    document.getElementById("profil-username").value = data.nama || "";
+    document.getElementById("profil-email").value = data.email || "";
+    document.getElementById("profil-nik").value = data.nik || "";
+    document.getElementById("profil-jabatan").value = data.jabatan || "";
+    document.getElementById("profil-telepon").value = data.telepon || "";
+
+    // Perbarui tampilan nama di header/sidebar
+    const usernameDisplay = document.getElementById("username");
+    const sidebarTitle = document.querySelector(".sidebar-title");
+    if (usernameDisplay) usernameDisplay.textContent = data.nama;
+    if (sidebarTitle) sidebarTitle.textContent = data.nama;
+  } catch (e) {
+    console.error("Gagal memuat data profil:", e);
+  }
+}
+
+// === Navigasi antar section dari sidebar ===
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    // Ambil target section
+    const targetId = this.getAttribute("data-section");
+
+    // Sembunyikan semua section
+    document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+
+    // Tampilkan section yang sesuai
+    const targetSection = document.getElementById(targetId);
+    if (targetSection) targetSection.style.display = "block";
+
+    // Update status aktif
+    document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+    this.classList.add("active");
+  });
+});
+
+// === Fungsi Menyimpan Data Profil ===
 function saveProfile() {
-    try {
-        const nama = document.getElementById('profil-username')?.value.trim();
-        const email = document.getElementById('profil-email')?.value.trim();
-        const nik = document.getElementById('profil-nik')?.value.trim();
-        const jabatan = document.getElementById('profil-jabatan')?.value.trim();
-        const telepon = document.getElementById('profil-telepon')?.value.trim();
+  try {
+    const nama = document.getElementById("profil-username")?.value.trim();
+    const email = document.getElementById("profil-email")?.value.trim();
+    const nik = document.getElementById("profil-nik")?.value.trim();
+    const jabatan = document.getElementById("profil-jabatan")?.value.trim();
+    const telepon = document.getElementById("profil-telepon")?.value.trim();
 
-        if (!nama || !email || !nik || !jabatan || !telepon) {
-            alert('Semua field profil harus diisi!');
-            return;
-        }
-
-        if (!/^\S+@\S+\.\S+$/.test(email)) {
-            alert('Email tidak valid!');
-            return;
-        }
-
-        if (!/^\d{16}$/.test(nik)) {
-            alert('NIK harus 16 digit!');
-            return;
-        }
-
-        if (!/^\d{10,12}$/.test(telepon)) {
-            alert('Nomor telepon harus 10-12 digit!');
-            return;
-        }
-
-        const updatedData = { nama, email, nik, jabatan, telepon };
-        localStorage.setItem('pimpinanProfileData', JSON.stringify(updatedData));
-
-        // Update variabel global juga agar langsung sinkron
-        originalProfileData = updatedData;
-
-        alert('Profil pimpinan berhasil disimpan!');
-        loadProfileData(); // tampilkan data terbaru
-
-        // Perbarui tampilan header/sidebar
-        const usernameDisplay = document.getElementById('username');
-        const sidebarTitle = document.querySelector('.sidebar-title');
-        if (usernameDisplay) usernameDisplay.textContent = nama;
-        if (sidebarTitle) sidebarTitle.textContent = nama;
-
-    } catch (e) {
-        console.error('Error saving profile:', e);
-        showErrorBoundary('Gagal menyimpan profil pimpinan: ' + e.message);
+    // Validasi
+    if (!nama || !email || !nik || !jabatan || !telepon) {
+      alert("Semua field profil harus diisi!");
+      return;
     }
+
+    const emailPattern = /^\S+@\S+\.\S+$/;
+    if (!emailPattern.test(email)) {
+      alert("Email tidak valid!");
+      return;
+    }
+
+    if (!/^\d{16}$/.test(nik)) {
+      alert("NIK harus 16 digit!");
+      return;
+    }
+
+    if (!/^\d{10,13}$/.test(telepon)) {
+      alert("Nomor telepon harus 10–13 digit angka!");
+      return;
+    }
+
+    // Simpan ke localStorage
+    const updatedData = { nama, email, nik, jabatan, telepon };
+    localStorage.setItem("profileData", JSON.stringify(updatedData));
+    originalProfileData = updatedData;
+
+    alert("✅ Profil berhasil disimpan!");
+    loadProfileData(); // Refresh data terbaru
+
+  } catch (e) {
+    console.error("Error saat menyimpan profil:", e);
+    alert("❌ Terjadi kesalahan saat menyimpan profil!");
+  }
 }
+
+// === Jalankan load saat halaman pertama kali dibuka ===
+document.addEventListener("DOMContentLoaded", loadProfileData);
 
 function cancelProfile() {
     const modal = document.getElementById('profile-section'); // Sesuaikan ID-nya
@@ -700,48 +757,7 @@ function generateReportId() {
 
 const baseTimestamp = 1741959840000;
 idCounter = 0;
-let reports = [
-    { id: generateReportId(), nama: "Robi Maulana", nik: "1234567890123456", email: "robi.maulana@example.com", telepon: "081234567890", tanggal: "2025-03-25 17:30", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident1.jpg", saksi: "Budi Santoso", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang" },
-    { id: generateReportId(), nama: "Siti Kayla", nik: "6543210987654321", email: "siti.kayla@example.com", telepon: "081987654321", tanggal: "2025-03-22 10:11", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident2.jpg", saksi: "Ani Lestari", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Zikrillah", nik: "9876543210123456", email: "zikrillah@example.com", telepon: "081234567891", tanggal: "2025-03-18 05:25", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident3.jpg", saksi: "Rudi Hartono", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Aditya Pratama", nik: "1234567890123457", email: "aditya.pratama@example.com", telepon: "081234567892", tanggal: "2025-04-01 09:00", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident4.jpg", saksi: "Dedi Susanto", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Dian Puspita", nik: "3210987654321098", email: "dianpuspita@example.com", telepon: "081345678901", tanggal: "2025-04-03 14:20", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident5.jpg", saksi: "Lisa Maharani", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Fajar Nugroho", nik: "1234509876543210", email: "fajarnugroho@example.com", telepon: "081456789012", tanggal: "2025-04-04 12:00", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident6.jpg", saksi: "Yusuf Maulana", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Rina Apriani", nik: "6789012345678901", email: "rina.apriani@example.com", telepon: "081234567893", tanggal: "2025-04-05 17:00", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident7.jpg", saksi: "Dodi Wirawan", petugas: "", received: true, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Bayu Firmansyah", nik: "7890123456789012", email: "bayu.firmansyah@example.com", telepon: "081234567894", tanggal: "2025-04-06 08:10", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident8.jpg", saksi: "Irfan Setiawan", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Fitriani", nik: "8901234567890123", email: "fitriani@example.com", telepon: "081234567895", tanggal: "2025-04-07 20:30", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident9.jpg", saksi: "Nova Sari", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Agus Widodo", nik: "9012345678901234", email: "agus.widodo@example.com", telepon: "081234567896", tanggal: "2025-04-08 11:45", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident10.jpg", saksi: "Reza Purnama", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Intan Permata", nik: "2345678901234567", email: "intan.permata@example.com", telepon: "081234567897", tanggal: "2025-04-09 13:50", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident11.jpg", saksi: "Wulan Sari", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Gilang Saputra", nik: "3456789012345678", email: "gilang.saputra@example.com", telepon: "081234567898", tanggal: "2025-04-10 16:05", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident12.jpg", saksi: "Taufik Hidayat", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Mega Sari", nik: "4567890123456789", email: "mega.sari@example.com", telepon: "081234567899", tanggal: "2025-04-11 07:25", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident13.jpg", saksi: "Siska Nursanti", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Rizky Dwi Putra", nik: "5678901234567890", email: "rizky.dwi@example.com", telepon: "081234567800", tanggal: "2025-04-12 10:10", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident14.jpg", saksi: "Andini Fitria", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Lutfi Aulia", nik: "6789012345678901", email: "lutfi.aulia@example.com", telepon: "081234567801", tanggal: "2025-04-13 18:40", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident15.jpg", saksi: "Erik Setiawan", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Tania Maharani", nik: "7890123456789012", email: "tania.maharani@example.com", telepon: "081234567802", tanggal: "2025-04-14 15:15", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident16.jpg", saksi: "Arif Kurniawan", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Alfian Ramadhan", nik: "8901234567890123", email: "alfian.ramadhan@example.com", telepon: "081234567803", tanggal: "2025-04-15 09:30", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident17.jpg", saksi: "Ratna Komalasari", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Desi Arisanti", nik: "9012345678901234", email: "desi.arisanti@example.com", telepon: "081234567804", tanggal: "2025-04-16 19:00", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident18.jpg", saksi: "Hasan Alwi", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Imam Hidayat", nik: "0123456789012345", email: "imam.hidayat@example.com", telepon: "081234567805", tanggal: "2025-04-17 06:55", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident19.jpg", saksi: "Yuni Kartika", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Dewi Lestari", nik: "1234567890123450", email: "dewi.lestari@example.com", telepon: "081234567806", tanggal: "2025-04-18 08:45", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident20.jpg", saksi: "Tomi Sutrisno", petugas: "", received: false, kendaraan:"roda 2", jenis:"Kecelakaan tunggal", jumlahKorban:"2", kronologi:"Pengendara motor menabrak mobil dari depan saat melaju kencang"},
-    { id: generateReportId(), nama: "Andi Pratama", nik: "1234567890123451", email: "andi.pratama@example.com", telepon: "081234567807", tanggal: "2025-04-19 14:25", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident21.jpg", saksi: "Rina Wulandari", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan beruntun", jumlahKorban: "3", kronologi: "Motor bertabrakan dengan mobil dan truk karena rem blong" },
-    { id: generateReportId(), nama: "Riska Amelia", nik: "1234567890123452", email: "riska.amelia@example.com", telepon: "081234567808", tanggal: "2025-04-20 09:15", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident22.jpg", saksi: "Hendra Wijaya", petugas: "", received: false, kendaraan: "roda 4", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Mobil tergelincir di jalan licin akibat hujan" },
-    { id: generateReportId(), nama: "Bima Sakti", nik: "1234567890123453", email: "bima.sakti@example.com", telepon: "081234567809", tanggal: "2025-04-21 16:40", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident23.jpg", saksi: "Siti Aminah", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan dengan pejalan kaki", jumlahKorban: "2", kronologi: "Motor menabrak pejalan kaki yang sedang menyeberang" },
-    { id: generateReportId(), nama: "Nia Ramadhani", nik: "1234567890123454", email: "nia.ramadhani@example.com", telepon: "081234567810", tanggal: "2025-04-22 11:50", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident24.jpg", saksi: "Eko Prasetyo", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor jatuh karena menghindari lubang di jalan" },
-    { id: generateReportId(), nama: "Hadi Santoso", nik: "1234567890123455", email: "hadi.santoso@example.com", telepon: "081234567811", tanggal: "2025-04-23 07:30", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident25.jpg", saksi: "Ayu Lestari", petugas: "", received: false, kendaraan: "roda 4", jenis: "Tabrakan beruntun", jumlahKorban: "4", kronologi: "Mobil menabrak kendaraan lain karena kelalaian pengemudi" },
-    { id: generateReportId(), nama: "Lina Marlina", nik: "1234567890123458", email: "lina.marlina@example.com", telepon: "081234567812", tanggal: "2025-04-24 18:20", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident26.jpg", saksi: "Doni Hermawan", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "2", kronologi: "Motor tergelincir akibat jalanan basah" },
-    { id: generateReportId(), nama: "Rudi Hartono", nik: "1234567890123459", email: "rudi.hartono@example.com", telepon: "081234567813", tanggal: "2025-04-25 13:10", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident27.jpg", saksi: "Maya Sari", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan dengan kendaraan lain", jumlahKorban: "3", kronologi: "Motor menabrak mobil yang sedang berhenti di lampu merah" },
-    { id: generateReportId(), nama: "Eka Putri", nik: "1234567890123460", email: "eka.putri@example.com", telepon: "081234567814", tanggal: "2025-04-26 10:05", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident28.jpg", saksi: "Bambang Susilo", petugas: "", received: false, kendaraan: "roda 4", jenis: "Kecelakaan tunggal", jumlahKorban: "2", kronologi: "Mobil menabrak pembatas jalan karena pengemudi mengantuk" },
-    { id: generateReportId(), nama: "Surya Wijaya", nik: "1234567890123461", email: "surya.wijaya@example.com", telepon: "081234567815", tanggal: "2025-04-27 15:55", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident29.jpg", saksi: "Rina Wulandari", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor jatuh karena kehilangan keseimbangan" },
-    { id: generateReportId(), nama: "Ayu Lestari", nik: "1234567890123462", email: "ayu.lestari@example.com", telepon: "081234567816", tanggal: "2025-04-28 08:40", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident30.jpg", saksi: "Faisal Rahman", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan beruntun", jumlahKorban: "3", kronologi: "Motor bertabrakan dengan dua kendaraan lain di persimpangan" },
-    { id: generateReportId(), nama: "Dedi Susanto", nik: "1234567890123463", email: "dedi.susanto@example.com", telepon: "081234567817", tanggal: "2025-04-29 17:00", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident31.jpg", saksi: "Nia Ramadhani", petugas: "", received: false, kendaraan: "roda 4", jenis: "Kecelakaan tunggal", jumlahKorban: "2", kronologi: "Mobil tergelincir dan menabrak pohon di pinggir jalan" },
-    { id: generateReportId(), nama: "Maya Sari", nik: "1234567890123464", email: "maya.sari@example.com", telepon: "081234567818", tanggal: "2025-04-30 12:30", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident32.jpg", saksi: "Andi Pratama", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor jatuh karena ban kempes" },
-    { id: generateReportId(), nama: "Bambang Susilo", nik: "1234567890123465", email: "bambang.susilo@example.com", telepon: "081234567819", tanggal: "2025-05-01 09:20", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident33.jpg", saksi: "Surya Wijaya", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan dengan pejalan kaki", jumlahKorban: "2", kronologi: "Motor menabrak pejalan kaki di zebra crossing" },
-    { id: generateReportId(), nama: "Faisal Rahman", nik: "1234567890123466", email: "faisal.rahman@example.com", telepon: "081234567820", tanggal: "2025-05-02 14:45", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident34.jpg", saksi: "Lina Marlina", petugas: "", received: false, kendaraan: "roda 4", jenis: "Tabrakan beruntun", jumlahKorban: "5", kronologi: "Mobil menabrak beberapa kendaraan karena pengemudi mabuk" },
-    { id: generateReportId(), nama: "Rina Wulandari", nik: "1234567890123467", email: "rina.wulandari@example.com", telepon: "081234567821", tanggal: "2025-05-03 11:15", status: "Masuk", titik: "Kecamatan Bogor Utara", bukti: "https://example.com/images/accident35.jpg", saksi: "Hadi Santoso", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor menabrak trotoar karena kehilangan kendali" },
-    { id: generateReportId(), nama: "Tomi Sutrisno", nik: "1234567890123468", email: "tomi.sutrisno@example.com", telepon: "081234567822", tanggal: "2025-05-04 16:30", status: "Masuk", titik: "Kecamatan Tanah Sereal", bukti: "https://example.com/images/accident36.jpg", saksi: "Riska Amelia", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "2", kronologi: "Motor tergelincir di tikungan tajam" },
-    { id: generateReportId(), nama: "Yuni Kartika", nik: "1234567890123469", email: "yuni.kartika@example.com", telepon: "081234567823", tanggal: "2025-05-05 08:50", status: "Masuk", titik: "Kecamatan Bogor Barat", bukti: "https://example.com/images/accident37.jpg", saksi: "Bima Sakti", petugas: "", received: false, kendaraan: "roda 4", jenis: "Kecelakaan tunggal", jumlahKorban: "3", kronologi: "Mobil menabrak pembatas jalan akibat kabut tebal" },
-    { id: generateReportId(), nama: "Hendra Wijaya", nik: "1234567890123470", email: "hendra.wijaya@example.com", telepon: "081234567824", tanggal: "2025-05-06 13:40", status: "Masuk", titik: "Kecamatan Bogor Selatan", bukti: "https://example.com/images/accident38.jpg", saksi: "Eka Putri", petugas: "", received: false, kendaraan: "roda 2", jenis: "Tabrakan dengan kendaraan lain", jumlahKorban: "2", kronologi: "Motor menabrak mobil yang sedang parkir" },
-    { id: generateReportId(), nama: "Siti Aminah", nik: "1234567890123471", email: "siti.aminah@example.com", telepon: "081234567825", tanggal: "2025-05-07 10:25", status: "Masuk", titik: "Kecamatan Bogor Tengah", bukti: "https://example.com/images/accident39.jpg", saksi: "Rudi Hartono", petugas: "", received: false, kendaraan: "roda 2", jenis: "Kecelakaan tunggal", jumlahKorban: "1", kronologi: "Pengendara motor jatuh karena jalanan berlubang" },
-    { id: generateReportId(), nama: "Eko Prasetyo", nik: "1234567890123472", email: "eko.prasetyo@example.com", telepon: "081234567826", tanggal: "2025-05-08 15:10", status: "Masuk", titik: "Kecamatan Bogor Timur", bukti: "https://example.com/images/accident40.jpg", saksi: "Maya Sari", petugas: "", received: false, kendaraan: "roda 4", jenis: "Tabrakan beruntun", jumlahKorban: "4", kronologi: "Mobil bertabrakan dengan kendaraan lain di jalan tol" }
-];
+let reports = [];
 
 function validateReportsData(data) {
     return Array.isArray(data) && data.every(report =>
@@ -877,19 +893,22 @@ async function fetchLaporanMasuk() {
       nama: item.nama_user || '',
       nik: item.nik || '',
       email: item.email || '',
-      telepon: item.telepon || '',
+      no_hp: item.no_hp || '',
       tanggal: item.tanggal || '',
       status: statusMap[item.status] || "Masuk",
       titik: item.alamat || '',
       bukti: Array.isArray(item.foto) ? item.foto[0] : (item.foto || ''),
       saksi: item.saksi_1 || '',
       petugas: item.petugas || '',
-      received: item.status === "3",
       kendaraan: item.kendaraan || '',
       jenis: item.jenis_kecelakaan || '',
       jumlahKorban: item.jumlah_korban || '',
-      kronologi: item.kronologi || ''
+      kronologi: item.kronologi || '',
+      bukti_selesai: item.bukti_selesai || '',
+      keterangan_selesai: item.keterangan_selesai || ''
     }));
+
+    console.log("✅ Data laporan masuk:", reports);
 
     renderReportList();
     renderStats();
@@ -897,10 +916,11 @@ async function fetchLaporanMasuk() {
     renderNotifications();
 
   } catch (error) {
-    console.error("Error fetching laporan:", error);
+    console.error("❌ Error fetching laporan:", error);
     showErrorBoundary("Gagal memuat laporan dari server.");
   }
 }
+
 
 // --- Laporan Masuk ---
 function renderReportList() {
@@ -954,7 +974,7 @@ function renderReportList() {
                 <td>${escapeHTML(report.kronologi?.length > 80 ? report.kronologi.substring(0, 80) + '...' : report.kronologi || '-')}</td>
                 <td><span class="report-status ${report.status?.toLowerCase()}">${escapeHTML(report.status || 'Masuk')}</span></td>
                 <td>
-                    <button onclick="openReportModal(${report.id})">
+                    <button onclick="openReportModal('${report.id}')">
                         <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 16 16">
                             <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                             <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
@@ -998,6 +1018,7 @@ function renderReportList() {
         showErrorBoundary('Gagal memuat daftar laporan: ' + e.message);
     }
 }
+
 function viewReportDetail(id) {
     console.log("View detail for report ID:", id);
     // Tambahkan logika untuk menampilkan detail laporan (misalnya, modal atau halaman baru)
@@ -1052,67 +1073,84 @@ function searchReportById() {
     }
 }
 
+
 // Fungsi untuk membuka modal detail laporan berdasarkan kategori
-function openReportModal(reportId) {
+async function openReportModal(reportId) {
   try {
-    const report = reports.find(r => r.id == reportId); // pakai == agar cocok string/number
+    console.log("🔍 Membuka laporan ID:", reportId);
+
+    const res = await fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1");
+    const data = await res.json();
+    const report = data.find(r => String(r.id) === String(reportId));
+
     if (!report) {
-      alert('Laporan tidak ditemukan!');
+      alert("Laporan tidak ditemukan!");
       return;
     }
 
-    const modal = document.getElementById('report-modal');
-    if (!modal) {
-      console.warn('Report modal not found');
-      return;
-    }
+    console.log("✅ Laporan ditemukan:", report);
 
-    // Isi field modal
-    const setValue = (id, value) => {
+    // Fungsi bantu isi teks dan gambar
+    const setText = (id, value) => {
       const el = document.getElementById(id);
-      if (el) el.textContent = escapeHTML(value || '-');
+      if (el) {
+        el.textContent = value && value !== "null" && value.trim() !== "" ? value : "-";
+      } else {
+        console.warn(`Elemen ${id} tidak ditemukan`);
+      }
     };
 
-    setValue('report-nama', report.nama);
-    setValue('report-nik', report.nik);
-    setValue('report-email', report.email);
-    setValue('report-telepon', report.telepon);
-    setValue('report-saksi', report.saksi);
-    setValue('report-titik', report.titik);
-    setValue('report-kendaraan', report.kendaraan);
-    setValue('report-jenis', report.jenis);
-    setValue('report-jumlah-korban', report.jumlahKorban);
-    setValue('report-tanggal', report.tanggal);
-    setValue('report-status', report.status);
-    setValue('report-kronologi', report.kronologi);
-
-    const buktiEl = document.getElementById('report-bukti');
-    if (buktiEl) buktiEl.src = report.bukti || '';
-
-    const petugasInput = document.getElementById('report-petugas');
-    if (petugasInput) petugasInput.value = escapeHTML(report.petugas || '');
-
-    const buttonContainer = document.querySelector('.report-buttons');
-    if (buttonContainer) {
-      if (typeof isPimpinan !== 'undefined' && isPimpinan) {
-        if (petugasInput) petugasInput.disabled = true;
-        buttonContainer.innerHTML = `<button onclick="closeModal()">Tutup</button>`;
-      } else {
-        if (report.status === 'Masuk') {
-          petugasInput.disabled = true;
-        } else if (report.status === 'Diterima' || report.status === 'Proses') {
-          petugasInput.disabled = false;
+    const setImage = (id, src) => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (src && src !== "null" && src.trim() !== "") {
+          el.src = src;
+          el.style.display = "block";
         } else {
-          petugasInput.disabled = true;
+          el.src = "";
+          el.style.display = "none";
         }
-        buttonContainer.innerHTML = `<button onclick="closeModal()">Batal</button>`;
+      } else {
+        console.warn(`Elemen ${id} tidak ditemukan`);
       }
+    };
+
+    // === Data Pelapor ===
+    setText("report-nama", report.nama_user);
+    setText("report-nik", report.nik);
+    setText("report-email", report.email || "-");
+    setText("report-telepon", report.no_hp);
+    setText("report-saksi", report.saksi_1);
+
+    // === Data Kecelakaan ===
+    setText("report-jenis", report.jenis_kecelakaan);
+    setText("report-kendaraan", report.kendaraan);
+    setText("report-jumlah-korban", report.jumlah_korban);
+    setText("report-titik", report.alamat);
+    setText("report-tanggal", report.tanggal);
+    setText("report-status", report.status);
+    setImage("report-bukti", Array.isArray(report.foto) ? report.foto[0] : report.foto);
+    setText("report-kronologi", report.kronologi);
+
+    // === Data Petugas ===
+    console.log("👮 Petugas:", report.petugas);
+    console.log("📸 Bukti selesai:", report.bukti_selesai);
+    console.log("📝 Keterangan selesai:", report.keterangan_selesai);
+
+    setText("report-petugas", report.petugas);
+    setImage("report-foto-petugas", report.bukti_selesai);
+    setText("report-keterangan", report.keterangan_selesai);
+
+    // Tombol Tutup saja
+    const buttonContainer = document.querySelector(".report-buttons");
+    if (buttonContainer) {
+      buttonContainer.innerHTML = `<button class="btn cancel-btn" onclick="closeModal()">Tutup</button>`;
     }
 
-    modal.style.display = 'block';
-  } catch (e) {
-    console.error('Error opening report modal:', e);
-    showErrorBoundary('Gagal membuka modal laporan: ' + e.message);
+    document.getElementById("report-modal").style.display = "block";
+
+  } catch (error) {
+    console.error("❌ Error membuka laporan:", error);
   }
 }
 
@@ -1480,50 +1518,35 @@ document.addEventListener('DOMContentLoaded', () => {
 // Tambahkan fungsi renderNotifications() di pimpinan.js jika belum ada
 function renderNotifications() {
     try {
-        const notificationList = document.getElementById("notification-list");
+        const notificationList = document.getElementById('notification-list');
         if (!notificationList) return;
 
-        // Ambil hanya laporan yang belum selesai (3) & belum ditolak (4)
-        const filteredReports = reports.filter(r => r.status !== "Selesai" && r.status !== "Ditolak");
-
-        // Urutkan dari terbaru, ambil 5
-        const recentReports = [...filteredReports]
+        const recentReports = [...reports]
             .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
             .slice(0, 5);
 
-        notificationList.innerHTML = recentReports.map(report => {
-            let statusClass = "read"; // default abu
-
-            if (report.status === "Masuk") {
-                statusClass = "unread"; // merah
-            } else if (report.status === "Diterima" || report.status === "Penanganan") {
-                statusClass = "read";   // abu
-            }
-
-            return `
-                <div class="notification-item">
-                    <span class="status-indicator ${statusClass}"></span>
-                    <div class="details">
-                        <span class="name">${escapeHTML(report.nama)}</span>
-                        <span class="titik-laporan">
-                            ${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + "..." : report.titik || "-")}
-                        </span>
-                        <span class="date">${escapeHTML(report.tanggal)}</span>
-                        <button class="action-btn" onclick="navigateToLaporanMasuk('${report.id}')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#ffffff" viewBox="0 0 16 16">
-                                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
-                                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
-                            </svg>
-                        </button>
-                    </div>
+        notificationList.innerHTML = recentReports.map(report => `
+            <div class="notification-item">
+                <span class="status-indicator ${report.received ? 'read' : 'unread'}"></span>
+                <div class="details">
+                    <span class="name">${escapeHTML(report.nama)}</span>
+                    <span class="titik-laporan">${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + '...' : report.titik || '-')}</span>
+                    <span class="date">${escapeHTML(report.tanggal)}</span>
+                    <button class="action-btn" onclick="navigateToLaporanMasuk(${report.id})">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#ffffff" viewBox="0 0 16 16">
+                            <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                            <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+                        </svg>
+                    </button>
                 </div>
-            `;
-        }).join("");
-
+            </div>
+        `).join('');
     } catch (e) {
-        console.error("Error rendering notifications:", e);
+        console.error('Error rendering notifications:', e);
+        showErrorBoundary('Gagal memuat notifikasi: ' + e.message);
     }
 }
+
 
 function navigateToLaporanMasuk(reportId) {
     try {
@@ -1757,6 +1780,24 @@ function openTrackingModal(reportId) {
         document.getElementById('report-kronologi').textContent = escapeHTML(report.kronologi);
         document.getElementById('report-bukti').src = report.bukti || '';
 
+        // === Tampilkan bukti & keterangan selesai (readonly untuk pimpinan) ===
+        const buktiPetugasImg = document.getElementById("report-bukti-petugas");
+        const keteranganInput = document.getElementById("report-keterangan");
+
+        if (keteranganInput) {
+        keteranganInput.value = report.keteranganSelesai || "-";
+        keteranganInput.readOnly = true;
+        }
+
+        if (buktiPetugasImg) {
+        if (report.buktiSelesai && report.buktiSelesai !== "null" && report.buktiSelesai !== "") {
+            buktiPetugasImg.src = report.buktiSelesai;
+            buktiPetugasImg.style.display = "block";
+        } else {
+            buktiPetugasImg.src = "";
+            buktiPetugasImg.style.display = "none";
+        }
+        }
         const petugasInput = document.getElementById('report-petugas');
         const buttonContainer = document.querySelector('.report-buttons');
 
@@ -1851,7 +1892,7 @@ function renderTracking(category = 'all', filteredReports = null) {
                     <td>${escapeHTML(report.titik || '-')}</td>
                     <td>${escapeHTML(shortKronologi)}</td>
                     <td>
-                        <button class="detail-btn" onclick="openReportModal(${report.id})">
+                        <button class="detail-btn" onclick="openReportModal('${report.id}')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 16 16">
                                 <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                                 <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
