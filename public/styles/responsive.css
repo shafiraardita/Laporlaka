@@ -486,7 +486,7 @@
   /* Sidebar lebih sempit untuk ikon saja */
   .sidebar {
     width: 70px !important;
-    height: 1000px;
+    height: 100vh;
     padding-top: 60px; /* agar tidak tertabrak header */
   }
 
