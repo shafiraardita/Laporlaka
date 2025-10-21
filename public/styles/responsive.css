@@ -215,17 +215,20 @@
 
   /* Tombol hamburger untuk toggle sidebar */
   .hamburger-btn {
-    display: block;
-    font-size: 24px;
-    color: #ffffff;
-    background: none;
-    border: none;
-    cursor: pointer;
-    position: absolute;
-    left: 10px;
-    top: 12px;
-    z-index: 60;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;         /* ukuran ikon */
+  color: #375B85;          /* warna ikon (ubah sesuai tema kamu) */
+  background: none;        /* tanpa background */
+  border: none;            /* hilangkan border */
+  cursor: pointer;
+  position: fixed;         /* agar tetap di kiri atas saat scroll */
+  left: 15px;
+  top: 15px;
+  z-index: 1000;
+  transition: transform 0.2s ease;
+}
 
   /* Overlay gelap saat sidebar aktif */
   .sidebar-overlay {
@@ -483,6 +486,7 @@
   /* Sidebar lebih sempit untuk ikon saja */
   .sidebar {
     width: 70px !important;
+    height: 1000px;
     padding-top: 60px; /* agar tidak tertabrak header */
   }
 
