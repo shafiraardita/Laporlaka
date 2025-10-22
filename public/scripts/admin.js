@@ -42,6 +42,8 @@ const dependencies = [
 if (dependencies.length > 0) {
     console.warn('Missing dependencies:', dependencies.join(', '));
 }
+
+// Logout //
 function handleLogout() {
     // Cek dan hapus modal sebelumnya jika sudah ada
     const existingModal = document.getElementById('logout-confirm-modal');
@@ -58,63 +60,63 @@ function handleLogout() {
     overlay.style.zIndex = '999';
 
     // Buat modal konfirmasi logout
-const modal = document.createElement('div');
-modal.id = 'logout-confirm-modal';
-modal.style.position = 'fixed';
-modal.style.top = '50%';
-modal.style.left = '50%';
-modal.style.transform = 'translate(-50%, -50%) scale(1)';
-modal.style.background = '#ffffff';
-modal.style.padding = '32px 24px';
-modal.style.borderRadius = '16px';
-modal.style.zIndex = '1000';
-modal.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2)';
-modal.style.textAlign = 'center';
-modal.style.maxWidth = '350px';
-modal.style.width = '90%';
-modal.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    const modal = document.createElement('div');
+    modal.id = 'logout-confirm-modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '50%';
+    modal.style.left = '50%';
+    modal.style.transform = 'translate(-50%, -50%) scale(1)';
+    modal.style.background = '#ffffff';
+    modal.style.padding = '32px 24px';
+    modal.style.borderRadius = '16px';
+    modal.style.zIndex = '1000';
+    modal.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2)';
+    modal.style.textAlign = 'center';
+    modal.style.maxWidth = '350px';
+    modal.style.width = '90%';
+    modal.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
 
-modal.innerHTML = `
-    <h3 style="
-        margin-bottom: 12px;
-        font-size: 22px;
-        font-weight: bold;
-        color: #000;
-    ">Konfirmasi Keluar</h3>
-    <p style="
-        margin-bottom: 24px;
-        font-size: 15px;
-        color: #555;
-    ">Apakah Anda yakin ingin keluar dari akun?</p>
-    <div style="
-        display: flex;
-        justify-content: center;
-        gap: 16px;
-        flex-wrap: wrap;
-    ">
-        <button id="logout-cancel-btn" style="
-            padding: 10px 24px;
-            border-radius: 8px;
-            background-color: #28a745;
-            color: white;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        " onmouseover="this.style.backgroundColor='#28a745'" onmouseout="this.style.backgroundColor='#28a745'">Batal</button>
+    modal.innerHTML = `
+        <h3 style="
+            margin-bottom: 12px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #000;
+        ">Konfirmasi Keluar</h3>
+        <p style="
+            margin-bottom: 24px;
+            font-size: 15px;
+            color: #555;
+        ">Apakah Anda yakin ingin keluar dari akun?</p>
+        <div style="
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        ">
+            <button id="logout-cancel-btn" style="
+                padding: 10px 24px;
+                border-radius: 8px;
+                background-color: #28a745;
+                color: white;
+                font-weight: 500;
+                border: none;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            " onmouseover="this.style.backgroundColor='#28a745'" onmouseout="this.style.backgroundColor='#28a745'">Batal</button>
 
-        <button id="logout-yes-btn" style="
-            padding: 10px 24px;
-            border-radius: 8px;
-            background-color: #e74c3c;
-            color: white;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        " onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">Keluar</button>
-    </div>
-`;
+            <button id="logout-yes-btn" style="
+                padding: 10px 24px;
+                border-radius: 8px;
+                background-color: #e74c3c;
+                color: white;
+                font-weight: 500;
+                border: none;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            " onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">Keluar</button>
+        </div>
+    `;
 
     document.body.appendChild(overlay);
     document.body.appendChild(modal);
@@ -388,44 +390,7 @@ function cancelProfile() {
     }
 }
 
-function loadProfileData() {
-    try {
-        // Ambil data dari localStorage
-        const stored = JSON.parse(localStorage.getItem('profileData'));
-        const data = stored || (typeof originalProfileData !== 'undefined' ? originalProfileData : {});
-
-        const fields = {
-            'profil-username': data.nama || '',
-            'profil-email': data.email || '',
-            'profil-nik': data.nik || '',
-            'profil-jabatan': data.jabatan || '',
-            'profil-telepon': data.telepon || ''
-        };
-
-        Object.entries(fields).forEach(([id, value]) => {
-            const input = document.getElementById(id);
-            if (input) {
-                input.value = typeof escapeHTML === 'function' ? escapeHTML(value) : value;
-            } else {
-                console.warn(`Elemen profil dengan ID '${id}' tidak ditemukan.`);
-            }
-        });
-
-        // Simpan ke global agar bisa disinkronkan jika diperlukan
-        if (typeof originalProfileData !== 'undefined') {
-            originalProfileData = data;
-        }
-
-    } catch (e) {
-        console.error('Error loading profile data:', e);
-        if (typeof showErrorBoundary === 'function') {
-            showErrorBoundary('Gagal memuat data profil: ' + e.message);
-        } else {
-            alert('Terjadi kesalahan saat memuat profil.');
-        }
-    }
-}
-
+// data kecelakaan (monitoring)
 const accidentData = {
     '2023': {
         'Januari': { total: 7, meninggal: 6, lukaBerat: 1, lukaRingan: 5 },
@@ -612,7 +577,7 @@ function updateChart() {
 
     }
 }
-
+// mengunduh monitoring data
 function downloadChart() {
     try {
         const canvas = document.getElementById('accident-chart');
@@ -658,7 +623,7 @@ function downloadChart() {
         showErrorBoundary('Gagal mengunduh grafik: ' + e.message);
     }
 }
-
+// unduh excel monitoring data
 function downloadExcel() {
     try {
         if (typeof XLSX === 'undefined') {
@@ -899,6 +864,7 @@ async function syncReportsFromAPI() {
         alert('Gagal sync data laporan dari server.');
     }
 }
+// Endpoint Laporan Masuk
 async function fetchLaporanMasuk() {
   try {
     const response = await fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1");
@@ -1087,12 +1053,9 @@ async function bukaDetailLaporan(id) {
   }
 }
 
-
-
 function unduhLaporan(id) {
   alert(`Unduh laporan dengan ID: ${id}`);
 }
-
 
 function renderLaporanMasuk(laporan) {
   const tableBody = document.getElementById("report-table-body");
