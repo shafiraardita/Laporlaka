@@ -304,7 +304,6 @@
             <th>ID</th>
             <th>Nama</th>
             <th>Email</th>
-            <th>Password</th>
             <th>No HP</th>
             <th>NIK</th>
             <th>Kategori</th>
@@ -322,7 +321,7 @@
 
 <!-- Modal Tambah/Edit User -->
 <div id="user-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
-  <div style="background:#fff; max-width:500px; margin:60px auto; padding:20px; border-radius:10px; position:relative;">
+  <div style="background:#fff; width:60%; max-width:500px; margin:60px auto; padding:20px; border-radius:10px; position:relative;">
     <h3 id="user-modal-title">Edit User</h3>
 
     <input type="hidden" id="user-id">
@@ -702,7 +701,7 @@
     <span class="close" onclick="closePetugasModal()">&times;</span>
     <h3 id="modal-petugas-title">Tambah Petugas</h3>
 
-    <form id="petugas-form" onsubmit="savePetugas(event)">
+    <form id="petugas-form" onsubmit="savePetugasLocal(event)">
       <div class="modal-form-grid">
         <div class="form-group">
           <label for="petugas-nama">Nama Petugas</label>

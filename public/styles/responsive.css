@@ -192,7 +192,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    height: 100%;
+    height: 100vh;
     width: 240px;
     background-color: #ffffff;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
@@ -261,7 +261,7 @@
     align-items: center;
     gap: 8px;
     overflow-x: hidden;
-    min-width: 320px;
+    min-width: 250px;
     flex-wrap: nowrap;
     background: linear-gradient(to bottom, #375B85, #2c4768);
   }
@@ -486,7 +486,7 @@
   /* Sidebar lebih sempit untuk ikon saja */
   .sidebar {
     width: 70px !important;
-    height: 100vh;
+    height: 1000px;
     padding-top: 60px; /* agar tidak tertabrak header */
   }
 
@@ -760,5 +760,292 @@
   #evaluasi-modal .save-btn,
   #evaluasi-modal .cancel-btn {
     font-size: 11px;
+  }
+}
+/* monitoring */
+/* === ⚙️ Styling agar tampilan monitoring pas layar dan tidak perlu scroll === */
+@media (max-width: 768px) {
+  /* Kontainer monitoring memenuhi layar */
+  #monitoring-section {
+    min-height: 80vh;            /* Tinggi penuh layar */
+    max-height: 100vh;            /* Jangan lebih dari layar */
+    overflow: hidden;             /* Hilangkan scroll */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  /* Batasi area chart agar tidak melewati layar */
+  #chart-container,
+  .chart-wrapper {
+    width: 100%;
+    max-width: 100%;
+    flex: 1;                      /* Isi ruang kosong yang tersisa */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;             /* 🔥 Tidak bisa discroll */
+    padding: 10px;
+    background: none;
+    box-shadow: none;
+    border-radius: 10px;
+  }
+
+  /* 🔥 Chart menyesuaikan tinggi layar HP */
+  #accident-chart {
+    width: 95% !important;
+    height: calc(100vh - 220px) !important; /* tinggi dinamis sesuai layar, dikurangi header & filter */
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Filter & tombol rapi di atas */
+  .monitoring-filters {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    margin-bottom: 10px;
+  }
+
+  .monitoring-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .monitoring-buttons .download-btn {
+    width: 100%;
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden; /* 🔒 Hilangkan scroll pada body */
+  }
+}
+
+/* Pelacakan Laporan */
+/* 🌐 === RESPONSIVE UNTUK MOBILE (≤ 768px) === */
+@media (max-width: 768px) {
+
+  /* ====== STRUKTUR UTAMA ====== */
+  #tracking-section {
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  #tracking-section h2 {
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 12px;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+
+  /* ====== KARTU STATISTIK ====== */
+  .stats-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stats-card {
+    padding: 10px;
+    font-size: 13px;
+    text-align: center;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  }
+
+  .stats-card h4 {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 4px;
+  }
+
+  .stats-card p {
+    font-size: 16px;
+    font-weight: bold;
+    color: #375B85;
+    margin: 0;
+  }
+
+  /* ====== FILTER BAR ====== */
+  .tracking-filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 15px 0;
+    padding: 10px;
+    background: #f8f9fb;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .tracking-filter-bar input,
+  .tracking-filter-bar select {
+    width: 100%;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+  }
+
+  .tracking-filter-bar button.download-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 14px;
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    background: #375B85;
+    color: white;
+    cursor: pointer;
+  }
+
+  .tracking-filter-bar button.download-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ====== KATEGORI LAPORAN ====== */
+  .tracking-categories {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .tracking-categories .category-card {
+    flex: 1 1 45%;
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 13px;
+    border-radius: 8px;
+    background: #f4f4f4;
+    border: 1px solid #dcdcdc;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .tracking-categories .category-card.active {
+    background: #375B85;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .tracking-categories .category-card:hover {
+    background: #e7ecf3;
+  }
+
+  /* ====== TABEL ====== */
+  .table-card {
+    width: 100%;
+    overflow-x: hidden;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    background: #fff;
+    margin-top: 10px;
+    padding: 6px;
+  }
+
+  #tracking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    table-layout: fixed;
+  }
+
+  #tracking-table th,
+  #tracking-table td {
+    padding: 6px 5px;
+    border: 1px solid #ddd;
+    text-align: center;
+    vertical-align: middle;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+
+  #tracking-table th {
+    background: #f7f9fc;
+    font-weight: 600;
+    color: #333;
+  }
+
+  /* ====== Tombol Detail ====== */
+  .detail-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    padding: 2px;
+  }
+
+  .detail-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ====== STATUS BADGE ====== */
+  .report-status {
+    display: inline-block;
+    padding: 3px 7px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .report-status.selesai { 
+    color: #ffffff;
+    background: #28a745; }
+  .report-status.ditolak { 
+    color: #ffffff;
+    background: #f55666; }
+  .report-status.diterima { 
+    color: #ffffff;
+    background: #007bff; }
+
+  /* ====== PAGINATION ====== */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+  }
+
+  .pagination button {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  .pagination button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
