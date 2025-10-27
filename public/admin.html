@@ -67,7 +67,6 @@
   </nav>
 </div>
 
-
     <main class="main-content">
         <section id="home-section" class="content-section">
             <h2>Selamat datang, Admin!</h2>
@@ -96,15 +95,40 @@
                 <h3>Laporan Terbaru</h3>
                 <div class="notification-list" id="notification-list"></div>
                 </div>
-
-                <div class="evaluasi-section">
-                    <h3>Evaluasi</h3>
-                    <p>Evaluasi data kecelakaan lalu lintas untuk meningkatkan keselamatan.</p>
-                    <button class="add-evaluasi-btn" onclick="openAddEvaluasi()">+ Tambah Evaluasi</button>
-                    <div class="evaluasi-cards" id="evaluasi-cards"></div>
+<div class="evaluasi-section">
+<h3>Evaluasi</h3>
+<p>Evaluasi data kecelakaan lalu lintas untuk meningkatkan keselamatan.</p>
+<button class="add-evaluasi-btn" onclick="openAddEvaluasi()">+ Tambah Evaluasi</button>
+<div class="evaluasi-cards" id="evaluasi-cards"></div>
+</div>
+</div>
+</section>
+  <!-- Modal for Evaluasi -->
+<div class="modal" id="evaluasi-modal" style="display: none;">
+<div class="modal-content">
+                <span class="modal-close">×</span>
+                <h2>Evaluasi</h2>
+                <div class="modal-body">
+                    <div class="profile-field">
+                        <label>Judul:</label>
+                        <input type="text" id="evaluasi-title" value="">
+                    </div>
+                    <div class="profile-field">
+                        <label>Deskripsi:</label>
+                        <textarea id="evaluasi-description"></textarea>
+                    </div>
+                    <div class="profile-field">
+                        <label>Periode:</label>
+                        <input type="text" id="evaluasi-period" value="">
+                    </div>
+                </div>
+                <div class="profile-buttons">
+                    <button class="delete-btn" id="delete-evaluasi-btn" style="background-color: #dc3545;">Hapus</button>
+                    <button class="save-btn" id="save-evaluasi-btn">Simpan</button>
+                    <button class="cancel-btn" id="cancel-evaluasi-btn">Batal</button>
                 </div>
             </div>
-        </section>
+        </div>
 
         <section id="profil-section" class="content-section">
             <h2>Profil Pengguna</h2>
@@ -286,8 +310,7 @@
       <select 
         id="approved-user-sort" 
         style="padding: 6px; min-width: 200px;" 
-        onchange="sortUsers('approved')"
-      >
+        onchange="sortUsers('approved')">
         <option value="az">Urutkan A-Z</option>
         <option value="za">Urutkan Z-A</option>
         <option value="terbaru">Aktif Terbaru</option>
@@ -482,14 +505,15 @@
         <input type="text" id="report-nik" readonly>
       </div>
       <div class="form-group">
-        <label>Email:</label>
-        <input type="text" id="report-email" readonly>
+        <label for="report-telepon" 
+         style="display: flex; align-items: center; gap: 6px; width: 120px; justify-content: flex-start; text-align: left;">
+        <a id="whatsapp-link" href="#" target="_blank"
+        style="color: #25D366; font-size: 18px; text-decoration: none;"
+        title="Chat via WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i></a>
+        Telepon:</label><input type="text" id="report-telepon" readonly>
       </div>
       <div class="form-group">
-        <label>Telepon:</label>
-        <input type="text" id="report-telepon" readonly>
-      </div>
-      <div class="form-group full-width">
         <label>Saksi:</label>
         <input type="text" id="report-saksi" readonly>
       </div>
@@ -583,33 +607,6 @@
   </div>
 </div>
 
-        <!-- Modal for Evaluasi -->
-        <div class="modal" id="evaluasi-modal" style="display: none;">
-            <div class="modal-content">
-                <span class="modal-close">×</span>
-                <h2>Evaluasi</h2>
-                <div class="modal-body">
-                    <div class="profile-field">
-                        <label>Judul:</label>
-                        <input type="text" id="evaluasi-title" value="">
-                    </div>
-                    <div class="profile-field">
-                        <label>Deskripsi:</label>
-                        <textarea id="evaluasi-description"></textarea>
-                    </div>
-                    <div class="profile-field">
-                        <label>Periode:</label>
-                        <input type="text" id="evaluasi-period" value="">
-                    </div>
-                </div>
-                <div class="profile-buttons">
-                    <button class="delete-btn" id="delete-evaluasi-btn" style="background-color: #dc3545;">Hapus</button>
-                    <button class="save-btn" id="save-evaluasi-btn">Simpan</button>
-                    <button class="cancel-btn" id="cancel-evaluasi-btn">Batal</button>
-                </div>
-            </div>
-        </div>
-
         <!-- Modal for User Management -->
         <div class="modal" id="user-modal" style="display: none;">
             <div class="modal-content">
@@ -661,14 +658,7 @@
 
     <!-- Filter Pencarian & Urutkan -->
     <div class="filter-bar">
-      <input type="text" id="search-petugas" placeholder="Cari Petugas..." oninput="searchPetugas()">
-      <select id="sort-petugas" onchange="sortPetugas()">
-        <option value="az">A-Z</option>
-        <option value="za">Z-A</option>
-        <option value="newest">Terbaru</option>
-        <option value="oldest">Terlama</option>
-      </select>
-    </div>
+      <input type="text" id="search-petugas" placeholder="Cari Petugas..." oninput="searchPetugas()"></div>
 
     <!-- Tabel Daftar Petugas -->
     <div class="table-container">

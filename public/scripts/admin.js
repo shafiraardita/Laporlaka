@@ -196,7 +196,6 @@ function initializeAdminPage() {
                         loadUsers();
                     } else if (sectionId === "manage-petugas-section") {
                     renderPetugas();
-
                         setupAddUserModal(); // ← Tambahkan ini agar modal bisa berfungsi
                     } else if (sectionId === 'tracking-section') {
                         renderTracking();
@@ -974,7 +973,7 @@ async function bukaDetailLaporan(id) {
     // --- Isi Data Pelapor
     document.getElementById("report-nama").value = report.nama_user || "";
     document.getElementById("report-nik").value = report.nik || "";
-    document.getElementById("report-email").value = report.email || "";
+    // document.getElementById("report-email").value = report.email || "";
     // --- Buat input nomor telepon tetap tampil dan bisa diklik
     const teleponInput = document.getElementById("report-telepon");
     if (teleponInput) {
@@ -1334,7 +1333,7 @@ function openReportModal(reportId) {
     // Isi field modal
     document.getElementById('report-nama').value = report.nama || '';
     document.getElementById('report-nik').value = report.nik || '';
-    document.getElementById('report-email').value = report.pelapor?.email || '';
+    // document.getElementById('report-email').value = report.pelapor?.email || '';
     document.getElementById('report-telepon').value = report.no_hp || '';
     // === Buat klik nomor telepon langsung ke WhatsApp ===
     const teleponInput = document.getElementById('report-telepon');
@@ -2188,142 +2187,160 @@ function loadImageAsDataURL(url) {
 }
 
 async function downloadReportPDF(reportId) {
-    try {
-        if (typeof jspdf === 'undefined') {
-            alert('jsPDF belum dimuat.');
-            return;
-        }
-        const { jsPDF } = window.jspdf;
-
-        // Ambil detail laporan (fallback ke daftar kalau tidak ada detail endpoint)
-        const res = await fetch(`https://dragonmontainapi.com/riwayat_laporan.php?user=1`);
-        if (!res.ok) throw new Error('Gagal mengambil data laporan');
-        const allReports = await res.json();
-        const report = allReports.find(r => String(r.id) === String(reportId));
-        if (!report) {
-            alert('Laporan tidak ditemukan.');
-            return;
-        }
-
-        const doc = new jsPDF({
-            unit: 'pt',
-            format: 'a4'
-        });
-
-        const margin = 40;
-        let y = 50;
-
-        // Header
-        doc.setFontSize(16);
-        doc.text(`Detail Laporan #${report.id}`, margin, y);
-        y += 25;
-
-        doc.setFontSize(11);
-        const lines = [
-            `Nama Pelapor: ${report.nama || '-'}`,
-            `NIK: ${report.nik || '-'}`,
-            `Email: ${report.email || '-'}`,
-            `Telepon: ${report.telepon || '-'}`,
-            `Jenis Kecelakaan: ${report.jenis || '-'}`,
-            `Jumlah Korban: ${report.jumlahKorban || '-'}`,
-            `Kendaraan: ${report.kendaraan || '-'}`,
-            `Titik Kejadian: ${report.titik || '-'}`,
-            `Tanggal: ${report.tanggal || '-'}`,
-            `Kronologi: ${report.kronologi || '-'}`,
-            `Saksi: ${report.saksi || '-'}`,
-            `Petugas Menangani: ${report.petugas || '-'}`,
-            `Status: ${report.status || '-'}`
-        ];
-
-        for (const line of lines) {
-            const split = doc.splitTextToSize(line, 500);
-            for (const part of split) {
-                if (y > 750) { // halaman baru jika sudah hampir habis
-                    doc.addPage();
-                    y = 50;
-                }
-                doc.text(part, margin, y);
-                y += 14;
-            }
-        }
-
-        // Gambar bukti jika ada
-        if (report.bukti) {
-            try {
-                if (y > 650) {
-                    doc.addPage();
-                    y = 50;
-                }
-                doc.text('Bukti Gambar:', margin, y);
-                y += 14;
-                const imgData = await loadImageAsDataURL(report.bukti);
-                const maxWidth = 250;
-                const aspect = 1; // default kalau tidak tahu
-                // bisa diimprove dengan membuat Image objek dulu
-                doc.addImage(imgData, 'JPEG', margin, y, maxWidth, maxWidth * aspect);
-                y += maxWidth + 10;
-            } catch (err) {
-                console.warn('Gagal memuat gambar bukti:', err);
-                if (y > 750) {
-                    doc.addPage();
-                    y = 50;
-                }
-                doc.text('Bukti Gambar: [Gagal dimuat]', margin, y);
-                y += 14;
-            }
-        }
-
-        // Simpan / unduh
-        doc.save(`laporan_${report.id}.pdf`);
-    } catch (e) {
-        console.error('Error download PDF:', e);
-        alert('Gagal mengunduh PDF: ' + (e.message || e));
+  try {
+    if (typeof jspdf === 'undefined') {
+      alert('jsPDF belum dimuat.');
+      return;
     }
-}
-// mengunduh laporan
-function downloadReport(reportId) {
-    try {
-        if (typeof jspdf === 'undefined') {
-            throw new Error('jsPDF is not loaded');
-        }
-        const { jsPDF } = window.jspdf;
-        const report = reports.find(r => r.id === reportId);
-        if (!report) {
-            alert('Laporan tidak ditemukan!');
-            return;
-        }
 
-        const doc = new jsPDF();
-        doc.setFontSize(16);
-        doc.text('Laporan Kecelakaan', 20, 20);
-        doc.setFontSize(12);
-        doc.text(`ID: ${report.id}`, 20, 30);
-        doc.text(`Nama: ${report.nama}`, 20, 40);
-        doc.text(`NIK: ${report.nik}`, 20, 50);
-        doc.text(`Email: ${report.email}`, 20, 60);
-        doc.text(`Telepon: ${report.telepon}`, 20, 70);
-        doc.text(`Saksi: ${report.saksi}`, 20, 80);
-        doc.text(`Titik Kecelakaan: ${report.titik}`, 20, 90);
-        doc.text(`Tanggal: ${report.tanggal}`, 20, 100);
-        doc.text(`Status: ${report.status}`, 20, 110);
-        doc.text(`Petugas: ${report.petugas || '-'}`, 20, 120);
-        doc.text(`Kendaraan: ${report.kendaraan || '-'}`, 20, 130);
-        doc.text(`Jenis Kecelakaan: ${report.jenis || '-'}`, 20, 140);
-        doc.text(`Jumlah Korban: ${report.jumlahKorban || '-'}`, 20, 150);
-        doc.text(`Kronologi: ${report.kronologi || '-'}`, 20, 160);
-        doc.save(`report-${report.id}.pdf`);
-    } catch (e) {
-        console.error('Error downloading report:', e);
-        showErrorBoundary('Gagal mengunduh laporan: ' + e.message);
+    const { jsPDF } = window.jspdf;
+
+    // Ambil semua data laporan
+    const res = await fetch(`https://dragonmontainapi.com/riwayat_laporan.php?user=1`);
+    const allReports = await res.json();
+    const report = allReports.find(r => String(r.id) === String(reportId));
+
+    if (!report) {
+      alert('Laporan tidak ditemukan.');
+      return;
     }
-}
 
-document.querySelectorAll('.modal-close').forEach(closeBtn => {
-    closeBtn.addEventListener('click', () => {
-        const modal = closeBtn.closest('.modal');
-        if (modal) closeModal(modal.id);
+    const doc = new jsPDF({
+      unit: 'pt',
+      format: 'a4'
     });
-});
+
+    // --- Header ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("LAPORAN KEJADIAN KECELAKAAN", 40, 60);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`ID Laporan: ${report.id}`, 40, 80);
+
+    let y = 110;
+
+    // --- Data Pelapor ---
+    doc.setFont("helvetica", "bold");
+    doc.text("1. Data Pelapor", 40, y);
+    y += 20;
+    doc.setFont("helvetica", "normal");
+
+    const pelaporData = [
+      ["Nama", report.nama_user || "-"],
+      ["NIK", report.nik || "-"],
+      ["Telepon", report.no_hp || "-"],
+      ["Saksi", report.saksi_1 || "-"],
+    ];
+
+    pelaporData.forEach(([label, value]) => {
+      doc.text(`${label}: ${value}`, 60, y);
+      y += 16;
+    });
+
+    // --- Data Kecelakaan ---
+    y += 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("2. Data Kecelakaan", 40, y);
+    y += 20;
+    doc.setFont("helvetica", "normal");
+
+    const dataKecelakaan = [
+      ["Jenis Kecelakaan", report.jenis_kecelakaan || "-"],
+      ["Kendaraan", report.kendaraan || "-"],
+      ["Jumlah Korban", report.jumlah_korban || "-"],
+      ["Tanggal", report.tanggal || "-"],
+      ["Alamat Kejadian", report.alamat || "-"],
+      ["Petugas Menangani", report.petugas || "-"],
+      ["Status", report.status || "-"],
+    ];
+
+    dataKecelakaan.forEach(([label, value]) => {
+      const lines = doc.splitTextToSize(`${label}: ${value}`, 480);
+      doc.text(lines, 60, y);
+      y += lines.length * 14;
+    });
+
+    // --- Kronologi ---
+    y += 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("3. Kronologi Kejadian", 40, y);
+    y += 20;
+    doc.setFont("helvetica", "normal");
+
+    const kronologiText = doc.splitTextToSize(report.kronologi || "-", 480);
+    doc.text(kronologiText, 60, y);
+    y += kronologiText.length * 14 + 10;
+
+    // --- Bukti Gambar ---
+    if (Array.isArray(report.foto) && report.foto.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("4. Bukti Kecelakaan", 40, y);
+      y += 20;
+
+      for (let i = 0; i < report.foto.length; i++) {
+        const imgUrl = report.foto[i];
+        try {
+          const imgData = await loadImageAsDataURL(imgUrl);
+          doc.addImage(imgData, "JPEG", 60, y, 200, 120);
+          y += 130;
+          if (y > 700) {
+            doc.addPage();
+            y = 60;
+          }
+        } catch {
+          doc.text(`Bukti ${i + 1}: [Gagal memuat gambar]`, 60, y);
+          y += 20;
+        }
+      }
+    }
+
+    // --- Bukti Penanganan Selesai (jika ada) ---
+    if (report.bukti_selesai) {
+      if (y > 650) {
+        doc.addPage();
+        y = 60;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.text("5. Bukti Penanganan Selesai", 40, y);
+      y += 20;
+
+      try {
+        const imgData = await loadImageAsDataURL(report.bukti_selesai);
+        doc.addImage(imgData, "JPEG", 60, y, 200, 120);
+        y += 130;
+      } catch {
+        doc.text("[Gagal memuat bukti penanganan]", 60, y);
+        y += 20;
+      }
+
+      doc.setFont("helvetica", "normal");
+      doc.text(`Keterangan Selesai: ${report.keterangan_selesai || "-"}`, 60, y);
+    }
+
+    // Footer
+    doc.setFontSize(10);
+    doc.text(`Halaman 1 dari 1`, 260, 820);
+
+    doc.save(`Laporan_${report.nama_user}_${report.id}.pdf`);
+
+  } catch (e) {
+    console.error("Error download PDF:", e);
+    alert("Gagal mengunduh PDF: " + e.message);
+  }
+}
+
+async function loadImageAsDataURL(url) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 
 function updatePagination(totalItems) {
     const prevBtn = document.querySelector('.pagination button:first-child');
@@ -2679,27 +2696,39 @@ function saveEvaluasi(evaluasiId) {
 // ===========================
 // 📦 MANAJEMEN PENGGUNA (MODE LOCAL)
 // ===========================
-
+// === Data Awal / Inisialisasi ===
 let localUsers = JSON.parse(localStorage.getItem("localUsers")) || [];
 
-// Pastikan kompatibel dengan pemanggilan HTML lama
+// Jika kosong, isi dengan data awal
+if (localUsers.length === 0) {
+  localUsers = [
+    {
+      id: 1,
+      nama: "Admin Utama",
+      email: "admin@contoh.com",
+      no_hp: "081234567890",
+      nik: "3201010101010001",
+      kategori: "Admin",
+      terakhir_aktif: "2025-10-26"
+    }
+  ];
+  localStorage.setItem("localUsers", JSON.stringify(localUsers));
+}
+
+// === Pastikan fungsi loadUsers tetap ada (jika dipanggil HTML lama) ===
 function loadUsers() {
   renderUsersLocal();
 }
 
-// Tampilkan pengguna dari localStorage
-function renderUsersLocal() {
-  const tbody = document.getElementById("approved-user-table-body");
-  if (!tbody) return;
+// === Render Tabel Pengguna ===
+function renderUsersLocal(customUsers = null) {
+  const users = customUsers || JSON.parse(localStorage.getItem("localUsers")) || [];
+  const tableBody = document.getElementById("approved-user-table-body");
+  if (!tableBody) return;
 
-  tbody.innerHTML = "";
+  tableBody.innerHTML = "";
 
-  if (localUsers.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Belum ada data pengguna</td></tr>`;
-    return;
-  }
-
-  localUsers.forEach((user, index) => {
+  users.forEach((user, index) => {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${index + 1}</td>
@@ -2709,22 +2738,61 @@ function renderUsersLocal() {
       <td>${user.nik}</td>
       <td>${user.kategori}</td>
       <td>${user.terakhir_aktif || "-"}</td>
-      <td style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-        <button class="btn-icon btn-edit" onclick="editUserLocal(${index})" title="Edit"
-            style="background:none; border:none; color:#007bff; cursor:pointer;">
-            <i class="fa-solid fa-edit"></i>
+      <td style="display:flex; justify-content:center; align-items:center; gap:10px;">
+        <button onclick="editUserLocal(${index})" title="Edit" style="background:none; border:none; color:#007bff; cursor:pointer;">
+          <i class="fa-solid fa-edit"></i>
         </button>
-
-        <button class="btn-icon btn-delete" onclick="deleteUserLocal(${index})" title="Hapus"
-            style="background:none; border:none; color:#dc3545; cursor:pointer;">
-            <i class="fa-solid fa-trash"></i>
+        <button onclick="deleteUserLocal(${index})" title="Hapus" style="background:none; border:none; color:#dc3545; cursor:pointer;">
+          <i class="fa-solid fa-trash"></i>
         </button>
-    </td>`;
-    tbody.appendChild(row);
+      </td>
+    `;
+    tableBody.appendChild(row);
   });
 }
 
-// Buka modal tambah pengguna
+// === Pencarian Pengguna ===
+function searchUsers(category) {
+  const keyword = document.getElementById(`${category}-user-search`).value.toLowerCase();
+  const users = JSON.parse(localStorage.getItem("localUsers")) || [];
+
+  const filtered = users.filter(u =>
+    u.nama.toLowerCase().includes(keyword) ||
+    u.email.toLowerCase().includes(keyword) ||
+    u.nik.toLowerCase().includes(keyword)
+  );
+
+  renderUsersLocal(filtered);
+}
+
+// === Urutkan Pengguna ===
+function sortUsers(category) {
+  const sortSelect = document.getElementById(`${category}-user-sort`);
+  if (!sortSelect) return;
+
+  const sortValue = sortSelect.value;
+  let users = JSON.parse(localStorage.getItem("localUsers")) || [];
+
+  switch (sortValue) {
+    case "az":
+      users.sort((a, b) => a.nama.localeCompare(b.nama));
+      break;
+    case "za":
+      users.sort((a, b) => b.nama.localeCompare(a.nama));
+      break;
+    case "terbaru":
+      users.sort((a, b) => new Date(b.terakhir_aktif) - new Date(a.terakhir_aktif));
+      break;
+    case "terlama":
+      users.sort((a, b) => new Date(a.terakhir_aktif) - new Date(b.terakhir_aktif));
+      break;
+  }
+
+  localStorage.setItem("localUsers", JSON.stringify(users));
+  renderUsersLocal(users);
+}
+
+// === Modal Tambah/Edit ===
 function openAddUserModal() {
   document.getElementById("user-modal-title").textContent = "Tambah Pengguna";
   document.getElementById("user-id").value = "";
@@ -2733,46 +2801,12 @@ function openAddUserModal() {
   document.getElementById("user-nohp").value = "";
   document.getElementById("user-nik").value = "";
   document.getElementById("user-kategori").value = "User";
-  document.getElementById("user-modal").style.display = "flex";
+  document.getElementById("user-modal").style.display = "block";
 }
 
-// Simpan data (tambah / edit)
-function saveUserLocal() {
-  const id = document.getElementById("user-id").value;
-  const nama = document.getElementById("user-nama").value.trim();
-  const email = document.getElementById("user-email").value.trim();
-  const no_hp = document.getElementById("user-nohp").value.trim();
-  const nik = document.getElementById("user-nik").value.trim();
-  const kategori = document.getElementById("user-kategori").value;
-
-  if (!nama || !email || !nik) {
-    alert("Nama, Email, dan NIK wajib diisi!");
-    return;
-  }
-
-  const userData = {
-    nama,
-    email,
-    no_hp,
-    nik,
-    kategori,
-    terakhir_aktif: new Date().toLocaleString()
-  };
-
-  if (id) {
-    localUsers[id] = userData;
-  } else {
-    localUsers.push(userData);
-  }
-
-  localStorage.setItem("localUsers", JSON.stringify(localUsers));
-  renderUsersLocal();
-  closeUserModal();
-}
-
-// Edit pengguna
 function editUserLocal(index) {
-  const user = localUsers[index];
+  const users = JSON.parse(localStorage.getItem("localUsers")) || [];
+  const user = users[index];
   if (!user) return;
 
   document.getElementById("user-modal-title").textContent = "Edit Pengguna";
@@ -2782,44 +2816,73 @@ function editUserLocal(index) {
   document.getElementById("user-nohp").value = user.no_hp;
   document.getElementById("user-nik").value = user.nik;
   document.getElementById("user-kategori").value = user.kategori;
-
-  document.getElementById("user-modal").style.display = "flex";
+  document.getElementById("user-modal").style.display = "block";
 }
 
-// Hapus pengguna
+// === Simpan User ===
+document.getElementById("save-user-btn").addEventListener("click", () => {
+  const id = document.getElementById("user-id").value;
+  const nama = document.getElementById("user-nama").value.trim();
+  const email = document.getElementById("user-email").value.trim();
+  const no_hp = document.getElementById("user-nohp").value.trim();
+  const nik = document.getElementById("user-nik").value.trim();
+  const kategori = document.getElementById("user-kategori").value;
+
+  if (!nama || !email || !no_hp || !nik) {
+    alert("Semua kolom wajib diisi!");
+    return;
+  }
+
+  const users = JSON.parse(localStorage.getItem("localUsers")) || [];
+
+  if (id === "") {
+    users.push({
+      id: users.length + 1,
+      nama,
+      email,
+      no_hp,
+      nik,
+      kategori,
+      terakhir_aktif: new Date().toISOString().split("T")[0]
+    });
+  } else {
+    users[id] = {
+      ...users[id],
+      nama,
+      email,
+      no_hp,
+      nik,
+      kategori,
+      terakhir_aktif: new Date().toISOString().split("T")[0]
+    };
+  }
+
+  localStorage.setItem("localUsers", JSON.stringify(users));
+  document.getElementById("user-modal").style.display = "none";
+  renderUsersLocal();
+});
+
+// === Hapus User ===
 function deleteUserLocal(index) {
   if (!confirm("Yakin ingin menghapus pengguna ini?")) return;
-  localUsers.splice(index, 1);
-  localStorage.setItem("localUsers", JSON.stringify(localUsers));
+  const users = JSON.parse(localStorage.getItem("localUsers")) || [];
+  users.splice(index, 1);
+  localStorage.setItem("localUsers", JSON.stringify(users));
   renderUsersLocal();
 }
 
-// Tutup modal
-function closeUserModal() {
-  const modal = document.getElementById("user-modal");
-  if (modal) modal.style.display = "none";
-}
-function setupAddUserModal() {
-  console.log("setupAddUserModal dipanggil (kompatibilitas mode lokal)");
-  // Tidak perlu melakukan apa pun, karena kita sudah punya openAddUserModal()
-}
-
-// Tombol simpan & batal di modal
-document.addEventListener("DOMContentLoaded", () => {
-  const saveBtn = document.getElementById("save-user-btn");
-  const cancelBtn = document.getElementById("cancel-user-btn");
-  const closeBtn = document.getElementById("user-modal-close");
-
-  if (saveBtn) saveBtn.onclick = saveUserLocal;
-  if (cancelBtn) cancelBtn.onclick = closeUserModal;
-  if (closeBtn) closeBtn.onclick = closeUserModal;
-
-  // Render awal (jika section pengguna aktif)
-  if (document.getElementById("approved-user-table-body")) {
-    renderUsersLocal();
-  }
+// === Tutup Modal ===
+document.getElementById("cancel-user-btn").addEventListener("click", () => {
+  document.getElementById("user-modal").style.display = "none";
+});
+document.getElementById("user-modal-close").addEventListener("click", () => {
+  document.getElementById("user-modal").style.display = "none";
 });
 
+// === Saat Halaman Dibuka ===
+document.addEventListener("DOMContentLoaded", () => {
+  renderUsersLocal();
+});
 
 // ==================== Manajemen Petugas ====================
 
@@ -3130,6 +3193,11 @@ function searchPetugas() {
       </td>`;
     tbody.appendChild(row);
   });
+}
+
+// Fungsi dummy untuk kompatibilitas agar tidak error
+function setupAddUserModal() {
+  // Sudah digantikan oleh openAddUserModal(), tidak perlu isi apa pun di sini
 }
 
 // ==================== INISIALISASI ====================
@@ -4008,104 +4076,89 @@ function downloadMapImage(mapContainerId, filename = 'peta-wilayah') {
 }
 //download map data
 function downloadMapDataToExcel(year) {
-    console.log("Unduh Excel untuk tahun:", year);
+  // Pilih data berdasarkan tahun
+  const data = year === "2024" ? reports2024 : reports2023;
+  const koordinatData = year === "2024" ? kecamatanData : kecamatanData2023;
 
-    try {
-        if (typeof XLSX === 'undefined') {
-            alert('SheetJS (XLSX) tidak tersedia.');
-            return;
-        }
+  if (!data || data.length === 0) {
+    alert("Data tidak ditemukan untuk tahun " + year);
+    return;
+  }
 
-        const kecamatanSource = (year === '2024') ? kecamatanData : kecamatanData2023;
-        const countSource = (year === '2024') ? accidentCounts2024 : accidentCounts2023;
+  // Gabungkan data laporan dengan koordinat
+  const mergedData = data.map((item, i) => {
+    const titik = item.titik;
+    const coords = koordinatData[titik] || { lat: "-", lng: "-" };
+    return {
+      Kecamatan: titik,
+      Latitude: coords.lat,
+      Longitude: coords.lng,
+      "Nama Pelapor": item.nama,
+      Tanggal: item.tanggal,
+      Telepon: item.telepon,
+      Jenis: item.jenis || "-",
+      Titik: titik,
+      Maps: `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
+    };
+  });
 
-        console.log("Data kecamatan:", kecamatanSource);
-        console.log("Data kecelakaan:", countSource);
+  // Buat workbook Excel
+  const wb = XLSX.utils.book_new();
 
-        if (!kecamatanSource || !countSource) {
-            alert(`Data ${year} tidak ditemukan.`);
-            return;
-        }
+  // --- SHEET 1: Semua Data ---
+  const allSheet = XLSX.utils.json_to_sheet(mergedData);
+  XLSX.utils.book_append_sheet(wb, allSheet, "Semua Data");
 
-        // Data tanpa kolom Batas Wilayah
-        const data = Object.entries(kecamatanSource).map(([kecamatan, info]) => ({
-            Kecamatan: kecamatan,
-            'Jumlah Kecelakaan': countSource[kecamatan] || 0,
-            Latitude: info.lat,
-            Longitude: info.lng
-        }));
+  // --- SHEET PER TITIK / KECAMATAN ---
+  const grouped = {};
+  mergedData.forEach(row => {
+    if (!grouped[row.Kecamatan]) grouped[row.Kecamatan] = [];
+    grouped[row.Kecamatan].push(row);
+  });
 
-        // Worksheet kosong
-        const worksheet = XLSX.utils.json_to_sheet([]);
+  Object.keys(grouped).forEach(kecamatan => {
+    const ws = XLSX.utils.json_to_sheet(grouped[kecamatan]);
+    XLSX.utils.book_append_sheet(wb, ws, kecamatan.substring(0, 31)); // batas nama sheet
+  });
 
-        // Tambah judul
-        const title = [`Data Titik Kecelakaan Kota Bogor Tahun ${year}`];
-        XLSX.utils.sheet_add_aoa(worksheet, [title], { origin: "A1" });
+  // --- Tambahkan Judul di Sheet "Semua Data" ---
+  const title = [`Data Kecelakaan Titik Laporan ${year}`];
+  const titleSheet = XLSX.utils.aoa_to_sheet([title, []]); // baris kosong setelah judul
+  XLSX.utils.sheet_add_json(titleSheet, mergedData, { origin: "A3" });
+  wb.Sheets["Semua Data"] = titleSheet;
 
-        // Tambah data mulai baris ke-3
-        XLSX.utils.sheet_add_json(worksheet, data, { origin: "A3", skipHeader: false });
-
-        // Lebar kolom otomatis
-        const colWidths = Object.keys(data[0] || {}).map(key => ({
-            wch: Math.max(key.length + 2, ...data.map(row => String(row[key] || '').length + 2))
-        }));
-        worksheet['!cols'] = colWidths;
-
-        // Merge cell untuk judul
-        const lastColIndex = Object.keys(data[0]).length - 1;
-        worksheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: lastColIndex } }];
-
-        // Styling
-        const range = XLSX.utils.decode_range(worksheet['!ref']);
-        for (let R = range.s.r; R <= range.e.r; R++) {
-            for (let C = range.s.c; C <= range.e.c; C++) {
-                const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-                if (!worksheet[cellRef]) continue;
-
-                if (R === 0) {
-                    // Judul
-                    worksheet[cellRef].s = {
-                        font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
-                        fill: { fgColor: { rgb: "4F81BD" } },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    };
-                } else if (R === 2) {
-                    // Header tabel
-                    worksheet[cellRef].s = {
-                        font: { bold: true, color: { rgb: "FFFFFF" } },
-                        fill: { fgColor: { rgb: "305496" } },
-                        alignment: { horizontal: "center", vertical: "center" },
-                        border: {
-                            top: { style: 'thin', color: { rgb: '000000' } },
-                            bottom: { style: 'thin', color: { rgb: '000000' } },
-                            left: { style: 'thin', color: { rgb: '000000' } },
-                            right: { style: 'thin', color: { rgb: '000000' } }
-                        }
-                    };
-                } else {
-                    // Data isi
-                    worksheet[cellRef].s = {
-                        alignment: { horizontal: typeof worksheet[cellRef].v === 'number' ? 'center' : 'left', vertical: 'center' },
-                        border: {
-                            top: { style: 'thin', color: { rgb: '000000' } },
-                            bottom: { style: 'thin', color: { rgb: '000000' } },
-                            left: { style: 'thin', color: { rgb: '000000' } },
-                            right: { style: 'thin', color: { rgb: '000000' } }
-                        }
-                    };
-                }
-            }
-        }
-
-        // Simpan workbook
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, `Titik Peta ${year}`);
-        XLSX.writeFile(workbook, `titik-laporan-${year}.xlsx`);
-
-    } catch (e) {
-        console.error('Gagal download Excel:', e);
-        showErrorBoundary('Gagal mengunduh data peta ke Excel: ' + e.message);
+  // --- Styling Header (biru) ---
+  const headerStyle = (ws) => {
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 2, c: C }); // header di baris ke-3
+      const cell = ws[cellAddress];
+      if (cell) {
+        cell.s = {
+          fill: { patternType: "solid", fgColor: { rgb: "375B85" } },
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          alignment: { horizontal: "center", vertical: "center" }
+        };
+      }
     }
+  };
+
+  wb.SheetNames.forEach(name => {
+    const ws = wb.Sheets[name];
+    if (ws) headerStyle(ws);
+  });
+
+  // --- Auto width column ---
+  wb.SheetNames.forEach(sheetName => {
+    const ws = wb.Sheets[sheetName];
+    const cols = Object.keys(mergedData[0] || {}).map(k => ({
+      wch: Math.max(k.length, 18)
+    }));
+    ws["!cols"] = cols;
+  });
+
+  // --- Download File ---
+  XLSX.writeFile(wb, `Data_Titik_Laporan_${year}.xlsx`);
 }
 
 // Setup event listeners for map initialization and year filter

@@ -1385,179 +1385,169 @@ h3 {
   background: #2c4768;
 }
 
-/* === Tampilan Modal Evaluasi Mirip Detail Laporan === */
+/* ==================== Modal Evaluasi  ==================== */
 #evaluasi-modal {
-    max-width: 800px;
-    margin: 5% auto;
-    background-color: #fff;
-    border-radius: 12px;
-    padding: 30px 25px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    font-family: 'Segoe UI', sans-serif;
-    position: absolute;
-    overflow-y: auto;
-    max-height: 90vh;
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3000;
+  width: 90%;
+  max-width: 700px;
+  font-family: "Segoe UI", sans-serif;
+  background: none; /* ⬅️ Tidak ada overlay */
+  border: none;
 }
-
-#evaluasi-modal h2 {
-    text-align: center;
-    font-size: 20px;
-    color: #375B85;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #e2e8f0;
+#evaluasi-modal.active ~ *:not(#evaluasi-modal) {
+  filter: blur(4px);
+}
+/* Kotak utama modal */
+#evaluasi-modal .modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 35px 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 /* Tombol tutup */
 #evaluasi-modal .modal-close {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    z-index: 2000;
-    font-size: 22px;
-    color: #888;
-    font-weight: bold;
-    cursor: pointer;
-    background-color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 22px;
+  color: #666;
+  cursor: pointer;
+  transition: 0.2s;
 }
-
 #evaluasi-modal .modal-close:hover {
-    color: #333;
+  color: #000;
 }
 
-/* Isi modal: dua kolom rapi */
+/* Judul modal */
+#evaluasi-modal h2 {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #375B85;
+  margin-bottom: 25px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+/* Isi modal rapi kebawah */
 #evaluasi-modal .modal-body {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 10px;
 }
 
-#evaluasi-modal .profile-field {
-    flex: 1 1 100%;
-    background-color: #ffffff;
-    padding: 12px 16px;
-    border-radius: 6px;
-    box-sizing: border-box;
-    border: 1px solid #dee2e6; /* Garis tepi abu lembut */
-}
-
-#evaluasi-modal .profile-field:nth-child(2) {
-    flex: 1 1 100%; /* Deskripsi tampil penuh */
-}
-
+/* Label dan kolom input */
 #evaluasi-modal .profile-field label {
-    font-weight: 600;
-    color: #375B85;
-    display: block;
-    margin-bottom: 6px;
-    font-size: 14px;
+  display: block;
+  font-weight: 600;
+  color: #375B85;
+  font-size: 14px;
+  margin-bottom: 6px;
+  text-align: left;
 }
 
 #evaluasi-modal .profile-field input,
 #evaluasi-modal .profile-field textarea {
-    width: 100%;
-    background-color: transparent;
-    border: none;
-    font-size: 14px;
-    color: #000000;
-    resize: none;
-    line-height: 1.4;
-    outline: none;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #cfd8e3;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #222;
+  background-color: #f9fafb;
+  transition: 0.2s ease;
+  box-sizing: border-box;
 }
 
-/* Tombol bawah */
+#evaluasi-modal .profile-field input:focus,
+#evaluasi-modal .profile-field textarea:focus {
+  border-color: #375B85;
+  background-color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(55, 91, 133, 0.15);
+}
+
+/* Textarea lebih besar */
+#evaluasi-modal .profile-field textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Tombol rata tengah */
 #evaluasi-modal .profile-buttons {
-    text-align: right;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 25px;
+  border-top: 1px solid #e5e9f0;
+  padding-top: 20px;
 }
-#evaluasi-modal .save-btn, .save-btn {
-    background-color: #218838;
-    color: #fff;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
+
+/* Desain tombol */
+#evaluasi-modal .profile-buttons button {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
+
+#evaluasi-modal .save-btn {
+  background: #218838;
+  color: #fff;
+}
+#evaluasi-modal .save-btn:hover {
+  background: #1a6f2f;
+  transform: translateY(-1px);
+}
+
 #evaluasi-modal .cancel-btn {
-    background-color: #e65b50;
-    color: #fff;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
+  background: #dc3545;
+  color: #fff;
 }
-
 #evaluasi-modal .cancel-btn:hover {
-    background-color: #e65b50;
-}
-/* Container utama evaluasi */
-.evaluasi-section {
-    margin-top: 20px;
+  background: #b52b38;
+  transform: translateY(-1px);
 }
 
-/* Grid pemisah antar evaluasi */
-.evaluasi-grid {
-    display: flex;
+#evaluasi-modal .delete-btn {
+  background: #ffc107;
+  color: #fff;
+}
+#evaluasi-modal .delete-btn:hover {
+  background: #e0a106;
+  transform: translateY(-1px);
+}
+
+/* Responsif */
+@media (max-width: 768px) {
+  #evaluasi-modal .modal-content {
+    padding: 25px 20px;
+    width: 95%;
+  }
+  #evaluasi-modal .profile-buttons {
     flex-direction: column;
-    gap: 15px;
+  }
+  #evaluasi-modal .profile-buttons button {
+    width: 100%;
+  }
 }
 
-/* Setiap item evaluasi */
-.evaluasi-item {
-    background-color: #ffffff;
-    border: 1px solid #dce6f1;
-    border-radius: 8px;
-    padding: 16px 20px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-/* Judul dan periode */
-.evaluasi-item h4 {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0;
-    color: #1e3a5f;
-}
-
-.evaluasi-item .periode {
-    font-size: 14px;
-    color: #444;
-    margin: 4px 0 8px 0;
-}
-
-/* Deskripsi */
-.evaluasi-item .deskripsi {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 12px;
-}
-
-/* Tombol edit */
-.evaluasi-item .edit-btn {
-    padding: 6px 12px;
-    background-color: #375B85;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.evaluasi-item .edit-btn:hover {
-    background-color: #2d486f;
-}
-#evaluasi-modal {
-    transition: opacity 0.3s ease;
-}
-
-#evaluasi-modal.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
 
 .profile-section, .report-details, .evaluasi-details, .user-details {
     display: flex;

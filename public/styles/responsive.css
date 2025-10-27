@@ -606,110 +606,6 @@
   display: block;
 }
 
-/* === Modal Evaluasi Tengah === */
-#evaluasi-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: none;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-  padding: 25px 20px;
-  width: 100%;
-  max-width: 500px;
-  z-index: 999;
-  display: none;
-  transition: all 0.3s ease;
-}
-
-/* Saat aktif */
-#evaluasi-modal.show {
-  display: block;
-}
-
-/* Tombol tutup */
-#evaluasi-modal .modal-close {
-  position: absolute;
-  top: 12px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #333;
-}
-
-/* Judul */
-#evaluasi-modal h2 {
-  font-size: 18px;
-  text-align: center;
-  margin-bottom: 15px;
-  color: #2c3e50;
-}
-
-/* Field input */
-#evaluasi-modal .profile-field {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 12px;
-}
-
-#evaluasi-modal .profile-field label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 5px;
-}
-
-#evaluasi-modal .profile-field input,
-#evaluasi-modal .profile-field textarea {
-  font-size: 13px;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  outline: none;
-}
-
-/* Tombol */
-#evaluasi-modal .save-btn,
-#evaluasi-modal .cancel-btn {
-  display: inline-block;
-  width: 48%;
-  padding: 8px 10px;
-  font-size: 13px;
-  border-radius: 6px;
-  cursor: pointer;
-  border: none;
-}
-
-#evaluasi-modal .save-btn {
-  background: #375B85;
-  color: white;
-}
-
-#evaluasi-modal .cancel-btn {
-  background: #e74c3c;
-  color: white;
-}
-
-/* Responsif tablet */
-@media (max-width: 1024px) {
-  #evaluasi-modal {
-    max-width: 90%;
-    padding: 20px 16px;
-  }
-
-  #evaluasi-modal h2 {
-    font-size: 17px;
-  }
-
-  #evaluasi-modal .save-btn,
-  #evaluasi-modal .cancel-btn {
-    font-size: 12px;
-  }
-}
-
 /* Responsif mobile */
 @media (max-width: 768px) {
   #evaluasi-modal {
@@ -852,21 +748,44 @@
   }
 
   /* ====== KARTU STATISTIK ====== */
+ /* ======== RESPONSIVE UNTUK STATS CARD DI BERANDA ======== */
+@media (max-width: 768px) {
   .stats-cards {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr; /* 2 kolom di layar sedang */
     gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-cards {
+    display: grid;
+    grid-template-columns: 1fr; /* 1 kolom di layar kecil (HP) */
+    gap: 12px;
   }
 
   .stats-card {
-    padding: 10px;
-    font-size: 13px;
     text-align: center;
+    padding: 12px;
     border-radius: 10px;
     background: #fff;
     border: 1px solid #e0e0e0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   }
+
+  .stats-card h4 {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 4px;
+  }
+
+  .stats-card p {
+    font-size: 18px;
+    font-weight: bold;
+    color: #375B85;
+    margin: 0;
+  }
+}
 
   .stats-card h4 {
     font-size: 13px;

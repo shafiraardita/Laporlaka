@@ -1201,6 +1201,12 @@ function filterCategory(category) {
     currentPage = 1;
     currentTrackingCategory = category;
 
+    // Ubah tombol aktif
+    document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
+    const activeCard = document.querySelector(`.category-card[data-category="${category}"]`);
+    if (activeCard) activeCard.classList.add('active');
+
+    // Filter data sesuai kategori
     switch (category) {
         case 'all':
             filteredTrackingReports = reports.filter(r =>
@@ -1234,9 +1240,8 @@ function filterCategory(category) {
             break;
     }
 
-    renderTrackingTable(filteredTrackingReports);
+    renderTrackingTable(filteredTrackingReports, category);
 }
-
 
 function downloadFilteredTracking(category) {
     let filtered = reports.filter(r => {
@@ -1268,65 +1273,82 @@ function downloadFilteredTracking(category) {
     XLSX.writeFile(wb, filename);
 }
 
-function renderTrackingTable(data) {
+function renderTrackingTable(data, category = 'all') {
     const tbody = document.getElementById('tracking-table-body');
+    const statsContainer = document.querySelector('#tracking-section .stats-cards');
     tbody.innerHTML = '';
-    const start = (currentPage - 1) * reportsPerPage;
-    const end = start + reportsPerPage;
-    const pageData = data.slice(start, end);
 
-    tbody.innerHTML = pageData.map(report => `
-        <tr>
-            <td>${escapeHTML(report.id.toString())}</td>
-            <td>${escapeHTML(report.nama)}</td>
-            <td>${escapeHTML(report.tanggal)}</td>
-            <td>${escapeHTML(report.jenis)}</td>
-            <td>${escapeHTML(report.kendaraan)}</td>
-            <td>${escapeHTML(report.jumlahKorban)}</td>
-            <td>${escapeHTML(report.titik)}</td>
-            <td>${escapeHTML(report.kronologi.length > 40 ? report.kronologi.substring(0, 40) + '...' : report.kronologi)}</td>
-            <td><button onclick="openTrackingModal(${report.id})">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 16 16">
-                                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
-                                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
-                            </svg></button></td>
-            <td><span class="report-status ${report.status.toLowerCase()}">${escapeHTML(report.status)}</span></td>
-        </tr>
-    `).join('');
-            // Hitung ulang semua kategori laporan (berdasarkan filter aktif) 
-const all = reports.length; // Semua status
-const accepted = reports.filter(r => r.status === 'Diterima').length;
-const handling = reports.filter(r => r.status === 'Proses').length;
-const received = reports.filter(r => r.status === 'Selesai').length;
-const rejected = reports.filter(r => r.status === 'Ditolak').length;
+    // Kosongkan tampilan tabel bila tidak ada data
+    if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">Laporan tidak ditemukan.</td></tr>`;
+    } else {
+        const start = (currentPage - 1) * reportsPerPage;
+        const end = start + reportsPerPage;
+        const pageData = data.slice(start, end);
 
-// Tampilkan jumlah di elemen HTML
-document.getElementById('total-reports').textContent = all;
-document.getElementById('accepted-reports-count').textContent = accepted;
-document.getElementById('handling-reports-count').textContent = handling;
-document.getElementById('received-data-count').textContent = received;
-document.getElementById('rejected-reports-count').textContent = rejected;
+        tbody.innerHTML = pageData.map(report => `
+            <tr>
+                <td>${escapeHTML(report.id.toString())}</td>
+                <td>${escapeHTML(report.nama)}</td>
+                <td>${escapeHTML(report.tanggal)}</td>
+                <td>${escapeHTML(report.jenis)}</td>
+                <td>${escapeHTML(report.kendaraan)}</td>
+                <td>${escapeHTML(report.jumlahKorban)}</td>
+                <td>${escapeHTML(report.titik)}</td>
+                <td>${escapeHTML(report.kronologi.length > 40 ? report.kronologi.substring(0, 40) + '...' : report.kronologi)}</td>
+                <td>
+                    <button class="btn-detail" onclick="openTrackingModal(${report.id})">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 16 16">
+                            <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                            <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+                        </svg>
+                    </button>
+                </td>
+                <td><span class="report-status ${report.status.toLowerCase()}">${escapeHTML(report.status)}</span></td>
+            </tr>
+        `).join('');
+    }
 
+    // === UBAH STATISTIK SESUAI FILTER AKTIF ===
+    const count = data.length;
+    let statsHTML = "";
 
+    if (category === "all") {
+        // Tampilkan semua
+        const total = reports.length;
+        const diterima = reports.filter(r => r.status === "Diterima").length;
+        const proses = reports.filter(r => r.status === "Proses").length;
+        const selesai = reports.filter(r => r.status === "Selesai").length;
+        const ditolak = reports.filter(r => r.status === "Ditolak").length;
 
+        statsHTML = `
+            <div class="stats-card blue1"><h4>Total Laporan</h4><p>${total}</p></div>
+            <div class="stats-card blue2"><h4>Laporan Diterima</h4><p>${diterima}</p></div>
+            <div class="stats-card blue3"><h4>Penanganan Laporan</h4><p>${proses}</p></div>
+            <div class="stats-card blue4"><h4>Laporan Selesai</h4><p>${selesai}</p></div>
+            <div class="stats-card blue5"><h4>Laporan Ditolak</h4><p>${ditolak}</p></div>`;
+    } else if (category === "accepted") {
+        statsHTML = `<div class="stats-card blue2"><h4>Laporan Diterima</h4><p>${count}</p></div>`;
+    } else if (category === "handling") {
+        statsHTML = `<div class="stats-card blue3"><h4>Penanganan Laporan</h4><p>${count}</p></div>`;
+    } else if (category === "received") {
+        statsHTML = `<div class="stats-card blue4"><h4>Laporan Selesai</h4><p>${count}</p></div>`;
+    } else if (category === "rejected") {
+        statsHTML = `<div class="stats-card blue5"><h4>Laporan Ditolak</h4><p>${count}</p></div>`;
+    }
+
+    // Tampilkan hanya stats sesuai filter aktif
+    if (statsContainer) statsContainer.innerHTML = statsHTML;
+
+    // Pagination
     renderTrackingPagination(data.length);
 
-    // Update statistik
-    document.getElementById('total-reports').textContent = data.length;
-    document.getElementById('accepted-reports-count').textContent = reports.filter(r => r.status === 'Diterima').length;
-    document.getElementById('handling-reports-count').textContent = reports.filter(r => r.status === 'Proses').length;
-    document.getElementById('received-data-count').textContent = reports.filter(r => r.status === 'Selesai').length;
-    document.getElementById('rejected-reports-count').textContent = reports.filter(r => r.status === 'Ditolak').length;
-
-    // Update pagination
-    renderTrackingPagination(data.length);
+    // Jika ada laporan yang perlu dibuka otomatis
     if (openReportOnLoadId !== null) {
-    const id = openReportOnLoadId;
-    openReportOnLoadId = null;
-    setTimeout(() => {
-        openTrackingModal(id);
-    }, 200);
-}
+        const id = openReportOnLoadId;
+        openReportOnLoadId = null;
+        setTimeout(() => openTrackingModal(id), 200);
+    }
 }
 
 // Fungsi untuk mendapatkan kategori saat ini
@@ -1435,42 +1457,161 @@ function updateReportStatus(reportId, newStatus) {
     }
 }
 
-function downloadReport(reportId) {
-    try {
-        if (typeof jspdf === 'undefined') {
-            throw new Error('jsPDF is not loaded');
-        }
-        const { jsPDF } = window.jspdf;
-        const report = reports.find(r => r.id === reportId);
-        if (!report) {
-            alert('Laporan tidak ditemukan!');
-            return;
-        }
-
-        const doc = new jsPDF();
-        doc.setFontSize(16);
-        doc.text('Laporan Kecelakaan', 20, 20);
-        doc.setFontSize(12);
-        doc.text(`ID: ${report.id}`, 20, 30);
-        doc.text(`Nama: ${report.nama}`, 20, 40);
-        doc.text(`NIK: ${report.nik}`, 20, 50);
-        doc.text(`Email: ${report.email}`, 20, 60);
-        doc.text(`Telepon: ${report.telepon}`, 20, 70);
-        doc.text(`Saksi: ${report.saksi}`, 20, 80);
-        doc.text(`Titik Kecelakaan: ${report.titik}`, 20, 90);
-        doc.text(`Tanggal: ${report.tanggal}`, 20, 100);
-        doc.text(`Status: ${report.status}`, 20, 110);
-        doc.text(`Petugas: ${report.petugas || '-'}`, 20, 120);
-        doc.text(`Kendaraan: ${report.kendaraan || '-'}`, 20, 130);
-        doc.text(`Jenis Kecelakaan: ${report.jenis || '-'}`, 20, 140);
-        doc.text(`Jumlah Korban: ${report.jumlahKorban || '-'}`, 20, 150);
-        doc.text(`Kronologi: ${report.kronologi || '-'}`, 20, 160);
-        doc.save(`report-${report.id}.pdf`);
-    } catch (e) {
-        console.error('Error downloading report:', e);
-        showErrorBoundary('Gagal mengunduh laporan: ' + e.message);
+async function downloadReportPDF(reportId) {
+  try {
+    if (typeof jspdf === 'undefined') {
+      alert('jsPDF belum dimuat.');
+      return;
     }
+
+    const { jsPDF } = window.jspdf;
+
+    // Ambil semua data laporan
+    const res = await fetch(`https://dragonmontainapi.com/riwayat_laporan.php?user=1`);
+    const allReports = await res.json();
+    const report = allReports.find(r => String(r.id) === String(reportId));
+
+    if (!report) {
+      alert('Laporan tidak ditemukan.');
+      return;
+    }
+
+    const doc = new jsPDF({
+      unit: 'pt',
+      format: 'a4'
+    });
+
+    // --- Header ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("LAPORAN KEJADIAN KECELAKAAN", 40, 60);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`ID Laporan: ${report.id}`, 40, 80);
+
+    let y = 110;
+
+    // --- Data Pelapor ---
+    doc.setFont("helvetica", "bold");
+    doc.text("1. Data Pelapor", 40, y);
+    y += 20;
+    doc.setFont("helvetica", "normal");
+
+    const pelaporData = [
+      ["Nama", report.nama_user || "-"],
+      ["NIK", report.nik || "-"],
+      ["Telepon", report.no_hp || "-"],
+      ["Saksi", report.saksi_1 || "-"],
+    ];
+
+    pelaporData.forEach(([label, value]) => {
+      doc.text(`${label}: ${value}`, 60, y);
+      y += 16;
+    });
+
+    // --- Data Kecelakaan ---
+    y += 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("2. Data Kecelakaan", 40, y);
+    y += 20;
+    doc.setFont("helvetica", "normal");
+
+    const dataKecelakaan = [
+      ["Jenis Kecelakaan", report.jenis_kecelakaan || "-"],
+      ["Kendaraan", report.kendaraan || "-"],
+      ["Jumlah Korban", report.jumlah_korban || "-"],
+      ["Tanggal", report.tanggal || "-"],
+      ["Alamat Kejadian", report.alamat || "-"],
+      ["Petugas Menangani", report.petugas || "-"],
+      ["Status", report.status || "-"],
+    ];
+
+    dataKecelakaan.forEach(([label, value]) => {
+      const lines = doc.splitTextToSize(`${label}: ${value}`, 480);
+      doc.text(lines, 60, y);
+      y += lines.length * 14;
+    });
+
+    // --- Kronologi ---
+    y += 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("3. Kronologi Kejadian", 40, y);
+    y += 20;
+    doc.setFont("helvetica", "normal");
+
+    const kronologiText = doc.splitTextToSize(report.kronologi || "-", 480);
+    doc.text(kronologiText, 60, y);
+    y += kronologiText.length * 14 + 10;
+
+    // --- Bukti Gambar ---
+    if (Array.isArray(report.foto) && report.foto.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("4. Bukti Kecelakaan", 40, y);
+      y += 20;
+
+      for (let i = 0; i < report.foto.length; i++) {
+        const imgUrl = report.foto[i];
+        try {
+          const imgData = await loadImageAsDataURL(imgUrl);
+          doc.addImage(imgData, "JPEG", 60, y, 200, 120);
+          y += 130;
+          if (y > 700) {
+            doc.addPage();
+            y = 60;
+          }
+        } catch {
+          doc.text(`Bukti ${i + 1}: [Gagal memuat gambar]`, 60, y);
+          y += 20;
+        }
+      }
+    }
+
+    // --- Bukti Penanganan Selesai (jika ada) ---
+    if (report.bukti_selesai) {
+      if (y > 650) {
+        doc.addPage();
+        y = 60;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.text("5. Bukti Penanganan Selesai", 40, y);
+      y += 20;
+
+      try {
+        const imgData = await loadImageAsDataURL(report.bukti_selesai);
+        doc.addImage(imgData, "JPEG", 60, y, 200, 120);
+        y += 130;
+      } catch {
+        doc.text("[Gagal memuat bukti penanganan]", 60, y);
+        y += 20;
+      }
+
+      doc.setFont("helvetica", "normal");
+      doc.text(`Keterangan Selesai: ${report.keterangan_selesai || "-"}`, 60, y);
+    }
+
+    // Footer
+    doc.setFontSize(10);
+    doc.text(`Halaman 1 dari 1`, 260, 820);
+
+    doc.save(`Laporan_${report.nama_user}_${report.id}.pdf`);
+
+  } catch (e) {
+    console.error("Error download PDF:", e);
+    alert("Gagal mengunduh PDF: " + e.message);
+  }
 }
+
+async function loadImageAsDataURL(url) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 
 document.querySelectorAll('.modal-close').forEach(closeBtn => {
     closeBtn.addEventListener('click', () => {
@@ -1751,89 +1892,116 @@ function renderTracking(filteredReports = null) {
     `).join('');
 }
 let isPimpinan = true; // Sesuaikan dari login session
+
+// ==================== DETAIL LAPORAN (PIMPINAN - READ ONLY) ====================
+// ==================== DETAIL LAPORAN (PIMPINAN - READ ONLY) ====================
 function openTrackingModal(reportId) {
-    try {
-        const report = reports.find(r => r.id == reportId);
-        if (!report) {
-            alert('Laporan tidak ditemukan!');
-            return;
-        }
-
-        const modal = document.getElementById('report-modal');
-        if (!modal) {
-            console.warn('Report modal not found');
-            return;
-        }
-
-        // Isi field laporan
-        document.getElementById('report-nama').textContent = escapeHTML(report.nama);
-        document.getElementById('report-nik').textContent = escapeHTML(report.nik);
-        document.getElementById('report-email').textContent = escapeHTML(report.email);
-        document.getElementById('report-telepon').textContent = escapeHTML(report.telepon);
-        document.getElementById('report-saksi').textContent = escapeHTML(report.saksi);
-        document.getElementById('report-titik').textContent = escapeHTML(report.titik);
-        document.getElementById('report-kendaraan').textContent = escapeHTML(report.kendaraan || '-');
-        document.getElementById('report-jenis').textContent = escapeHTML(report.jenis || '-');
-        document.getElementById('report-jumlah-korban').textContent = escapeHTML(report.jumlahKorban || '-');
-        document.getElementById('report-tanggal').textContent = escapeHTML(report.tanggal);
-        document.getElementById('report-status').textContent = escapeHTML(report.status);
-        document.getElementById('report-kronologi').textContent = escapeHTML(report.kronologi);
-        document.getElementById('report-bukti').src = report.bukti || '';
-
-        // === Tampilkan bukti & keterangan selesai (readonly untuk pimpinan) ===
-        const buktiPetugasImg = document.getElementById("report-bukti-petugas");
-        const keteranganInput = document.getElementById("report-keterangan");
-
-        if (keteranganInput) {
-        keteranganInput.value = report.keteranganSelesai || "-";
-        keteranganInput.readOnly = true;
-        }
-
-        if (buktiPetugasImg) {
-        if (report.buktiSelesai && report.buktiSelesai !== "null" && report.buktiSelesai !== "") {
-            buktiPetugasImg.src = report.buktiSelesai;
-            buktiPetugasImg.style.display = "block";
-        } else {
-            buktiPetugasImg.src = "";
-            buktiPetugasImg.style.display = "none";
-        }
-        }
-        const petugasInput = document.getElementById('report-petugas');
-        const buttonContainer = document.querySelector('.report-buttons');
-
-        petugasInput.value = escapeHTML(report.petugas || '');
-        buttonContainer.innerHTML = '';
-
-        // Logika untuk role Pimpinan: Tidak bisa edit petugas untuk status apapun
-        if (typeof isPimpinan !== 'undefined' && isPimpinan) {
-            petugasInput.disabled = true;
-            buttonContainer.innerHTML = `<button onclick="closeModal()">Tutup</button>`;
-        } else {
-            // Role Admin (atau non-pimpinan)
-            if (report.status === 'Diterima') {
-                petugasInput.disabled = false;
-                buttonContainer.innerHTML = `
-                    <button onclick="savePetugas(${report.id})">Simpan</button>
-                    <button onclick="closeModal()">Batal</button>
-                `;
-            } else if (report.status === 'Proses') {
-                petugasInput.disabled = false;
-                buttonContainer.innerHTML = `
-                    <button onclick="updateStatus(${report.id}, 'Selesai')">Data Diterima</button>
-                    <button onclick="savePetugas(${report.id})">Simpan</button>
-                    <button onclick="closeModal()">Batal</button>
-                `;
-            } else {
-                petugasInput.disabled = true;
-                buttonContainer.innerHTML = `<button onclick="closeModal()">Tutup</button>`;
-            }
-        }
-
-        modal.style.display = 'block';
-    } catch (e) {
-        console.error('Error opening tracking modal:', e);
-        showErrorBoundary('Gagal membuka detail laporan: ' + e.message);
+  try {
+    const report = reports.find(r => r.id == reportId);
+    if (!report) {
+      alert("Laporan tidak ditemukan!");
+      return;
     }
+
+    console.log("Data laporan detail:", report); // Debugging
+
+    const modal = document.getElementById("report-modal");
+    if (!modal) {
+      console.warn("Elemen modal tidak ditemukan!");
+      return;
+    }
+
+    // === Data pelapor & kecelakaan utama ===
+    document.getElementById("report-nama").textContent = report.nama || "-";
+    document.getElementById("report-nik").textContent = report.nik || "-";
+    document.getElementById("report-email").textContent = report.email || "-";
+    document.getElementById("report-telepon").textContent = report.telepon || "-";
+    document.getElementById("report-saksi").textContent = report.saksi || "-";
+    document.getElementById("report-jenis").textContent = report.jenis || "-";
+    document.getElementById("report-kendaraan").textContent = report.kendaraan || "-";
+    document.getElementById("report-jumlah-korban").textContent = report.jumlahKorban || "-";
+    document.getElementById("report-titik").textContent = report.titik || "-";
+    document.getElementById("report-tanggal").textContent = report.tanggal || "-";
+    document.getElementById("report-status").textContent = report.status || "-";
+    document.getElementById("report-kronologi").textContent = report.kronologi || "-";
+
+    // === Bukti kecelakaan utama ===
+    const buktiImg = document.getElementById("report-bukti");
+    if (buktiImg) {
+      if (report.bukti && report.bukti !== "null" && report.bukti !== "") {
+        buktiImg.src = report.bukti;
+        buktiImg.style.display = "block";
+        buktiImg.onclick = () => window.open(report.bukti, "_blank");
+      } else {
+        buktiImg.src = "";
+        buktiImg.style.display = "none";
+      }
+    }
+
+    // === Data petugas (read-only) ===
+    const petugasField = document.getElementById("report-petugas");
+    if (petugasField) {
+      petugasField.textContent = report.petugas || report.namaPetugas || "-";
+    }
+
+    // === Bukti selesai (read-only) ===
+    const fotoPetugas = document.getElementById("report-foto-petugas");
+    if (fotoPetugas) {
+    const possibleBuktiFields = [
+        report.buktiSelesai,
+        report.bukti_selesai,
+        report.fotoPetugas,
+        report.foto_petugas,
+        report.fotoSelesai,
+        report.buktiPenugasan,
+        report.bukti_penugasan
+    ];
+
+    // Cari field pertama yang punya nilai valid
+    const buktiSelesai =
+        possibleBuktiFields.find(
+        b => b && b !== "null" && b !== ""
+        ) || "";
+
+    if (buktiSelesai) {
+        fotoPetugas.src = buktiSelesai;
+        fotoPetugas.style.display = "block";
+        fotoPetugas.onclick = () => window.open(buktiSelesai, "_blank");
+    } else {
+        fotoPetugas.src = "";
+        fotoPetugas.style.display = "none";
+    }
+    }
+
+    // === Keterangan Selesai (read-only) ===
+    const keteranganElem = document.getElementById("report-keterangan");
+    if (keteranganElem) {
+    const possibleKeteranganFields = [
+        report.keteranganSelesai,
+        report.keterangan_selesai,
+        report.keteranganPetugas,
+        report.keterangan_petugas,
+        report.catatanSelesai,
+        report.catatan_selesai,
+        report.deskripsiSelesai,
+        report.deskripsi_selesai
+    ];
+
+    // Cari field yang valid
+    const keterangan =
+        possibleKeteranganFields.find(
+        k => k && k !== "null" && k.trim() !== ""
+        ) || "-";
+
+    keteranganElem.textContent = keterangan;
+    }
+
+    // === Tampilkan modal ===
+    modal.style.display = "block";
+  } catch (err) {
+    console.error("Gagal membuka detail laporan:", err);
+    alert("Terjadi kesalahan saat membuka detail laporan.");
+  }
 }
 
 document.querySelector("#evaluasi-modal .modal-close").onclick = function () {
@@ -2655,104 +2823,89 @@ function downloadMapImage(mapContainerId, filename = 'peta-wilayah') {
 }
 //download map data
 function downloadMapDataToExcel(year) {
-    console.log("Unduh Excel untuk tahun:", year);
+  // Pilih data berdasarkan tahun
+  const data = year === "2024" ? reports2024 : reports2023;
+  const koordinatData = year === "2024" ? kecamatanData : kecamatanData2023;
 
-    try {
-        if (typeof XLSX === 'undefined') {
-            alert('SheetJS (XLSX) tidak tersedia.');
-            return;
-        }
+  if (!data || data.length === 0) {
+    alert("Data tidak ditemukan untuk tahun " + year);
+    return;
+  }
 
-        const kecamatanSource = (year === '2024') ? kecamatanData : kecamatanData2023;
-        const countSource = (year === '2024') ? accidentCounts2024 : accidentCounts2023;
+  // Gabungkan data laporan dengan koordinat
+  const mergedData = data.map((item, i) => {
+    const titik = item.titik;
+    const coords = koordinatData[titik] || { lat: "-", lng: "-" };
+    return {
+      Kecamatan: titik,
+      Latitude: coords.lat,
+      Longitude: coords.lng,
+      "Nama Pelapor": item.nama,
+      Tanggal: item.tanggal,
+      Telepon: item.telepon,
+      Jenis: item.jenis || "-",
+      Titik: titik,
+      Maps: `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
+    };
+  });
 
-        console.log("Data kecamatan:", kecamatanSource);
-        console.log("Data kecelakaan:", countSource);
+  // Buat workbook Excel
+  const wb = XLSX.utils.book_new();
 
-        if (!kecamatanSource || !countSource) {
-            alert(`Data ${year} tidak ditemukan.`);
-            return;
-        }
+  // --- SHEET 1: Semua Data ---
+  const allSheet = XLSX.utils.json_to_sheet(mergedData);
+  XLSX.utils.book_append_sheet(wb, allSheet, "Semua Data");
 
-        // Data tanpa kolom Batas Wilayah
-        const data = Object.entries(kecamatanSource).map(([kecamatan, info]) => ({
-            Kecamatan: kecamatan,
-            'Jumlah Kecelakaan': countSource[kecamatan] || 0,
-            Latitude: info.lat,
-            Longitude: info.lng
-        }));
+  // --- SHEET PER TITIK / KECAMATAN ---
+  const grouped = {};
+  mergedData.forEach(row => {
+    if (!grouped[row.Kecamatan]) grouped[row.Kecamatan] = [];
+    grouped[row.Kecamatan].push(row);
+  });
 
-        // Worksheet kosong
-        const worksheet = XLSX.utils.json_to_sheet([]);
+  Object.keys(grouped).forEach(kecamatan => {
+    const ws = XLSX.utils.json_to_sheet(grouped[kecamatan]);
+    XLSX.utils.book_append_sheet(wb, ws, kecamatan.substring(0, 31)); // batas nama sheet
+  });
 
-        // Tambah judul
-        const title = [`Data Titik Kecelakaan Kota Bogor Tahun ${year}`];
-        XLSX.utils.sheet_add_aoa(worksheet, [title], { origin: "A1" });
+  // --- Tambahkan Judul di Sheet "Semua Data" ---
+  const title = [`Data Kecelakaan Titik Laporan ${year}`];
+  const titleSheet = XLSX.utils.aoa_to_sheet([title, []]); // baris kosong setelah judul
+  XLSX.utils.sheet_add_json(titleSheet, mergedData, { origin: "A3" });
+  wb.Sheets["Semua Data"] = titleSheet;
 
-        // Tambah data mulai baris ke-3
-        XLSX.utils.sheet_add_json(worksheet, data, { origin: "A3", skipHeader: false });
-
-        // Lebar kolom otomatis
-        const colWidths = Object.keys(data[0] || {}).map(key => ({
-            wch: Math.max(key.length + 2, ...data.map(row => String(row[key] || '').length + 2))
-        }));
-        worksheet['!cols'] = colWidths;
-
-        // Merge cell untuk judul
-        const lastColIndex = Object.keys(data[0]).length - 1;
-        worksheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: lastColIndex } }];
-
-        // Styling
-        const range = XLSX.utils.decode_range(worksheet['!ref']);
-        for (let R = range.s.r; R <= range.e.r; R++) {
-            for (let C = range.s.c; C <= range.e.c; C++) {
-                const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-                if (!worksheet[cellRef]) continue;
-
-                if (R === 0) {
-                    // Judul
-                    worksheet[cellRef].s = {
-                        font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
-                        fill: { fgColor: { rgb: "4F81BD" } },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    };
-                } else if (R === 2) {
-                    // Header tabel
-                    worksheet[cellRef].s = {
-                        font: { bold: true, color: { rgb: "FFFFFF" } },
-                        fill: { fgColor: { rgb: "305496" } },
-                        alignment: { horizontal: "center", vertical: "center" },
-                        border: {
-                            top: { style: 'thin', color: { rgb: '000000' } },
-                            bottom: { style: 'thin', color: { rgb: '000000' } },
-                            left: { style: 'thin', color: { rgb: '000000' } },
-                            right: { style: 'thin', color: { rgb: '000000' } }
-                        }
-                    };
-                } else {
-                    // Data isi
-                    worksheet[cellRef].s = {
-                        alignment: { horizontal: typeof worksheet[cellRef].v === 'number' ? 'center' : 'left', vertical: 'center' },
-                        border: {
-                            top: { style: 'thin', color: { rgb: '000000' } },
-                            bottom: { style: 'thin', color: { rgb: '000000' } },
-                            left: { style: 'thin', color: { rgb: '000000' } },
-                            right: { style: 'thin', color: { rgb: '000000' } }
-                        }
-                    };
-                }
-            }
-        }
-
-        // Simpan workbook
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, `Titik Peta ${year}`);
-        XLSX.writeFile(workbook, `titik-laporan-${year}.xlsx`);
-
-    } catch (e) {
-        console.error('Gagal download Excel:', e);
-        showErrorBoundary('Gagal mengunduh data peta ke Excel: ' + e.message);
+  // --- Styling Header (biru) ---
+  const headerStyle = (ws) => {
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 2, c: C }); // header di baris ke-3
+      const cell = ws[cellAddress];
+      if (cell) {
+        cell.s = {
+          fill: { patternType: "solid", fgColor: { rgb: "375B85" } },
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          alignment: { horizontal: "center", vertical: "center" }
+        };
+      }
     }
+  };
+
+  wb.SheetNames.forEach(name => {
+    const ws = wb.Sheets[name];
+    if (ws) headerStyle(ws);
+  });
+
+  // --- Auto width column ---
+  wb.SheetNames.forEach(sheetName => {
+    const ws = wb.Sheets[sheetName];
+    const cols = Object.keys(mergedData[0] || {}).map(k => ({
+      wch: Math.max(k.length, 18)
+    }));
+    ws["!cols"] = cols;
+  });
+
+  // --- Download File ---
+  XLSX.writeFile(wb, `Data_Titik_Laporan_${year}.xlsx`);
 }
 
 // Setup event listeners for map initialization and year filter
