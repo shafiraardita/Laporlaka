@@ -799,13 +799,6 @@
     color: #375B85;
     margin: 0;
   }
-/* ======== SEMBUNYIKAN BAGIAN MONITORING DI BERANDA SAAT MOBILE ======== */
-@media (max-width: 768px) {
-  /* Sembunyikan bagian monitoring di bawah beranda */
-  #monitoring-section {
-    display: none !important;
-  }
-}
 
   /* ====== FILTER BAR ====== */
   .tracking-filter-bar {
