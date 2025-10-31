@@ -1005,7 +1005,7 @@ async function bukaDetailLaporan(id) {
     document.getElementById("report-jenis").value = report.jenis_kecelakaan || "";
     document.getElementById("report-jumlah-korban").value = report.jumlah_korban || "";
     document.getElementById("report-tanggal").value = report.tanggal || "";
-    document.getElementById("report-status").value = report.status || "";
+    document.getElementById("report-status").value = report.status || "";z
     document.getElementById("report-bukti").src = Array.isArray(report.foto) ? report.foto[0] : report.foto;
     document.getElementById("report-kronologi").value = report.kronologi || "";
 
@@ -1645,7 +1645,7 @@ async function updateStatus(reportId, newStatus) {
     if (result.kode !== 200) {
       throw new Error(result.message || "Update status gagal.");
     }
-
+    // pemberitahuan status diperbaharui
     alert(`Status laporan berhasil diubah menjadi ${newStatus}.`);
 
     // Refresh data laporan dari server
