@@ -19,7 +19,7 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AKTUAL_API_KEY_KAMU&libraries=geometry,drawing&callback=initMap" async defer></script>
 </head>
 <body>
-    <header class="header">
+<header class="header">
   <button id="collapseSidebar" class="collapse-btn text-[#375B85] text-2xl p-2">
     ☰
   </button>  
@@ -29,13 +29,13 @@
   </div>
 </header>
 
-   <div class="sidebar">
+<div class="sidebar">
   <div id="sidebar-profile-btn" class="sidebar-header flex items-center justify-start gap-2 p-3 cursor-pointer">
   <img id="sidebar-profile-icon" src="assets/user.png" alt="Profile Icon" class="profile-icon w-8 h-8">
   <span class="sidebar-title font-semibold text-[#375B85]">admin</span>
 </div>
 
-  <nav class="sidebar-nav flex flex-col mt-2">
+<nav class="sidebar-nav flex flex-col mt-2">
     <a href="#home" class="nav-item flex items-center justify-start gap-2 pl-3 pr-2 py-2" data-section="home-section">
       <i class="fas fa-home w-5 text-[#375B85]"></i>
       <span class="nav-text">Beranda</span>
@@ -67,117 +67,119 @@
   </nav>
 </div>
 
-    <main class="main-content">
-        <section id="home-section" class="content-section">
-            <h2>Selamat datang, Admin!</h2>
-            <div class="section-content">
-                <p>Anda telah masuk ke Sistem Monitoring & Evaluasi Kecelakaan Lalu Lintas Kota Bogor.</p>
-                <p>Silahkan pantau data kecelakaan secara real-time dan kelola informasi dengan bijak untuk mendukung pengambilan keputusan yang tepat.</p>
-                <p>Pilih menu sidebar untuk melihat detail</p>
-                <div class="stats-section">
-                    <h3>Proses Pelaporan</h3>
-                    <div class="stats-cards">
-                        <div class="stats-card proses1">
-                            <h4>Total Laporan</h4>
-                            <p id="total-laporan">0</p>
-                        </div>
-                        <div class="stats-card proses2">
-                            <h4>Kasus Dalam Proses</h4>
-                            <p id="kasus-proses">0</p>
-                        </div>
-                        <div class="stats-card proses3">
-                            <h4>Kasus Diselesaikan</h4>
-                            <p id="kasus-selesai">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="notification-section">
-                <h3>Laporan Terbaru</h3>
-                <div class="notification-list" id="notification-list"></div>
-                </div>
-<div class="evaluasi-section">
-<h3>Evaluasi</h3>
-<p>Evaluasi data kecelakaan lalu lintas untuk meningkatkan keselamatan.</p>
-<button class="add-evaluasi-btn" onclick="openAddEvaluasi()">+ Tambah Evaluasi</button>
-<div class="evaluasi-cards" id="evaluasi-cards"></div>
+<main class="main-content">
+    <section id="home-section" class="content-section">
+    <h2>Selamat datang, Admin!</h2>
+    <div class="section-content">
+    <p>Anda telah masuk ke Sistem Monitoring & Evaluasi Kecelakaan Lalu Lintas Kota Bogor.</p>
+    <p>Silahkan pantau data kecelakaan secara real-time dan kelola informasi dengan bijak untuk mendukung pengambilan keputusan yang tepat.</p>
+    <p>Pilih menu sidebar untuk melihat detail</p>
+    <div class="stats-section">
+    <h3>Proses Pelaporan</h3>
+  <div class="stats-cards">
+    <div class="stats-card proses1">
+      <h4>Total Laporan</h4>
+      <p id="total-laporan">0</p>
+  </div>
+  <div class="stats-card proses2">
+      <h4>Kasus Dalam Proses</h4>
+      <p id="kasus-proses">0</p>
+  </div>
+  <div class="stats-card proses3">
+      <h4>Kasus Diselesaikan</h4>
+      <p id="kasus-selesai">0</p>
+  </div>
+  </div>
+  </div>
+
+  <div class="notification-section">
+      <h3>Laporan Terbaru</h3>
+  <div class="notification-list" id="notification-list"></div>
+  </div>
+  <div class="evaluasi-section">
+      <h3>Evaluasi</h3>
+      <p>Evaluasi data kecelakaan lalu lintas untuk meningkatkan keselamatan.</p>
+  <button class="add-evaluasi-btn" onclick="openAddEvaluasi()">+ Tambah Evaluasi</button>
+  <div class="evaluasi-cards" id="evaluasi-cards"></div>
+  </div>
+  </div>
+</section>
+
+<!-- Modal for Evaluasi -->
+<div class="modal" id="evaluasi-modal" style="display: none;">
+<div class="modal-content">
+  <span class="modal-close">×</span>
+    <h2>Evaluasi</h2>
+<div class="modal-body">
+<div class="profile-field">
+  <label>Judul:</label>
+  <input type="text" id="evaluasi-title" value="">
+</div>
+<div class="profile-field">
+  <label>Deskripsi:</label>
+  <textarea id="evaluasi-description"></textarea>
+</div>
+<div class="profile-field">
+  <label>Periode:</label>
+  <input type="text" id="evaluasi-period" value="">
+</div>
+</div>
+<div class="profile-buttons">
+  <button class="delete-btn" id="delete-evaluasi-btn" style="background-color: #dc3545;">Hapus</button>
+  <button class="save-btn" id="save-evaluasi-btn">Simpan</button>
+  <button class="cancel-btn" id="cancel-evaluasi-btn">Batal</button>
+</div>
+</div>
+</div>
+
+<section id="profil-section" class="content-section">
+  <h2>Profil Pengguna</h2>
+<div class="section-content profile-section">
+<div class="profile-field">
+  <label>Foto Profil:</label>
+  <img id="profile-preview" src="assets/user.png" alt="Profile Preview" style="max-width: 100px; margin-top: 10px;">
+</div>
+<div class="profile-field">
+  <label>Nama:</label>
+  <input type="text" id="profil-username" value="admin">
+</div>
+<div class="profile-field">
+  <label>Email:</label>
+  <input type="email" id="profil-email" value="">
+</div>
+<div class="profile-field">
+  <label>NIK:</label>
+  <input type="text" id="profil-nik" value="">
+</div>
+<div class="profile-field">
+  <label>Jabatan:</label>
+  <input type="text" id="profil-jabatan" value="">
+</div>
+<div class="profile-field">
+  <label>Nomor Telepon:</label>
+  <input type="tel" id="profil-telepon" value="">
+</div>
+<div class="profile-buttons">
+  <button class="save-btn" id="save-profile-btn">Simpan</button>
 </div>
 </div>
 </section>
-  <!-- Modal for Evaluasi -->
-<div class="modal" id="evaluasi-modal" style="display: none;">
-<div class="modal-content">
-                <span class="modal-close">×</span>
-                <h2>Evaluasi</h2>
-                <div class="modal-body">
-                    <div class="profile-field">
-                        <label>Judul:</label>
-                        <input type="text" id="evaluasi-title" value="">
-                    </div>
-                    <div class="profile-field">
-                        <label>Deskripsi:</label>
-                        <textarea id="evaluasi-description"></textarea>
-                    </div>
-                    <div class="profile-field">
-                        <label>Periode:</label>
-                        <input type="text" id="evaluasi-period" value="">
-                    </div>
-                </div>
-                <div class="profile-buttons">
-                    <button class="delete-btn" id="delete-evaluasi-btn" style="background-color: #dc3545;">Hapus</button>
-                    <button class="save-btn" id="save-evaluasi-btn">Simpan</button>
-                    <button class="cancel-btn" id="cancel-evaluasi-btn">Batal</button>
-                </div>
-            </div>
-        </div>
 
-        <section id="profil-section" class="content-section">
-            <h2>Profil Pengguna</h2>
-            <div class="section-content profile-section">
-                <div class="profile-field">
-                    <label>Foto Profil:</label>
-                    <img id="profile-preview" src="assets/user.png" alt="Profile Preview" style="max-width: 100px; margin-top: 10px;">
-                </div>
-                <div class="profile-field">
-                    <label>Nama:</label>
-                    <input type="text" id="profil-username" value="admin">
-                </div>
-                <div class="profile-field">
-                    <label>Email:</label>
-                    <input type="email" id="profil-email" value="">
-                </div>
-                <div class="profile-field">
-                    <label>NIK:</label>
-                    <input type="text" id="profil-nik" value="">
-                </div>
-                <div class="profile-field">
-                    <label>Jabatan:</label>
-                    <input type="text" id="profil-jabatan" value="">
-                </div>
-                <div class="profile-field">
-                    <label>Nomor Telepon:</label>
-                    <input type="tel" id="profil-telepon" value="">
-                </div>
-                <div class="profile-buttons">
-                    <button class="save-btn" id="save-profile-btn">Simpan</button>
-                </div>
-            </div>
-        </section>
-
-        <section id="monitoring-section" class="content-section">
-            <h2>Monitoring Data Kecelakaan Lalu Lintas di Kota Bogor</h2>
-            <div class="section-content">
-                <div class="monitoring-filters">
-                    <label for="year-select">Tahun:</label>
-                    <select id="year-select">
-                        <option value="2023">2023</option>
-                        <option value="2024">2024</option>
-                    </select>
-                    <select id="month-select" onchange="updateChart()">
-                    <option value="all">Semua Bulan</option>
-                    <option value="01">Januari</option>
-                    <option value="02">Februari</option>
-                    <option value="03">Maret</option>
-                    <option value="04">April</option>
+<section id="monitoring-section" class="content-section">
+  <h2>Monitoring Data Kecelakaan Lalu Lintas di Kota Bogor</h2>
+<div class="section-content">
+<div class="monitoring-filters">
+  <label for="year-select">Tahun:</label>
+  <select id="year-select">
+  <option value="2023">2023</option>
+  <option value="2024">2024</option>
+  </select>
+  <select id="month-select" onchange="updateChart()">
+  <option value="all">Semua Bulan</option>
+  <option value="01">Januari</option>
+  <option value="02">Februari</option>
+  <option value="03">Maret</option>
+  <option value="04">April</option>
                     <option value="05">Mei</option>
                     <option value="06">Juni</option>
                     <option value="07">Juli</option>
@@ -710,7 +712,6 @@
     </form>
   </div>
 </div>
-
         <div id="error-boundary" class="error-boundary"></div>
     </main>
     <!-- Include the external JavaScript file -->
