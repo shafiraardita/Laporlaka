@@ -2698,7 +2698,7 @@ function saveEvaluasi(evaluasiId) {
 // ===========================
 
 // === Endpoint API ===
-const API_GET_ALL_USERS = "http://dragonmontainapi.com/lapor_laka/get_alluser.php";
+const API_GET_ALL_USERS = "https://dragonmontainapi.com/lapor_laka/get_alluser.php";
 const API_EDIT_USER = "http://dragonmontainapi.com/lapor_laka/user_edit.php"; // pastikan path ini sesuai di servermu
 
 // === Ambil Data dari API ===
