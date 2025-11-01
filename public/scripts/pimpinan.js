@@ -2023,6 +2023,8 @@ function renderTracking(category = 'all', filteredReports = null) {
 
         // Gunakan filteredReports jika ada, jika tidak gunakan semua laporan
         let displayReports = filteredReports || reports;
+        // Urutkan laporan agar yang terbaru tampil di atas
+        displayReports.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
 
         // Terapkan filter kategori jika bukan hasil pencarian
         if (!filteredReports) {

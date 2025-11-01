@@ -392,7 +392,7 @@ function cancelProfile() {
 // data kecelakaan (monitoring)
 const accidentData = {
     '2023': {
-        'Januari': { total: 7, meninggal: 6, lukaBerat: 1, lukaRingan: 5 },
+        'Januari': { totalLaporan: 7, totalKorban: 12},
         'Februari': { total: 16, meninggal: 6, lukaBerat: 9, lukaRingan: 7 },
         'Maret': { total: 10, meninggal: 5, lukaBerat: 0, lukaRingan: 10 },
         'April': { total: 9, meninggal: 3, lukaBerat: 1, lukaRingan: 6 },
@@ -1362,7 +1362,7 @@ function openReportModal(reportId) {
     document.getElementById('report-jenis').value = report.jenis || '-';
     document.getElementById('report-jumlah-korban').value = report.jumlahKorban || '-';
     document.getElementById('report-tanggal').value = report.tanggal || '';
-    document.getElementById('report-status').innerText = report.status || '-';
+    document.getElementById('report-status').value = report.status || '-';
     document.getElementById('report-kronologi').value = report.kronologi || '';
     document.getElementById('report-bukti').src = report.bukti || '';
     document.getElementById('report-petugas').value = report.petugas || '';
@@ -1455,6 +1455,7 @@ function openReportModal(reportId) {
   }
 }
 
+// Zoom in bukti laporan
 document.addEventListener("DOMContentLoaded", () => {
   const bukti = document.getElementById("report-bukti");
   const modal = document.getElementById("zoomModal");
@@ -2699,7 +2700,7 @@ function saveEvaluasi(evaluasiId) {
 
 // === Endpoint API ===
 const API_GET_ALL_USERS = "https://dragonmontainapi.com/lapor_laka/get_alluser.php";
-const API_EDIT_USER = "http://dragonmontainapi.com/lapor_laka/user_edit.php"; // pastikan path ini sesuai di servermu
+const API_EDIT_USER = "https://dragonmontainapi.com/user_edit.php"; // pastikan path ini sesuai di servermu
 
 // === Ambil Data dari API ===
 async function loadUsers() {
@@ -2779,7 +2780,7 @@ function openEditUserModal(user) {
   document.getElementById("user-email").value = user.email || "";
   document.getElementById("user-nohp").value = user.no_hp || "";
   document.getElementById("user-nik").value = user.nik || "";
-  document.getElementById("user-kategori").value = getKategoriName(user.kategori); // tetap teks
+  document.getElementById("user-kategori").value = user.kategori; 
   document.getElementById("user-modal").style.display = "block";
 }
 
@@ -2789,7 +2790,7 @@ document.getElementById("save-user-btn").addEventListener("click", async () => {
   const email = document.getElementById("user-email").value.trim();
   const no_hp = document.getElementById("user-nohp").value.trim();
   const nik = document.getElementById("user-nik").value.trim();
-  const kategori = document.getElementById("user-kategori").value; // teks seperti "Admin"
+  const kategori = document.getElementById("user-kategori").value;
 
   if (!nama || !email || !no_hp || !nik) {
     alert("⚠️ Semua kolom wajib diisi!");
@@ -2808,18 +2809,22 @@ document.getElementById("save-user-btn").addEventListener("click", async () => {
     formData.append("email", email);
     formData.append("no_hp", no_hp);
     formData.append("nik", nik);
-    formData.append("kategori", kategori); // kirim langsung teks
+    formData.append("kategori", kategoriToCode(kategori));
 
-    const response = await fetch(API_EDIT_USER, {
+    console.log("📤 Data dikirim:", Object.fromEntries(formData));
+
+    const response = await fetch("https://dragonmontainapi.com/user_edit.php", {
       method: "POST",
       body: formData
     });
 
-    // Ubah menjadi JSON agar bisa baca status & message
     const result = await response.json();
     console.log("📨 Respon edit:", result);
 
-    if (result.status === "success") {
+    if (
+      result.status === "success" ||
+      result.message?.toLowerCase().includes("berhasil")
+    ) {
       alert("✅ Data pengguna berhasil diperbarui!");
       document.getElementById("user-modal").style.display = "none";
       loadUsers();
@@ -2940,19 +2945,45 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==================== Manajemen Petugas ====================
-
-// Data awal petugas (dummy, bisa diganti dari API/DB)
-let petugasList = JSON.parse(localStorage.getItem("petugasList")) || [
-  { id: 1, nama: "Budi Santoso", unit: "Lantas Polresta Bogor" },
-  { id: 2, nama: "Siti Rahma", unit: "Dinas Perhubungan" },
-  { id: 3, nama: "Andi Pratama", unit: "Damkar Kota Bogor" }
-];
-
+let petugasList = [];
 let currentPetugasPage = 1;
 const petugasPerPage = 5;
-let editingPetugasId = null;
+let editingPetugas = null;
 
-// ==================== RENDER DATA PETUGAS ====================
+// ==================== FETCH DATA PETUGAS DARI API ====================
+async function fetchPetugasFromAPI() {
+  try {
+    const res = await fetch("https://dragonmontainapi.com/lapor_laka/get_alluser.php?kategori=2");
+    if (!res.ok) throw new Error("Gagal mengambil data petugas");
+
+    const json = await res.json();
+
+    if (json.status !== "success" || !Array.isArray(json.data)) {
+      throw new Error("Format data tidak sesuai");
+    }
+
+    // Sesuaikan field dengan struktur API
+    petugasList = json.data.map((item) => ({
+      id: item.id,
+      nama: item.nama,
+      email: item.email,
+      no_hp: item.no_hp,
+      nik: item.nik,
+      kategori: item.kategori,
+      unit: item.satuan || "Tidak diketahui",
+    }));
+
+    console.log("✅ Data petugas dari API:", petugasList);
+    renderPetugas();
+    renderPetugasDropdown(); // untuk dropdown di laporan
+  } catch (err) {
+    console.error("❌ Gagal memuat petugas:", err);
+    document.getElementById("petugas-table-body").innerHTML =
+      `<tr><td colspan="4" style="text-align:center; color:red;">Gagal memuat data petugas</td></tr>`;
+  }
+}
+
+// ==================== RENDER DATA KE TABEL ====================
 function renderPetugas() {
   const tbody = document.getElementById("petugas-table-body");
   if (!tbody) return;
@@ -2964,156 +2995,222 @@ function renderPetugas() {
 
   if (pageData.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada data petugas</td></tr>`;
-  } else {
-    pageData.forEach((p, index) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-    <td style="text-align:left;">${start + index + 1}</td>
-    <td style="text-align:left;">${p.nama}</td>
-    <td style="text-align:left;">${p.unit}</td>
-    <td style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; width: 100%;">
-  <button class="btn-icon btn-edit" onclick="editPetugas(${p.id})" title="Edit"
-      style="background:none; border:none; color:#007bff; cursor:pointer;">
-      <i class="fa-solid fa-edit"></i>
-  </button>
-
-  <button class="btn-icon btn-delete" onclick="deletePetugas(${p.id})" title="Hapus"
-      style="background:none; border:none; color:#dc3545; cursor:pointer;">
-      <i class="fa-solid fa-trash"></i>
-  </button>
-</td>`;
-      tbody.appendChild(row);
-    });
-  }
-
-  const pageInfo = document.getElementById("petugas-page-info");
-  if (pageInfo) {
-    const totalPages = Math.max(1, Math.ceil(petugasList.length / petugasPerPage));
-    pageInfo.textContent = `Halaman ${currentPetugasPage} dari ${totalPages}`;
-  }
-
-  updatePetugasDropdown();
-  localStorage.setItem("petugasList", JSON.stringify(petugasList)); // Simpan otomatis
-}
-
-// ==================== UPDATE DROPDOWN ====================
-function updatePetugasDropdown() {
-  const select = document.getElementById("report-petugas");
-  if (!select) return;
-  select.innerHTML = `<option value="">-- Pilih Petugas --</option>`;
-  petugasList.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p.nama;
-    opt.textContent = `${p.nama} - ${p.unit}`;
-    select.appendChild(opt);
-  });
-}
-// === Modal Tambah / Edit Petugas ===
-function openAddPetugasModal() {
-  const modal = document.getElementById("petugasModal");
-  if (modal) {
-    modal.style.display = "flex"; // tampilkan modal di tengah
-  }
-}
-
-function closePetugasModal() {
-  const modal = document.getElementById("petugasModal");
-  if (modal) {
-    modal.style.display = "none";
-  }
-}
-
-// Tutup modal jika klik di luar area
-window.addEventListener("click", (e) => {
-  const modal = document.getElementById("petugasModal");
-  if (e.target === modal) {
-    closePetugasModal();
-  }
-});
-// ==================== SIMPAN PETUGAS ====================
-function savePetugasLocal(event) {
-  event.preventDefault();
-
-  const nama = document.getElementById("petugas-nama").value.trim();
-  const unit = document.getElementById("petugas-unit").value.trim();
-
-  if (!nama || !unit) {
-    alert("Nama dan Unit wajib diisi!");
     return;
   }
 
-  // Jika sedang edit
-  if (editingPetugasId) {
-    const index = petugasList.findIndex(p => p.id === editingPetugasId);
-    if (index !== -1) {
-      petugasList[index].nama = nama;
-      petugasList[index].unit = unit;
-    }
-    editingPetugasId = null;
-    alert("✅ Data petugas berhasil diperbarui!");
-  } else {
-    // Tambah baru
-    const newPetugas = {
-      id: Date.now(),
-      nama,
-      unit
-    };
-    petugasList.push(newPetugas);
-    alert("✅ Petugas berhasil ditambahkan!");
-  }
+  pageData.forEach((p, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${start + index + 1}</td>
+      <td>${p.nama}</td>
+      <td>${p.unit}</td>
+      <td style="text-align:center;">
+        <div class="aksi-wrapper">
+        <button class="btn-icon btn-edit" onclick="openEditPetugas('${p.id}')">
+        <i class="fa-solid fa-edit"></i>
+    </button>
+        <button class="btn-icon btn-delete" onclick="deletePetugas('${p.id}')">
+        <i class="fa-solid fa-trash"></i>
+    </button>
+  </div>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
 
-  // Simpan ke localStorage
-  localStorage.setItem("petugasList", JSON.stringify(petugasList));
-
-  // Tutup modal & render ulang tabel
-  closePetugasModal();
-  renderPetugas();
-
-  // Reset form
-  document.getElementById("petugas-form").reset();
+  const totalPages = Math.max(1, Math.ceil(petugasList.length / petugasPerPage));
+  document.getElementById("petugas-page-info").textContent =
+    `Halaman ${currentPetugasPage} dari ${totalPages}`;
 }
 
-// ==================== MODAL CONTROL ====================
-function openPetugasModal(isEdit = false, id = null) {
-  const modal = document.getElementById("petugasModal");
-  const title = document.getElementById("modal-petugas-title");
-  const form = document.getElementById("petugas-form");
+// ==================== PAGINATION ====================
+function nextPetugasPage() {
+  const totalPages = Math.ceil(petugasList.length / petugasPerPage);
+  if (currentPetugasPage < totalPages) {
+    currentPetugasPage++;
+    renderPetugas();
+  }
+}
 
-  if (!modal || !form) return;
+function prevPetugasPage() {
+  if (currentPetugasPage > 1) {
+    currentPetugasPage--;
+    renderPetugas();
+  }
+}
 
-  form.reset();
-  editingPetugasId = null;
+// ==================== CARI PETUGAS ====================
+function searchPetugas() {
+  const query = document.getElementById("search-petugas").value.toLowerCase();
+  const filtered = petugasList.filter(p =>
+    p.nama.toLowerCase().includes(query) || p.unit.toLowerCase().includes(query)
+  );
 
-  if (isEdit && id) {
-    const petugas = petugasList.find(p => p.id === id);
-    if (petugas) {
-      document.getElementById("petugas-nama").value = petugas.nama;
-      document.getElementById("petugas-unit").value = petugas.unit;
-      title.textContent = "Edit Petugas";
-      editingPetugasId = id;
-    }
-  } else {
-    title.textContent = "Tambah Petugas";
+  const tbody = document.getElementById("petugas-table-body");
+  tbody.innerHTML = "";
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Tidak ada hasil</td></tr>`;
+    return;
   }
 
-  modal.style.display = "flex";
+  filtered.forEach((p, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${p.nama}</td>
+      <td>${p.unit}</td>
+      <td style="text-align:center;">
+        <button class="btn-icon btn-edit" onclick="openEditPetugas('${p.id}')">
+          <i class="fa-solid fa-edit"></i>
+        </button>
+        <button class="btn-icon btn-delete" onclick="deletePetugas('${p.id}')">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// ==================== MODAL HANDLER ====================
+function openAddPetugasModal() {
+  editingPetugas = null;
+  document.getElementById("modal-petugas-title").textContent = "Tambah Petugas";
+  document.getElementById("petugas-form").reset();
+  document.querySelector("#petugasModal").style.display = "flex";
+}
+
+function openEditPetugas(id) {
+  const petugas = petugasList.find(p => p.id === id);
+  if (!petugas) return;
+
+  editingPetugas = petugas;
+
+  document.getElementById("modal-petugas-title").textContent = "Edit Petugas";
+  document.getElementById("petugas-nama").value = petugas.nama || "";
+  document.getElementById("petugas-unit").value = petugas.unit || "";
+
+  document.querySelector("#petugasModal").style.display = "flex";
 }
 
 function closePetugasModal() {
-  const modal = document.getElementById("petugasModal");
-  if (modal) modal.style.display = "none";
-  editingPetugasId = null;
+  document.querySelector("#petugasModal").style.display = "none";
+  editingPetugas = null;
 }
 
-// Tutup modal jika klik di luar area modal (tidak ganggu modal lain)
-window.addEventListener("click", (event) => {
-  const modal = document.getElementById("petugasModal");
-  if (modal && event.target === modal) {
-    closePetugasModal();
-  }
+window.addEventListener("click", (e) => {
+  const modal = document.querySelector("#petugasModal");
+  if (e.target === modal) closePetugasModal();
 });
 
-// ==================== SIMPAN / EDIT DATA PETUGAS ====================
+// ==================== TAMBAH / SIMPAN PETUGAS ====================
+async function savePetugasToAPI(event) {
+  event.preventDefault();
+
+  // === Ambil input ===
+  const nama = document.getElementById("petugas-nama").value.trim();
+  const satuan = document.getElementById("petugas-unit").value.trim();
+
+  if (!nama || !satuan) {
+    alert("⚠️ Nama dan satuan wajib diisi!");
+    return;
+  }
+
+  // === AUTO GENERATE FIELD LAINNYA ===
+  const password = "rahasia123"; // default password
+  const email = `${nama.toLowerCase().replace(/\s+/g, '.')}@example.com`;
+  const no_hp = "081234567890";
+  const nik = Math.floor(1000000000000000 + Math.random() * 9000000000000000).toString();
+
+  // === SIAPKAN BODY UNTUK API ===
+  const formData = new URLSearchParams();
+  formData.append("nama", nama);
+  formData.append("password", password);
+  formData.append("email", email);
+  formData.append("no_hp", no_hp);
+  formData.append("nik", nik);
+  formData.append("satuan", satuan);
+
+  console.log("📤 Mengirim data ke API:", [...formData.entries()]);
+
+  try {
+    const res = await fetch("https://dragonmontainapi.com/lapor_laka/tambah_petugas.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString(),
+    });
+
+    const text = await res.text();
+    console.log("📥 Respon API:", text);
+
+    // === Coba parsing JSON ===
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      console.error("❌ Respon bukan JSON valid:", e);
+      alert("❌ Gagal menyimpan petugas (respon tidak valid dari server)");
+      return;
+    }
+
+    console.log("✅ JSON hasil parse:", json);
+
+    // === CEK RESPON SUCCESS ===
+    const success =
+      (json.status && json.status.toLowerCase() === "success") ||
+      json.message?.toLowerCase().includes("berhasil");
+
+    if (success) {
+      alert("✅ Petugas berhasil ditambahkan!");
+
+      // Tutup modal (jika fungsi tersedia)
+      if (typeof closePetugasModal === "function") closePetugasModal();
+
+      // Refresh tabel otomatis (tanpa reload manual)
+      if (typeof fetchPetugasFromAPI === "function") await fetchPetugasFromAPI();
+
+      // Reset input form
+      document.getElementById("petugas-nama").value = "";
+      document.getElementById("petugas-unit").value = "";
+    } else {
+      // Jika bukan success, tampilkan pesan gagal
+      const msg = json.message || "Periksa kembali data input.";
+      alert(`❌ Gagal menyimpan petugas!\n${msg}`);
+    }
+
+  } catch (error) {
+    console.error("❌ Terjadi kesalahan:", error);
+    alert("⚠️ Gagal terhubung ke server. Coba lagi nanti.");
+  }
+}
+// ==================== HAPUS PETUGAS ====================
+function deletePetugas(id) {
+  if (!confirm("Yakin ingin menghapus petugas ini?")) return;
+  alert("🗑️ Endpoint delete petugas akan ditambahkan selanjutnya.");
+}
+
+// ==================== DROPDOWN PETUGAS UNTUK LAPORAN ====================
+function renderPetugasDropdown() {
+  const dropdown = document.getElementById("report-petugas");
+  if (!dropdown) return;
+
+  dropdown.innerHTML = `<option value="">Pilih Petugas</option>`;
+  petugasList.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.nama;
+    opt.textContent = p.nama;
+    dropdown.appendChild(opt);
+  });
+}
+
+// ==================== INISIALISASI ====================
+document.addEventListener("DOMContentLoaded", () => {
+  fetchPetugasFromAPI();
+});
+// ==================== SIMPAN / EDIT DATA PETUGAS LAPORAN ====================
 async function savePetugas(reportId) {
   console.log("🟢 Fungsi savePetugas() terpanggil dengan ID:", reportId);
 
@@ -3257,7 +3354,7 @@ function setupAddUserModal() {
 
 // ==================== INISIALISASI ====================
 document.addEventListener("DOMContentLoaded", renderPetugas);
-
+// ==================== PELACAKAN LAPORAN ====================
 // Mencari di pelacakan Laporan
 function searchTracking() {
     try {
@@ -3306,6 +3403,8 @@ function renderTracking(category = 'all', filteredReports = null) {
 
         // Gunakan filteredReports jika ada, jika tidak gunakan semua laporan
         let displayReports = filteredReports || [...reports];
+        // Urutkan laporan agar yang terbaru tampil di atas
+        displayReports.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
 
         // Terapkan filter kategori jika bukan hasil pencarian
         if (!filteredReports) {
@@ -3374,38 +3473,65 @@ function renderTracking(category = 'all', filteredReports = null) {
         showErrorBoundary('Gagal memuat data tracking: ' + e.message);
     }
 }
-
+// Pagination Pelacakan laporan
 function renderTrackingPagination(totalReports) {
-    const container = document.querySelector("#tracking-section .pagination");
-    if (!container) {
-        console.warn('Pagination container not found');
-        return;
+  const container = document.querySelector("#tracking-section .pagination");
+  if (!container) return;
+
+  container.innerHTML = "";
+  const totalPages = Math.ceil(totalReports / reportsPerPage);
+
+  // Tentukan range angka yang mau ditampilkan
+  const maxVisiblePages = 3; // tampilkan hanya 3 angka
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+  let endPage = startPage + maxVisiblePages - 1;
+
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  }
+
+  // Tombol "Kembali"
+  const prevBtn = document.createElement("button");
+  prevBtn.textContent = "Kembali";
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTracking(currentTrackingCategory);
     }
+  };
+  container.appendChild(prevBtn);
 
-    container.innerHTML = '';
-    const totalPages = Math.ceil(totalReports / reportsPerPage);
-
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = 'Kembali';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTracking(currentTrackingCategory);
-        }
+  // Tombol angka dinamis
+  for (let i = startPage; i <= endPage; i++) {
+    const pageBtn = document.createElement("button");
+    pageBtn.textContent = i;
+    if (i === currentPage) pageBtn.classList.add("active-page");
+    pageBtn.onclick = () => {
+      currentPage = i;
+      renderTracking(currentTrackingCategory);
     };
-    container.appendChild(prevBtn);
+    container.appendChild(pageBtn);
+  }
 
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = 'Lanjut';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderTracking(currentTrackingCategory);
-        }
-    };
-    container.appendChild(nextBtn);
+  // Tombol "Lanjut"
+  const nextBtn = document.createElement("button");
+  nextBtn.textContent = "Lanjut";
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTracking(currentTrackingCategory);
+    }
+  };
+  container.appendChild(nextBtn);
+
+  // Scroll otomatis agar tombol aktif selalu kelihatan
+  setTimeout(() => {
+    const active = container.querySelector(".active-page");
+    if (active) active.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, 100);
 }
 
 // filter dropdown tahun dan bulan pelacakan laporan

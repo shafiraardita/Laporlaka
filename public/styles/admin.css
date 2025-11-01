@@ -3959,3 +3959,33 @@ background-color: #375B85;
   margin-left: 70px;
   width: calc(100% - 70px);
 }
+
+/* Aksi Petugas */
+.aksi-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px; /* jarak antar tombol */
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: #f2f4f7;
+}
+
+.btn-edit i {
+  color: #375b85;
+}
+
+.btn-delete i {
+  color: #d9534f;
+}

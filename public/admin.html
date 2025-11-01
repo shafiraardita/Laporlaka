@@ -176,6 +176,7 @@
   <select id="year-select">
   <option value="2023">2023</option>
   <option value="2024">2024</option>
+  <option value="2025">2025</option>
   </select>
   <select id="month-select" onchange="updateChart()">
   <option value="all">Semua Bulan</option>
@@ -215,7 +216,8 @@
     <option value="2024">2024</option>
     </select>
 </div>
-<!-- Unduh excel dan gambar -->
+
+<!-- Titik Laporan -->
 <div id="map-2024-container">
     <h3>Titik Laporan Kecelakaan di Kota Bogor Pada Tahun 2024</h3>
     <button class="map-download-btn" onclick="downloadMapImage('map-2024', 'peta-wilayah-2024')">Unduh Gambar Peta 2024</button>
@@ -643,9 +645,7 @@
 
     <!-- Tombol Tambah Petugas -->
     <div class="header-bar">
-      <button class="btn btn-add" onclick="openAddPetugasModal()">
-        + Tambah Petugas
-      </button>
+      <button class="btn btn-add" onclick="openAddPetugasModal()"> + Tambah Petugas </button>
     </div>
 
     <!-- Filter Pencarian & Urutkan -->
@@ -657,7 +657,7 @@
       <table id="petugasTable" class="user-table">
         <thead>
           <tr>
-            <th>No</th>
+            <th>Id</th>
             <th>Nama Petugas</th>
             <th>Unit / Instansi</th>
             <th style="text-align:center;">Aksi</th>
@@ -683,7 +683,7 @@
     <span class="close" onclick="closePetugasModal()">&times;</span>
     <h3 id="modal-petugas-title">Tambah Petugas</h3>
 
-    <form id="petugas-form" onsubmit="savePetugasLocal(event)">
+    <form id="petugas-form" onsubmit="savePetugasToAPI(event)">
       <div class="modal-form-grid">
         <div class="form-group">
           <label for="petugas-nama">Nama Petugas</label>
