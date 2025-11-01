@@ -28,13 +28,13 @@
     <span class="user-name">Pengguna: <span id="username">admin</span></span>
   </div>
 </header>
-
+<!-- Sidebar -->
 <div class="sidebar">
   <div id="sidebar-profile-btn" class="sidebar-header flex items-center justify-start gap-2 p-3 cursor-pointer">
   <img id="sidebar-profile-icon" src="assets/user.png" alt="Profile Icon" class="profile-icon w-8 h-8">
   <span class="sidebar-title font-semibold text-[#375B85]">admin</span>
 </div>
-
+<!-- Menu Sidebar -->
 <nav class="sidebar-nav flex flex-col mt-2">
     <a href="#home" class="nav-item flex items-center justify-start gap-2 pl-3 pr-2 py-2" data-section="home-section">
       <i class="fas fa-home w-5 text-[#375B85]"></i>
@@ -96,6 +96,8 @@
       <h3>Laporan Terbaru</h3>
   <div class="notification-list" id="notification-list"></div>
   </div>
+
+<!-- Evaluasi -->
   <div class="evaluasi-section">
       <h3>Evaluasi</h3>
       <p>Evaluasi data kecelakaan lalu lintas untuk meningkatkan keselamatan.</p>
@@ -131,7 +133,7 @@
 </div>
 </div>
 </div>
-
+<!-- Profil -->
 <section id="profil-section" class="content-section">
   <h2>Profil Pengguna</h2>
 <div class="section-content profile-section">
@@ -165,6 +167,7 @@
 </div>
 </section>
 
+<!-- Montoring -->
 <section id="monitoring-section" class="content-section">
   <h2>Monitoring Data Kecelakaan Lalu Lintas di Kota Bogor</h2>
 <div class="section-content">
@@ -180,62 +183,62 @@
   <option value="02">Februari</option>
   <option value="03">Maret</option>
   <option value="04">April</option>
-                    <option value="05">Mei</option>
-                    <option value="06">Juni</option>
-                    <option value="07">Juli</option>
-                    <option value="08">Agustus</option>
-                    <option value="09">September</option>
-                    <option value="10">Oktober</option>
-                    <option value="11">November</option>
-                    <option value="12">Desember</option>
-                    </select>
-                </div>
-                <div class="chart-wrapper" id="chart-container">
-                <canvas id="accident-chart"></canvas>
-                <div class="monitoring-buttons">
-                <button class="download-btn" id="download-chart-btn">Unduh Gambar</button>
-                <button class="download-btn" id="download-excel-btn">Unduh Excel</button>
-            </div>
-            </div>
+  <option value="05">Mei</option>
+  <option value="06">Juni</option>
+  <option value="07">Juli</option>
+  <option value="08">Agustus</option>
+  <option value="09">September</option>
+  <option value="10">Oktober</option>
+  <option value="11">November</option>
+  <option value="12">Desember</option>
+  </select>
+</div>
+<div class="chart-wrapper" id="chart-container">
+  <canvas id="accident-chart"></canvas>
+<div class="monitoring-buttons">
+  <button class="download-btn" id="download-chart-btn">Unduh Gambar</button>
+  <button class="download-btn" id="download-excel-btn">Unduh Excel</button>
+</div>
+</div>
+</div>
+  </section>
 
-            </div>
-        </section>
-
-        <div class="content-section" id="titik-laporan-section">
+<!-- Titik laporan -->
+<div class="content-section" id="titik-laporan-section">
     <h2>Titik Laporan Kecelakaan di Kota Bogor</h2>
     <p>Halaman ini menampilkan titik laporan kecelakaan berdasarkan tahun yang dipilih.</p>
-
-    <div class="filter-section">
-        <label for="filter-tahun-laporan">Pilih Tahun:</label>
-        <select id="filter-tahun-laporan" onchange="toggleMapByYear()">
-            <option value="2023">2023</option>
-            <option value="2024">2024</option>
-        </select>
-    </div>
-
-    <div id="map-2024-container">
-        <h3>Titik Laporan Kecelakaan di Kota Bogor Pada Tahun 2024</h3>
-        <button class="map-download-btn" onclick="downloadMapImage('map-2024', 'peta-wilayah-2024')">Unduh Gambar Peta 2024</button>
-        <button class="map-download-btn" onclick="downloadMapDataToExcel('2024')">Unduh Excel Data 2024</button>
-        <div id="map-2024" style="height: 400px; width: 100%;"></div>
-    </div>
-
-    <div id="map-2023-container">
-        <h3>Titik Laporan Kecelakaan di Kota Bogor Pada Tahun 2023</h3>
-        <button class="map-download-btn" onclick="downloadMapImage('map-2023', 'peta-wilayah-2023')">Unduh Gambar Peta 2023</button>
-        <button class="map-download-btn" onclick="downloadMapDataToExcel('2023')">Unduh Excel Data 2023</button>
-        <div id="map-2023" style="height: 400px; width: 100%;"></div>
-    </div>
+<!-- Filter monitoring -->
+<div class="filter-section">
+    <label for="filter-tahun-laporan">Pilih Tahun:</label>
+    <select id="filter-tahun-laporan" onchange="toggleMapByYear()">
+    <option value="2023">2023</option>
+    <option value="2024">2024</option>
+    </select>
+</div>
+<!-- Unduh excel dan gambar -->
+<div id="map-2024-container">
+    <h3>Titik Laporan Kecelakaan di Kota Bogor Pada Tahun 2024</h3>
+    <button class="map-download-btn" onclick="downloadMapImage('map-2024', 'peta-wilayah-2024')">Unduh Gambar Peta 2024</button>
+    <button class="map-download-btn" onclick="downloadMapDataToExcel('2024')">Unduh Excel Data 2024</button>
+<div id="map-2024" style="height: 400px; width: 100%;"></div>
 </div>
 
+<div id="map-2023-container">
+    <h3>Titik Laporan Kecelakaan di Kota Bogor Pada Tahun 2023</h3>
+    <button class="map-download-btn" onclick="downloadMapImage('map-2023', 'peta-wilayah-2023')">Unduh Gambar Peta 2023</button>
+    <button class="map-download-btn" onclick="downloadMapDataToExcel('2023')">Unduh Excel Data 2023</button>
+<div id="map-2023" style="height: 400px; width: 100%;"></div>
+</div>
+</div>
+
+<!-- Laporan Masuk -->
 <section id="laporan-masuk-section" class="content-section">
     <h2>Laporan Masuk</h2>
-    <div class="section-content">
+<div class="section-content">
     <p>Halaman ini menampilkan laporan kecelakaan yang telah masuk ke sistem.</p>
-    <div class="filter-bar">
+<div class="filter-bar">
     <label for="report-search">Cari ID atau Nama Laporan:</label>
     <input type="text" id="report-search" oninput="searchReportById()" placeholder="Masukkan ID atau Nama">
-
     <label for="year-filter">Tahun:</label>
     <select id="year-filter" onchange="filterReports()">
         <option value="all">Semua</option>
@@ -261,11 +264,13 @@
         <option value="Desember">Desember</option>
     </select>
 
-    <button id="download-filter-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+<button id="download-filter-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
     <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
     </svg>Unduh Filter</button>
 </div>
+
+<!-- Tabel Laporan -->
 <table id="report-table" class="user-table">
 <thead>
     <tr>
@@ -289,88 +294,83 @@
 </div>
 </div>
 </section>
-        
+    
+<!-- Manajemen Pengguna -->
 <section id="manage-pengguna-section" class="content-section">
   <h2>Manajemen Pengguna</h2>
-  <div style="margin-top: 10px; text-align: right;">
+<div style="margin-top: 10px; text-align: right;">
   <button onclick="openAddUserModal()" 
-          style="background:#007bff; color:#fff; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;">
-    + Tambah Pengguna
+  style="background:#007bff; color:#fff; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;">
+  + Tambah Pengguna
   </button>
 </div>
 
-  <div class="section-content">
-    <!-- Filter pencarian & urutkan -->
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
-      <input 
-        type="text" 
-        id="approved-user-search" 
-        placeholder="Cari pengguna..." 
-        style="flex: 1; padding: 6px;" 
-        oninput="searchUsers('approved')" 
-      />
-      <select 
-        id="approved-user-sort" 
-        style="padding: 6px; min-width: 200px;" 
-        onchange="sortUsers('approved')">
-        <option value="az">Urutkan A-Z</option>
-        <option value="za">Urutkan Z-A</option>
-        <option value="terbaru">Aktif Terbaru</option>
-        <option value="terlama">Aktif Terlama</option>
-      </select>
-    </div>
+<div class="section-content">
+<!-- Filter pencarian & urutkan -->
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
+<input 
+  type="text" 
+  id="approved-user-search" 
+  placeholder="Cari pengguna..." 
+  style="flex: 1; padding: 6px;" 
+  oninput="searchUsers('approved')" />
+<select 
+  id="approved-user-sort" 
+  style="padding: 6px; min-width: 200px;" 
+  onchange="sortUsers('approved')">
+  <option value="az">Urutkan A-Z</option>
+  <option value="za">Urutkan Z-A</option>
+  <option value="terbaru">Aktif Terbaru</option>
+  <option value="terlama">Aktif Terlama</option>
+</select>
+</div>
 
-    <!-- Tabel daftar pengguna -->
-    <div class="table-card">
-      <h3>Daftar Pengguna</h3>
-      <table class="user-table" style="width: 100%; border-collapse: collapse; text-align:center;">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nama</th>
-            <th>Email</th>
-            <th>No HP</th>
-            <th>NIK</th>
-            <th>Kategori</th>
-            <th>Terakhir Aktif</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="approved-user-table-body">
-          <!-- Data dari JS -->
-        </tbody>
-      </table>
-    </div>
-  </div>
+<!-- Tabel daftar pengguna -->
+ <div class="table-card">
+    <h3>Daftar Pengguna</h3>
+    <table class="user-table" style="width: 100%; border-collapse: collapse; text-align:center;">
+<thead>
+  <tr>
+  <th>ID</th>
+  <th>Foto</th>
+  <th>Nama</th>
+  <th>Email</th>
+  <th>No HP</th>
+  <th>NIK</th>
+  <th>Kategori</th>
+  <th>Terakhir Aktif</th>
+  <th>Aksi</th>
+  </tr>
+</thead>
+<tbody id="approved-user-table-body">
+<!-- Data dari JS -->
+</tbody>
+</table>
+</div>
+</div>
 </section>
 
 <!-- Modal Tambah/Edit User -->
 <div id="user-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
-  <div style="background:#fff; width:60%; max-width:500px; margin:60px auto; padding:20px; border-radius:10px; position:relative;">
+<div style="background:#fff; width:60%; max-width:500px; margin:60px auto; padding:20px; border-radius:10px; position:relative;">
     <h3 id="user-modal-title">Edit User</h3>
-
     <input type="hidden" id="user-id">
-
     <div style="margin-bottom:10px;">
       <label>Nama:</label>
       <input type="text" id="user-nama" style="width:100%; padding:6px;">
     </div>
-
     <div style="margin-bottom:10px;">
       <label>Email:</label>
       <input type="email" id="user-email" style="width:100%; padding:6px;">
     </div>
-
     <div style="margin-bottom:10px;">
       <label>No HP:</label>
       <input type="text" id="user-nohp" style="width:100%; padding:6px;">
     </div>
-
     <div style="margin-bottom:10px;">
       <label>NIK:</label>
       <input type="text" id="user-nik" style="width:100%; padding:6px;">
     </div>
-
     <div style="margin-bottom:10px;">
       <label>Kategori:</label>
       <select id="user-kategori" style="width:100%; padding:6px;">
@@ -380,7 +380,6 @@
         <option value="Pimpinan">Pimpinan</option>
       </select>
     </div>
-
     <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
       <button id="save-user-btn" style="padding:8px 14px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer;">
         Simpan
@@ -389,41 +388,47 @@
         Batal
       </button>
     </div>
-
     <button id="user-modal-close" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:20px; cursor:pointer;">×</button>
   </div>
 </div>
 
-        <section id="tracking-section" class="content-section">
+<!-- Pelacakan Laporan -->
+<section id="tracking-section" class="content-section">
     <h2>Pelacakan Laporan Kecelakaan</h2>
     <div class="section-content">
-        <div class="stats-section">
-            <div class="stats-cards">
-                <div class="stats-card blue1" id="card-total">
-            <h4>Total Laporan</h4>
-            <p id="total-reports">0</p>
-            </div>
-            <div class="stats-card blue2" id="card-accepted">
-            <h4>Laporan Diterima</h4>
-            <p id="accepted-reports-count">0</p>
-            </div>
-            <div class="stats-card blue3" id="card-handling">
-            <h4>Penanganan Laporan</h4>
-            <p id="handling-reports-count">0</p>
-            </div>
-            <div class="stats-card blue4" id="card-received">
-            <h4>Laporan Selesai</h4>
-            <p id="received-data-count">0</p>
-            </div>
-            <div class="stats-card blue5" id="card-rejected">
-            <h4>Laporan Ditolak</h4>
-            <p id="rejected-reports-count">0</p>
-            </div>
-            </div>
-        </div>
-        <div class="tracking-filter-bar">
+    <div class="stats-section">
+    <div class="stats-cards">
+
+    <div class="stats-card blue1" id="card-total">
+    <h4>Total Laporan</h4>
+    <p id="total-reports">0</p>
+    </div>
+
+    <div class="stats-card blue2" id="card-accepted">
+    <h4>Laporan Diterima</h4>
+    <p id="accepted-reports-count">0</p>
+    </div>
+
+    <div class="stats-card blue3" id="card-handling">
+    <h4>Penanganan Laporan</h4>
+    <p id="handling-reports-count">0</p>
+    </div>
+
+    <div class="stats-card blue4" id="card-received">
+    <h4>Laporan Selesai</h4>
+    <p id="received-data-count">0</p>
+    </div>
+
+    <div class="stats-card blue5" id="card-rejected">
+    <h4>Laporan Ditolak</h4>
+    <p id="rejected-reports-count">0</p>
+    </div>
+    </div>
+    </div>
+
+<div class="tracking-filter-bar">
   <input type="text" id="tracking-search" placeholder="Cari berdasarkan ID atau Nama" oninput="searchTracking()" />
- <select id="tracking-filter-year" onchange="applyFilters()">
+  <select id="tracking-filter-year" onchange="applyFilters()">
   <option value="all">Semua Tahun</option>
   <option value="2025">2025</option>
   <option value="2024">2024</option>
@@ -462,34 +467,35 @@
 </div>
 <div class="table-card">
 <table id="tracking-table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nama</th>
-            <th>Tanggal</th>
-            <th>Jenis Kecelakaan</th>
-            <th>Kendaraan</th>
-            <th>Jumlah Korban</th>
-            <th>Titik Kejadian</th>
-            <th>Kronologi</th>
-            <th>Detail</th>
-            <th>Status</th>
-        </tr>
+  <thead>
+    <tr>
+    <th>ID</th>
+    <th>Nama</th>
+    <th>Tanggal</th>
+    <th>Jenis Kecelakaan</th>
+    <th>Kendaraan</th>
+    <th>Jumlah Korban</th>
+    <th>Titik Kejadian</th>
+    <th>Kronologi</th>
+    <th>Detail</th>
+    <th>Status</th>
+    </tr>
     </thead>
-    <tbody id="tracking-table-body"></tbody>
+<tbody id="tracking-table-body"></tbody>
 </table>
 </div>
-    <div class="pagination">
-            <div>
+<div class="pagination">
+<div>
     <button id="prev-page">Kembali</button>
     <button id="next-page">Lanjut</button>
 </div>
-        </div>
-        </div>
-    </div>
+</div>
+</div>
+</div>
 </section>
 
-        <div id="report-modal" class="modal" style="display:none;">
+<!-- Detail Laporan -->
+<div id="report-modal" class="modal" style="display:none;">
   <div class="modal-content">
   <span class="modal-close" onclick="closeReportModal()">×</span>
   <h2>Detail Laporan</h2>
@@ -508,11 +514,8 @@
       <div class="form-group">
         <label for="report-telepon" 
          style="display: flex; align-items: center; gap: 6px; width: 300px; justify-content: flex-start; text-align: left;">
-        <a id="whatsapp-link" href="#" target="_blank"
-        style="color: #25D366; font-size: 18px; text-decoration: none;"
-        title="Chat via WhatsApp">
-        <i class="fa-brands fa-whatsapp"></i></a>
-        Telepon (Klik untuk chat via WhatsApp) : </label>
+        <a id="whatsapp-link" href="#" target="_blank" style="color: #25D366; font-size: 18px; text-decoration: none;" title="Chat via WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i></a> Telepon (Klik untuk chat via WhatsApp) : </label>
         <input type="text" id="report-telepon" readonly>
       </div>
       <div class="form-group">
@@ -565,7 +568,6 @@
 <div class="modal-section">
   <h3>Data Petugas</h3>
   <div class="modal-grid-2">
-    
     <!-- Nama Petugas -->
     <div class="form-group full-width">
       <label>Nama Petugas:</label>
@@ -573,13 +575,11 @@
         <option value="">-- Pilih Petugas --</option>
       </select>
     </div>
-
     <!-- Input file untuk upload bukti -->
     <div class="form-group full-width">
       <label>Upload Bukti Selesai:</label>
       <input type="file" id="report-foto-petugas" accept="image/*">
     </div>
-
     <!-- Preview foto bukti dari API -->
     <div class="form-group full-width">
       <label>Foto Bukti Selesai (Dari Petugas):</label>
@@ -590,7 +590,6 @@
         style="display:none; max-width:250px; margin-top:10px; border-radius:8px;"
       >
     </div>
-
     <!-- Keterangan selesai -->
     <div class="form-group full-width">
       <label>Keterangan Selesai:</label>
@@ -599,9 +598,7 @@
         placeholder="Masukkan keterangan selesai..."
       ></textarea>
     </div>
-
   </div>
-
   <!-- 🟢 Hanya satu tombol simpan di sini -->
   <div class="report-buttons"></div>
 </div>
@@ -609,42 +606,41 @@
   </div>
 </div>
 
-        <!-- Modal for User Management -->
-        <div class="modal" id="user-modal" style="display: none;">
-            <div class="modal-content">
-                <h2>Detail Pengguna</h2>
-                <div class="modal-body">
-                    <div class="profile-field">
-                        <label>Nama:</label>
-                        <input type="text" id="user-nama" value="">
-                    </div>
-                    <div class="profile-field">
-                        <label>NIK:</label>
-                        <input type="text" id="user-nik" value="">
-                    </div>
-                    <div class="profile-field">
-                        <label>Email:</label>
-                        <input type="email" id="user-email" value="">
-                    </div>
-                    <div class="profile-field">
-                        <label>Telepon:</label>
-                        <input type="tel" id="user-telepon" value="">
-                    </div>
-                    <div class="profile-field">
-                        <label>Alamat:</label>
-                        <input type="text" id="user-alamat" value="">
-                    </div>
-                    <div class="profile-field">
-                        <label>Terakhir Aktif:</label>
-                        <p id="user-last-active"></p>
-                    </div>
-                </div>
-                <div class="profile-buttons">
-                    <button class="save-btn" id="save-user-btn">Simpan</button>
-                    <button id="cancel-user-btn" class="btn-cancel">Cancel</button>
-                </div>
-            </div>
-        </div>
+<!-- Detail Manajemen User -->
+<div class="modal" id="user-modal" style="display: none;">
+<div class="modal-content">
+    <h2>Detail Pengguna</h2>
+    <div class="modal-body">
+    <div class="profile-field">
+    <label>Nama:</label>
+    <input type="text" id="user-nama" value="">
+</div>
+    <div class="profile-field">
+    <label>NIK:</label>
+    <input type="text" id="user-nik" value="">
+    </div>
+    <div class="profile-field">
+    <label>Email:</label>
+    <input type="email" id="user-email" value="">
+    </div>
+    <div class="profile-field">
+    <label>Telepon:</label>
+    <input type="tel" id="user-telepon" value="">
+    </div>
+    <div class="profile-field">
+    <label>Alamat:</label>
+    <input type="text" id="user-alamat" value="">
+    </div>
+    <div class="profile-field">
+    <label>Terakhir Aktif:</label>
+    <p id="user-last-active"></p>
+    </div></div>
+    <div class="profile-buttons">
+    <button class="save-btn" id="save-user-btn">Simpan</button>
+    <button id="cancel-user-btn" class="btn-cancel">Cancel</button>
+    </div>
+    </div>
+    </div>
 
   <!-- ================= MANAGEMEN PETUGAS ================= -->
 <section id="manage-petugas-section" class="content-section">

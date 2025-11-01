@@ -1005,7 +1005,7 @@ async function bukaDetailLaporan(id) {
     document.getElementById("report-jenis").value = report.jenis_kecelakaan || "";
     document.getElementById("report-jumlah-korban").value = report.jumlah_korban || "";
     document.getElementById("report-tanggal").value = report.tanggal || "";
-    document.getElementById("report-status").value = report.status || "";z
+    document.getElementById("report-status").value = report.status || "";
     document.getElementById("report-bukti").src = Array.isArray(report.foto) ? report.foto[0] : report.foto;
     document.getElementById("report-kronologi").value = report.kronologi || "";
 
@@ -2694,56 +2694,62 @@ function saveEvaluasi(evaluasiId) {
 }
 
 // ===========================
-// 📦 MANAJEMEN PENGGUNA (MODE LOCAL)
+// 📦 MANAJEMEN PENGGUNA (MODE API)
 // ===========================
-// === Data Awal / Inisialisasi ===
-let localUsers = JSON.parse(localStorage.getItem("localUsers")) || [];
 
-// Jika kosong, isi dengan data awal
-if (localUsers.length === 0) {
-  localUsers = [
-    {
-      id: 1,
-      nama: "Admin Utama",
-      email: "admin@contoh.com",
-      no_hp: "081234567890",
-      nik: "3201010101010001",
-      kategori: "Admin",
-      terakhir_aktif: "2025-10-26"
-    }
-  ];
-  localStorage.setItem("localUsers", JSON.stringify(localUsers));
-}
+// === Endpoint API ===
+const API_GET_ALL_USERS = "http://dragonmontainapi.com/lapor_laka/get_alluser.php";
+const API_EDIT_USER = "http://dragonmontainapi.com/lapor_laka/user_edit.php"; // pastikan path ini sesuai di servermu
 
-// === Pastikan fungsi loadUsers tetap ada (jika dipanggil HTML lama) ===
-function loadUsers() {
-  renderUsersLocal();
+// === Ambil Data dari API ===
+async function loadUsers() {
+  try {
+    const response = await fetch(API_GET_ALL_USERS);
+    const data = await response.json();
+
+    const users = data.data || []; // ambil array user
+    renderUsersAPI(users);
+  } catch (error) {
+    console.error("Gagal mengambil data pengguna:", error);
+  }
 }
 
 // === Render Tabel Pengguna ===
-function renderUsersLocal(customUsers = null) {
-  const users = customUsers || JSON.parse(localStorage.getItem("localUsers")) || [];
+function renderUsersAPI(users) {
   const tableBody = document.getElementById("approved-user-table-body");
   if (!tableBody) return;
 
-  tableBody.innerHTML = "";
+  tableBody.innerHTML = ""; // bersihkan isi tabel
 
   users.forEach((user, index) => {
     const row = document.createElement("tr");
+
+    // jika user belum punya foto, gunakan default
+    const foto = user.foto && user.foto !== "" 
+      ? user.foto 
+      : "assets/img/default-user.png";
+
     row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${user.nama}</td>
-      <td>${user.email}</td>
-      <td>${user.no_hp}</td>
-      <td>${user.nik}</td>
-      <td>${user.kategori}</td>
+      <td>${user.id || index + 1}</td>
+      <td style="text-align:center;">
+        <img src="${foto}" alt="foto" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+      </td>
+      <td>${user.nama || "-"}</td>
+      <td>${user.email || "-"}</td>
+      <td>${user.no_hp || "-"}</td>
+      <td>${user.nik || "-"}</td>
+      <td>${getKategoriName(user.kategori)}</td>
       <td>${user.terakhir_aktif || "-"}</td>
       <td style="display:flex; justify-content:center; align-items:center; gap:10px;">
-        <button onclick="editUserLocal(${index})" title="Edit" style="background:none; border:none; color:#007bff; cursor:pointer;">
+        <button 
+          onclick='openEditUserModal(${JSON.stringify(user).replace(/"/g, "&quot;")})' 
+          title="Edit" style="background:none; border:none; color:#007bff; cursor:pointer;">
           <i class="fa-solid fa-edit"></i>
         </button>
-        <button onclick="deleteUserLocal(${index})" title="Hapus" style="background:none; border:none; color:#dc3545; cursor:pointer;">
-          <i class="fa-solid fa-trash"></i>
+        <button 
+        onclick='deleteUser("${user.id}", "${user.nama.replace(/"/g, "&quot;")}")'
+        title="Hapus" style="background:none; border:none; color:#dc3545; cursor:pointer;">
+        <i class="fa-solid fa-trash"></i>
         </button>
       </td>
     `;
@@ -2751,125 +2757,125 @@ function renderUsersLocal(customUsers = null) {
   });
 }
 
-// === Pencarian Pengguna ===
-function searchUsers(category) {
-  const keyword = document.getElementById(`${category}-user-search`).value.toLowerCase();
-  const users = JSON.parse(localStorage.getItem("localUsers")) || [];
 
-  const filtered = users.filter(u =>
-    u.nama.toLowerCase().includes(keyword) ||
-    u.email.toLowerCase().includes(keyword) ||
-    u.nik.toLowerCase().includes(keyword)
-  );
-
-  renderUsersLocal(filtered);
-}
-
-// === Urutkan Pengguna ===
-function sortUsers(category) {
-  const sortSelect = document.getElementById(`${category}-user-sort`);
-  if (!sortSelect) return;
-
-  const sortValue = sortSelect.value;
-  let users = JSON.parse(localStorage.getItem("localUsers")) || [];
-
-  switch (sortValue) {
-    case "az":
-      users.sort((a, b) => a.nama.localeCompare(b.nama));
-      break;
-    case "za":
-      users.sort((a, b) => b.nama.localeCompare(a.nama));
-      break;
-    case "terbaru":
-      users.sort((a, b) => new Date(b.terakhir_aktif) - new Date(a.terakhir_aktif));
-      break;
-    case "terlama":
-      users.sort((a, b) => new Date(a.terakhir_aktif) - new Date(b.terakhir_aktif));
-      break;
+// === Helper: Kategori kode ke teks ===
+function getKategoriName(kode) {
+  switch (String(kode)) {
+    case "1": return "Admin";
+    case "2": return "Petugas";
+    case "3": return "Pimpinan";
+    default: return "User";
   }
-
-  localStorage.setItem("localUsers", JSON.stringify(users));
-  renderUsersLocal(users);
 }
 
-// === Modal Tambah/Edit ===
-function openAddUserModal() {
-  document.getElementById("user-modal-title").textContent = "Tambah Pengguna";
-  document.getElementById("user-id").value = "";
-  document.getElementById("user-nama").value = "";
-  document.getElementById("user-email").value = "";
-  document.getElementById("user-nohp").value = "";
-  document.getElementById("user-nik").value = "";
-  document.getElementById("user-kategori").value = "User";
-  document.getElementById("user-modal").style.display = "block";
-}
-
-function editUserLocal(index) {
-  const users = JSON.parse(localStorage.getItem("localUsers")) || [];
-  const user = users[index];
-  if (!user) return;
-
+// === Modal Edit ===
+function openEditUserModal(user) {
   document.getElementById("user-modal-title").textContent = "Edit Pengguna";
-  document.getElementById("user-id").value = index;
-  document.getElementById("user-nama").value = user.nama;
-  document.getElementById("user-email").value = user.email;
-  document.getElementById("user-nohp").value = user.no_hp;
-  document.getElementById("user-nik").value = user.nik;
-  document.getElementById("user-kategori").value = user.kategori;
+  document.getElementById("user-id").value = user.id || "";
+  document.getElementById("user-nama").value = user.nama || "";
+  document.getElementById("user-email").value = user.email || "";
+  document.getElementById("user-nohp").value = user.no_hp || "";
+  document.getElementById("user-nik").value = user.nik || "";
+  document.getElementById("user-kategori").value = getKategoriName(user.kategori); // tetap teks
   document.getElementById("user-modal").style.display = "block";
 }
 
-// === Simpan User ===
-document.getElementById("save-user-btn").addEventListener("click", () => {
+document.getElementById("save-user-btn").addEventListener("click", async () => {
   const id = document.getElementById("user-id").value;
   const nama = document.getElementById("user-nama").value.trim();
   const email = document.getElementById("user-email").value.trim();
   const no_hp = document.getElementById("user-nohp").value.trim();
   const nik = document.getElementById("user-nik").value.trim();
-  const kategori = document.getElementById("user-kategori").value;
+  const kategori = document.getElementById("user-kategori").value; // teks seperti "Admin"
 
   if (!nama || !email || !no_hp || !nik) {
-    alert("Semua kolom wajib diisi!");
+    alert("⚠️ Semua kolom wajib diisi!");
     return;
   }
 
-  const users = JSON.parse(localStorage.getItem("localUsers")) || [];
-
   if (id === "") {
-    users.push({
-      id: users.length + 1,
-      nama,
-      email,
-      no_hp,
-      nik,
-      kategori,
-      terakhir_aktif: new Date().toISOString().split("T")[0]
-    });
-  } else {
-    users[id] = {
-      ...users[id],
-      nama,
-      email,
-      no_hp,
-      nik,
-      kategori,
-      terakhir_aktif: new Date().toISOString().split("T")[0]
-    };
+    alert("Tambah user dari web belum tersedia. Data hanya bisa dari mobile.");
+    return;
   }
 
-  localStorage.setItem("localUsers", JSON.stringify(users));
-  document.getElementById("user-modal").style.display = "none";
-  renderUsersLocal();
+  try {
+    const formData = new FormData();
+    formData.append("id", id);
+    formData.append("nama", nama);
+    formData.append("email", email);
+    formData.append("no_hp", no_hp);
+    formData.append("nik", nik);
+    formData.append("kategori", kategori); // kirim langsung teks
+
+    const response = await fetch(API_EDIT_USER, {
+      method: "POST",
+      body: formData
+    });
+
+    // Ubah menjadi JSON agar bisa baca status & message
+    const result = await response.json();
+    console.log("📨 Respon edit:", result);
+
+    if (result.status === "success") {
+      alert("✅ Data pengguna berhasil diperbarui!");
+      document.getElementById("user-modal").style.display = "none";
+      loadUsers();
+    } else {
+      alert("❌ Gagal mengedit pengguna: " + (result.message || "Unknown error"));
+    }
+  } catch (error) {
+    console.error("❌ Gagal memperbarui pengguna:", error);
+    alert("❌ Terjadi kesalahan saat mengedit pengguna!");
+  }
 });
 
-// === Hapus User ===
-function deleteUserLocal(index) {
-  if (!confirm("Yakin ingin menghapus pengguna ini?")) return;
-  const users = JSON.parse(localStorage.getItem("localUsers")) || [];
-  users.splice(index, 1);
-  localStorage.setItem("localUsers", JSON.stringify(users));
-  renderUsersLocal();
+// Helper tetap sama
+function kategoriToCode(kat) {
+  switch (kat) {
+    case "Admin": return 1;
+    case "Petugas": return 2;
+    case "Pimpinan": return 3;
+    default: return 4;
+  }
 }
+
+async function deleteUser(userId, userName) {
+  if (!confirm(`Yakin ingin menghapus pengguna "${userName}"?`)) return;
+
+  try {
+    const formData = new FormData();
+    formData.append("id", userId);
+
+    const response = await fetch(API_EDIT_USER, { // endpoint sama dengan edit
+      method: "POST",
+      body: formData
+    });
+
+    const result = await response.json(); // pastikan API mengembalikan JSON
+    console.log("📨 Respon hapus:", result);
+
+    if (result.status === "success") {
+      alert(`✅ Pengguna "${userName}" berhasil dihapus!`);
+      loadUsers(); // refresh tabel
+    } else {
+      alert("❌ Gagal menghapus pengguna: " + (result.message || "Unknown error"));
+    }
+  } catch (error) {
+    console.error("❌ Gagal menghapus pengguna:", error);
+    alert("❌ Terjadi kesalahan saat menghapus pengguna!");
+  }
+}
+
+// === Helper: Nama kategori ke kode ===
+function kategoriToCode(kat) {
+  switch (kat) {
+    case "Admin": return 1;
+    case "Petugas": return 2;
+    case "Pimpinan": return 3;
+    default: return 4;
+  }
+}
+
 
 // === Tutup Modal ===
 document.getElementById("cancel-user-btn").addEventListener("click", () => {
@@ -2881,7 +2887,7 @@ document.getElementById("user-modal-close").addEventListener("click", () => {
 
 // === Saat Halaman Dibuka ===
 document.addEventListener("DOMContentLoaded", () => {
-  renderUsersLocal();
+  loadUsers();
 });
 
 // ==================== Manajemen Petugas ====================
