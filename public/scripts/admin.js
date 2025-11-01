@@ -2709,6 +2709,9 @@ async function loadUsers() {
 
     const users = data.data || []; // ambil array user
     renderUsersAPI(users);
+    allUsers = data.data || [];        // simpan semua data
+    filteredUsers = [...allUsers];     // copy awalnya sama
+    renderUsersAPI(filteredUsers);     // render tabel
   } catch (error) {
     console.error("Gagal mengambil data pengguna:", error);
   }
@@ -2875,7 +2878,53 @@ function kategoriToCode(kat) {
     default: return 4;
   }
 }
+// === Filter & Search ===
+function applySearchAndSort() {
+  const query = document.getElementById("approved-user-search").value.toLowerCase();
+  const sortValue = document.getElementById("approved-user-sort").value;
 
+  // filter dari allUsers
+  filteredUsers = allUsers.filter(user => {
+    const nama = (user.nama || "").toLowerCase();
+    const email = (user.email || "").toLowerCase();
+    const no_hp = (user.no_hp || "").toLowerCase();
+    const nik = (user.nik || "").toLowerCase();
+    return nama.includes(query) || email.includes(query) || no_hp.includes(query) || nik.includes(query);
+  });
+
+  // sort
+  filteredUsers.sort((a, b) => {
+    switch (sortValue) {
+      case "az": return (a.nama || "").localeCompare(b.nama || "");
+      case "za": return (b.nama || "").localeCompare(a.nama || "");
+      case "terbaru": return new Date(b.terakhir_aktif || 0) - new Date(a.terakhir_aktif || 0);
+      case "terlama": return new Date(a.terakhir_aktif || 0) - new Date(b.terakhir_aktif || 0);
+      default: return 0;
+    }
+  });
+
+  renderUsersAPI(filteredUsers);
+}
+
+
+// Event listener search & sort
+document.getElementById("approved-user-search").addEventListener("input", applySearchAndSort);
+document.getElementById("approved-user-sort").addEventListener("change", applySearchAndSort);
+
+// Helper kategori
+function getKategoriName(kode) {
+  switch(String(kode)) {
+    case "1": return "Admin";
+    case "2": return "Petugas";
+    case "3": return "Pimpinan";
+    default: return "User";
+  }
+}
+
+// Load awal
+document.addEventListener("DOMContentLoaded", () => {
+  loadUsers();
+});
 
 // === Tutup Modal ===
 document.getElementById("cancel-user-btn").addEventListener("click", () => {
