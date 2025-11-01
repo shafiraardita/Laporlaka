@@ -4146,13 +4146,10 @@ function downloadMapDataToExcel(year) {
     const coords = koordinatData[titik] || { lat: "-", lng: "-" };
     return {
       Kecamatan: titik,
-      Latitude: coords.lat,
-      Longitude: coords.lng,
       "Nama Pelapor": item.nama,
       Tanggal: item.tanggal,
       Telepon: item.telepon,
       Jenis: item.jenis || "-",
-      Titik: titik,
       Maps: `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
     };
   });
