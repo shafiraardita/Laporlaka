@@ -250,6 +250,7 @@ function initializeAdminPage() {
     const downloadExcelBtn = document.getElementById('download-excel-btn');
     if (yearSelect) yearSelect.addEventListener('change', updateChart);
     if (monthSelect) monthSelect.addEventListener('change', updateChart);
+
 }
 // === Klik profil di sidebar membuka halaman profil admin ===
 const sidebarProfileBtn = document.getElementById("sidebar-profile-btn");
@@ -386,7 +387,9 @@ function cancelProfile() {
         console.warn('Elemen modal profile tidak ditemukan.');
     }
 }
-// monitoring
+// monitoring.js (versi lengkap, cocok dengan HTML kamu)
+// Harus dipanggil setelah elemen DOM tersedia (script diletakkan di akhir body)
+
 const canvas = document.getElementById("accident-chart");
 const ctx = canvas.getContext("2d");
 let monitoringChart = null;
