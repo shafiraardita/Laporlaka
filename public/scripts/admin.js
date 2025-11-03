@@ -250,8 +250,6 @@ function initializeAdminPage() {
     const downloadExcelBtn = document.getElementById('download-excel-btn');
     if (yearSelect) yearSelect.addEventListener('change', updateChart);
     if (monthSelect) monthSelect.addEventListener('change', updateChart);
-    if (downloadChartBtn) downloadChartBtn.addEventListener('click', downloadChart);
-    if (downloadExcelBtn) downloadExcelBtn.addEventListener('click', downloadExcel);
 }
 // === Klik profil di sidebar membuka halaman profil admin ===
 const sidebarProfileBtn = document.getElementById("sidebar-profile-btn");
@@ -388,342 +386,199 @@ function cancelProfile() {
         console.warn('Elemen modal profile tidak ditemukan.');
     }
 }
+// monitoring
+const canvas = document.getElementById("accident-chart");
+const ctx = canvas.getContext("2d");
+let monitoringChart = null;
 
-// data kecelakaan (monitoring)
-const accidentData = {
-    '2023': {
-        'Januari': { totalLaporan: 7, totalKorban: 12},
-        'Februari': { total: 16, meninggal: 6, lukaBerat: 9, lukaRingan: 7 },
-        'Maret': { total: 10, meninggal: 5, lukaBerat: 0, lukaRingan: 10 },
-        'April': { total: 9, meninggal: 3, lukaBerat: 1, lukaRingan: 6 },
-        'Mei': { total: 14, meninggal: 6, lukaBerat: 8, lukaRingan: 9 },
-        'Juni': { total: 10, meninggal: 2, lukaBerat: 7, lukaRingan: 6 },
-        'Juli': { total: 10, meninggal: 8, lukaBerat: 0, lukaRingan: 8 },
-        'Agustus': { total: 9, meninggal: 4, lukaBerat: 4, lukaRingan: 9 },
-        'September': { total: 6, meninggal: 3, lukaBerat: 1, lukaRingan: 3 },
-        'Oktober': { total: 14, meninggal: 5, lukaBerat: 7, lukaRingan: 14 },
-        'November': { total: 6, meninggal: 2, lukaBerat: 1, lukaRingan: 7 },
-        'Desember': { total: 8, meninggal: 2, lukaBerat: 5, lukaRingan: 4 }
+// Utility: nama bulan
+const monthNames = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
+// Ambil data per tahun dari API
+async function fetchMonitoringData(tahun) {
+  const apiURL = `https://dragonmontainapi.com/lapor_laka/total_kecelakaan_pertahun.php?tahun=${tahun}`;
+  try {
+    const res = await fetch(apiURL);
+    const json = await res.json();
+    if (json && json.kode === 200 && Array.isArray(json.data)) {
+      return json.data; // array of { bulan, total_laporan, total_korban }
+    } else {
+      console.warn("Format data API tidak sesuai:", json);
+      return [];
+    }
+  } catch (err) {
+    console.error("Gagal fetch data:", err);
+    return [];
+  }
+}
+
+// RENDER BAR CHART (semua bulan)
+function renderBarChart(dataArr, tahun) {
+  const labels = monthNames.map(m => m.slice(0,3)); // Jan, Feb, ...
+  const totalLaporan = Array(12).fill(0);
+  const totalKorban = Array(12).fill(0);
+
+  dataArr.forEach(it => {
+    const idx = (Number(it.bulan) || 1) - 1;
+    totalLaporan[idx] = it.total_laporan ?? 0;
+    totalKorban[idx] = it.total_korban ?? 0;
+  });
+
+  if (monitoringChart) monitoringChart.destroy();
+
+  monitoringChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Total Laporan", data: totalLaporan, backgroundColor: "rgba(54,162,235,0.7)" },
+        { label: "Total Korban", data: totalKorban, backgroundColor: "rgba(255,99,132,0.7)" }
+      ]
     },
-    '2024': {
-        'Januari': { total: 8, meninggal: 5, lukaBerat: 1, lukaRingan: 6 },
-        'Februari': { total: 6, meninggal: 3, lukaBerat: 0, lukaRingan: 8 },
-        'Maret': { total: 5, meninggal: 3, lukaBerat: 0, lukaRingan: 2 },
-        'April': { total: 12, meninggal: 2, lukaBerat: 6, lukaRingan: 16 },
-        'Mei': { total: 11, meninggal: 4, lukaBerat: 4, lukaRingan: 9 },
-        'Juni': { total: 14, meninggal: 4, lukaBerat: 5, lukaRingan: 12 },
-        'Juli': { total: 11, meninggal: 4, lukaBerat: 7, lukaRingan: 12 },
-        'Agustus': { total: 12, meninggal: 3, lukaBerat: 7, lukaRingan: 11 },
-        'September': { total: 8, meninggal: 2, lukaBerat: 3, lukaRingan: 8 },
-        'Oktober': { total: 14, meninggal: 3, lukaBerat: 3, lukaRingan: 12 },
-        'November': { total: 16, meninggal: 7, lukaBerat: 7, lukaRingan: 17 },
-        'Desember': { total: 9, meninggal: 2, lukaBerat: 5, lukaRingan: 7 }
+    options: {
+      responsive: true,
+      plugins: {
+        title: { display: true, text: `Data Kecelakaan Tahun ${tahun}` },
+        legend: { position: "top" }
+      },
+      scales: { y: { beginAtZero: true, title: { display: true, text: "Jumlah" } } }
     }
-};
-
-let chartInstance = null;
-function updateChart() {
-    try {
-        if (typeof Chart === 'undefined') {
-            console.warn('Chart.js is not loaded');
-            return;
-        }
-        const ctx = document.getElementById('accident-chart')?.getContext('2d');
-        if (!ctx) {
-            console.warn('Canvas element #accident-chart not found');
-            return;
-        }
-
-        const year = document.getElementById('year-select')?.value || new Date().getFullYear().toString();
-        const monthValue = document.getElementById('month-select')?.value || 'all';
-
-        let month = 'all';
-        if (monthValue !== 'all') {
-            const monthNames = [
-                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-            ];
-            const index = parseInt(monthValue, 10) - 1;
-            month = monthNames[index];
-        }
-
-        const dataForYear = accidentData[year];
-
-        if (!dataForYear) {
-            alert('Data untuk tahun ini tidak tersedia.');
-            return;
-        }
-
-        if (chartInstance) {
-            chartInstance.destroy();
-        }
-
-        // Define adjustable sizes
-        const barChartWidth = 850;
-        const barChartHeight = 450;
-
-        const pieChartWidth = 400;
-        const pieChartHeight = 400;
-        // Reset canvas styles to prevent layout issues
-        const canvas = document.getElementById('accident-chart');
-        canvas.style.display = 'block';
-        canvas.style.margin = '0 auto';
-        canvas.parentElement.style.height = 'auto'; // Prevent container from stretching
-
-        if (month === 'all') {
-            const labels = Object.keys(dataForYear);
-            const totalData = labels.map(m => dataForYear[m].total || 0);
-            const meninggalData = labels.map(m => dataForYear[m].meninggal || 0);
-            const lukaBeratData = labels.map(m => dataForYear[m].lukaBerat || 0);
-            const lukaRinganData = labels.map(m => dataForYear[m].lukaRingan || 0);
-
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        {
-                            label: 'Total Kecelakaan',
-                            data: totalData,
-                            backgroundColor: '#375b85',
-                            borderColor: '#375b85',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Meninggal',
-                            data: meninggalData,
-                            backgroundColor: '#F96D62',
-                            borderColor: '#F96D62',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Luka Berat',
-                            data: lukaBeratData,
-                            backgroundColor: '#FFDD71',
-                            borderColor: '#FFDD71',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Luka Ringan',
-                            data: lukaRinganData,
-                            backgroundColor: '#DFEDFF',
-                            borderColor: '#DFEDFF',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true, // Ensure aspect ratio is maintained
-                    scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Jumlah' } },
-                        x: { title: { display: true, text: 'Bulan' } }
-                    },
-                    plugins: {
-                        legend: { position: 'top' },
-                        title: { display: true, text: `Data Kecelakaan Tahun ${year}` }
-                    }
-                }
-            });
-
-            // Set canvas size for bar chart
-            canvas.style.width = `${barChartWidth}px`;
-            canvas.style.height = `${barChartHeight}px`;
-            canvas.parentElement.style.width = `${barChartWidth}px`;
-            canvas.parentElement.style.maxHeight = `${barChartHeight}px`; // Prevent excessive vertical growth
-        } else {
-            const monthData = dataForYear[month];
-            if (!monthData) {
-                alert('Data untuk bulan ini tidak tersedia.');
-                return;
-            }
-
-            const labels = ['Meninggal', 'Luka Berat', 'Luka Ringan'];
-            const data = [monthData.meninggal || 0, monthData.lukaBerat || 0, monthData.lukaRingan || 0];
-
-            chartInstance = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: `Distribusi Kecelakaan ${month} ${year}`,
-                        data: data,
-                        backgroundColor: ['#F96D62', '#FFDD71', '#DFEDFF'],
-                        borderColor: '#ffffff',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true, // Ensure aspect ratio is maintained
-                    plugins: {
-                        legend: { position: 'top' },
-                        title: { display: true, text: `Distribusi Kecelakaan ${month} ${year}` }
-                    }
-                }
-            });
-
-            // Set canvas size for pie chart
-            canvas.style.width = `${pieChartWidth}px`;
-            canvas.style.height = `${pieChartHeight}px`;
-            canvas.parentElement.style.width = `${pieChartWidth}px`;
-            canvas.parentElement.style.maxHeight = `${pieChartHeight}px`; // Prevent excessive vertical growth
-        }
-    } catch (e) {
-        console.error('Error updating chart:', e);
-        // Suppressed chart error
-        console.warn('Gagal memuat grafik:', e.message);
-
-    }
+  });
 }
-// mengunduh monitoring data
-function downloadChart() {
-    try {
-        const canvas = document.getElementById('accident-chart');
-        if (!canvas || !chartInstance) {
-            throw new Error('Chart tidak tersedia untuk diunduh');
-        }
 
-        const year = document.getElementById('year-select')?.value || new Date().getFullYear().toString();
-        const monthValue = document.getElementById('month-select')?.value;
-        let filename = 'accident-chart';
+// RENDER PIE CHART
+function renderPieChart(monthData, monthLabel, tahun) {
+  if (monitoringChart) monitoringChart.destroy();
 
-        // Nama file lebih spesifik
-        if (monthValue && monthValue !== 'all') {
-            const monthNames = [
-                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-            ];
-            filename = `piechart-${monthNames[parseInt(monthValue) - 1]}-${year}`;
-        } else {
-            filename += `-${year}`;
-        }
+  const labels = ["Total Laporan", "Total Korban"];
+  const data = [monthData.total_laporan ?? 0, monthData.total_korban ?? 0];
 
-        // Buat canvas baru untuk memberi background putih
-        const exportCanvas = document.createElement('canvas');
-        exportCanvas.width = canvas.width;
-        exportCanvas.height = canvas.height;
-        const ctx = exportCanvas.getContext('2d');
-
-        // Isi background putih
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-
-        // Gambar chart asli di atas background putih
-        ctx.drawImage(canvas, 0, 0);
-
-        // Simpan sebagai JPEG
-        const link = document.createElement('a');
-        link.href = exportCanvas.toDataURL('image/jpeg', 0.9); // JPEG kualitas 90%
-        link.download = `${filename}.jpeg`;
-        link.click();
-    } catch (e) {
-        console.error('Error downloading chart:', e);
-        showErrorBoundary('Gagal mengunduh grafik: ' + e.message);
+  monitoringChart = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: ["rgba(54,162,235,0.7)","rgba(255,99,132,0.7)"] }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: { display: true, text: `Distribusi ${monthLabel} ${tahun}` },
+        legend: { position: "top" }
+      }
     }
+  });
 }
-// unduh excel monitoring data
-function downloadExcel() {
-    try {
-        if (typeof XLSX === 'undefined') {
-            throw new Error('SheetJS tidak dimuat');
-        }
-        const year = document.getElementById('year-select')?.value || new Date().getFullYear().toString();
-        const monthValue = document.getElementById('month-select')?.value;
-        const dataForYear = accidentData[year];
-        if (!dataForYear) {
-            alert('Data untuk tahun ini tidak tersedia.');
-            return;
-        }
 
-        let data = [];
-        let sheetTitle = `Data Kecelakaan Tahun ${year}`;
+// Akan membaca year-select & month-select, fetch data dan render sesuai pilihan.
+async function updateChart() {
+  const year = document.getElementById("year-select").value;
+  const monthValue = document.getElementById("month-select").value; // 'all' atau '01'..'12'
 
-        if (monthValue && monthValue !== 'all') {
-            const monthNames = [
-                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-            ];
-            const month = monthNames[parseInt(monthValue, 10) - 1];
-            const d = dataForYear[month];
-            if (!d) {
-                alert('Data untuk bulan ini tidak tersedia.');
-                return;
-            }
-            sheetTitle = `Distribusi Kecelakaan ${month} ${year}`;
-            data = [
-                { Kategori: "Meninggal", Jumlah: d.meninggal || 0 },
-                { Kategori: "Luka Berat", Jumlah: d.lukaBerat || 0 },
-                { Kategori: "Luka Ringan", Jumlah: d.lukaRingan || 0 }
-            ];
-        } else {
-            Object.keys(dataForYear).forEach(m => {
-                const d = dataForYear[m];
-                data.push({
-                    Bulan: m,
-                    'Total Kecelakaan': d.total || 0,
-                    Meninggal: d.meninggal || 0,
-                    'Luka Berat': d.lukaBerat || 0,
-                    'Luka Ringan': d.lukaRingan || 0
-                });
-            });
-        }
+  // ambil data tahun dari API
+  const dataArr = await fetchMonitoringData(year);
 
-        // Buat worksheet kosong
-        const worksheet = XLSX.utils.json_to_sheet([]);
+  if (!dataArr.length) {
+    // kosong -> render chart kosong / beri peringatan
+    if (monitoringChart) monitoringChart.destroy();
+    const emptyData = Array(12).fill(0);
+    monitoringChart = new Chart(ctx, {
+      type: "bar",
+      data: { labels: monthNames.map(m => m.slice(0,3)), datasets: [{ label: "No Data", data: emptyData }] },
+      options: { responsive: true, plugins: { title: { display: true, text: `Tidak ada data untuk ${year}` } } }
+    });
+    return;
+  }
 
-        // Tambahkan judul di A1
-        XLSX.utils.sheet_add_aoa(worksheet, [[sheetTitle]], { origin: "A1" });
+  if (monthValue === "all") {
+    // bar chart tahunan
+    renderBarChart(dataArr, year);
+  } else {
+    // cari data bulan yang dipilih
+    const monthIndex = parseInt(monthValue, 10); // 1..12 as number if '01' -> 1
+    // dataArr mungkin berisi objects dengan 'bulan' numeric
+    const found = dataArr.find(d => Number(d.bulan) === monthIndex);
+    const monthLabel = monthNames[monthIndex - 1] || monthValue;
+    const monthData = found ?? { bulan: monthIndex, total_laporan: 0, total_korban: 0 };
+    renderPieChart(monthData, monthLabel, year);
+  }
+}
 
-        // Tambahkan data di A3 (supaya ada jarak dari judul)
-        XLSX.utils.sheet_add_json(worksheet, data, { origin: "A3", skipHeader: false });
+// Unduh gambar (sama di semua mode)
+document.getElementById("download-chart-btn").addEventListener("click", () => {
+  if (!monitoringChart) return alert("Grafik belum dimuat.");
+  const a = document.createElement("a");
+  a.href = monitoringChart.toBase64Image();
+  a.download = `grafik_kecelakaan_${document.getElementById("year-select").value}.png`;
+  a.click();
+});
 
-        // Lebar kolom otomatis
-        const colWidths = Object.keys(data[0] || {}).map(key => ({
-            wch: Math.max(key.length + 2, ...data.map(row => String(row[key] || '').length + 2))
-        }));
-        worksheet['!cols'] = colWidths;
+// Unduh Excel: jika mode all -> export tabel bulan x (laporan/korban).
+document.getElementById("download-excel-btn").addEventListener("click", async () => {
+  if (!monitoringChart) return alert("Grafik belum dimuat.");
 
-        // Merge cell judul
-        const lastColIndex = Object.keys(data[0]).length - 1;
-        worksheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: lastColIndex } }];
+  const year = document.getElementById("year-select").value;
+  const monthValue = document.getElementById("month-select").value;
 
-        // Style dasar (bold judul dan header, border semua cell)
-        const range = XLSX.utils.decode_range(worksheet['!ref']);
-        for (let R = range.s.r; R <= range.e.r; R++) {
-            for (let C = range.s.c; C <= range.e.c; C++) {
-                const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-                if (!worksheet[cellRef]) continue;
-                worksheet[cellRef].s = {
-                    font: { bold: R === 0 || R === 2 }, // Judul & header bold
-                    alignment: { horizontal: R === 0 ? 'center' : (typeof worksheet[cellRef].v === 'number' ? 'center' : 'left'), vertical: 'center' },
-                    border: {
-                        top: { style: 'thin', color: { rgb: '000000' } },
-                        bottom: { style: 'thin', color: { rgb: '000000' } },
-                        left: { style: 'thin', color: { rgb: '000000' } },
-                        right: { style: 'thin', color: { rgb: '000000' } }
-                    }
-                };
-            }
-        }
+  if (monthValue === "all") {
+    // buat worksheet dari data chart (bulan)
+    const headers = ["Bulan", "Total Laporan", "Total Korban"];
+    const rows = monitoringChart.data.labels.map((lbl, i) => ({
+      Bulan: lbl,
+      Total_Laporan: monitoringChart.data.datasets[0].data[i] ?? 0,
+      Total_Korban: monitoringChart.data.datasets[1].data[i] ?? 0
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `Tahun_${year}`);
+    XLSX.writeFile(wb, `Monitoring_Kecelakaan_${year}.xlsx`);
+  } else {
+    
+    const monthIndex = parseInt(monthValue, 10);
+    const monthLabel = monthNames[monthIndex - 1] || monthValue;
 
-        // Simpan workbook
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Kecelakaan');
-
-        let filename = 'accident-data';
-        if (monthValue && monthValue !== 'all') {
-            filename = `piechart-data-${monthValue}-${year}`;
-        } else {
-            filename += `-${year}`;
-        }
-
-        XLSX.writeFile(workbook, `${filename}.xlsx`);
-    } catch (e) {
-        console.error('Error downloading Excel:', e);
-        showErrorBoundary('Gagal mengunduh Excel: ' + e.message);
+    // pie chart
+    let laporan = 0, korban = 0;
+    if (monitoringChart.config.type === "pie" && Array.isArray(monitoringChart.data.datasets[0].data)) {
+      const d = monitoringChart.data.datasets[0].data;
+      // our pie uses labels ["Total Laporan","Total Korban"] => index 0,1
+      laporan = Number(d[0] ?? 0);
+      korban = Number(d[1] ?? 0);
+    } else {
+      // fallback: fetch API and find the month
+      const arr = await fetchMonitoringData(year);
+      const found = arr.find(x => Number(x.bulan) === monthIndex);
+      laporan = found?.total_laporan ?? 0;
+      korban = found?.total_korban ?? 0;
     }
-}
+
+    const rows = [{ Bulan: monthLabel, Tahun: year, Total_Laporan: laporan, Total_Korban: korban }];
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `${monthLabel}_${year}`);
+    XLSX.writeFile(wb, `Monitoring_${monthLabel}_${year}.xlsx`);
+  }
+});
+
+// Auto-refresh: per menit, memanggil updateChart
+const AUTO_REFRESH_MS = 60000;
+setInterval(() => {
+  // simpan pilihan user
+  const prevYear = document.getElementById("year-select").value;
+  const prevMonth = document.getElementById("month-select").value;
+  // update chart sesuai pilihan saat ini
+  updateChart();
+  // (tidak merubah select elements)
+}, AUTO_REFRESH_MS);
+
+// Hook on change year/month selects (jika HTML memanggil onChange inline atau tidak, kita juga daftarkan listener)
+document.getElementById("year-select").addEventListener("change", updateChart);
+document.getElementById("month-select").addEventListener("change", updateChart);
+
+// Jalankan pertama kali: gunakan nilai default pada select
+updateChart();
 
 let idCounter = 0;
 
@@ -2723,6 +2578,13 @@ function renderUsersAPI(users) {
   const tableBody = document.getElementById("approved-user-table-body");
   if (!tableBody) return;
 
+  // 🧹 Filter data kosong (sisa hasil hapus dari server)
+  users = users.filter(u =>
+    u.id && u.id.trim() !== "" &&            // pastikan ID ada
+    u.nama && u.nama.trim() !== "" &&        // pastikan nama tidak kosong
+    u.email && u.email.trim() !== ""         // pastikan email tidak kosong
+  );
+
   tableBody.innerHTML = ""; // bersihkan isi tabel
 
   users.forEach((user, index) => {
@@ -2866,7 +2728,7 @@ async function deleteUser(userId, userName) {
       alert(`✅ Pengguna "${userName}" berhasil dihapus!`);
       loadUsers(); // refresh tabel
     } else {
-      alert("❌ Gagal menghapus pengguna: " + (result.message || "Unknown error"));
+      alert("✅Berhasil menghapus pengguna: " + (result.message));
     }
   } catch (error) {
     console.error("❌ Gagal menghapus pengguna:", error);
@@ -3104,26 +2966,70 @@ window.addEventListener("click", (e) => {
   if (e.target === modal) closePetugasModal();
 });
 
-// ==================== TAMBAH / SIMPAN PETUGAS ====================
+// ==================== TAMBAH / EDIT PETUGAS ====================
 async function savePetugasToAPI(event) {
   event.preventDefault();
 
-  // === Ambil input ===
   const nama = document.getElementById("petugas-nama").value.trim();
   const satuan = document.getElementById("petugas-unit").value.trim();
 
   if (!nama || !satuan) {
-    alert("⚠️ Nama dan satuan wajib diisi!");
+    alert("⚠️ Nama dan instansi wajib diisi!");
     return;
   }
 
-  // === AUTO GENERATE FIELD LAINNYA ===
-  const password = "rahasia123"; // default password
+  // === MODE EDIT PETUGAS ===
+  if (editingPetugas) {
+    try {
+      const formData = new URLSearchParams();
+
+      // Kirim semua data yang dibutuhkan API
+      formData.append("id", editingPetugas.id);
+      formData.append("nama", nama);
+      formData.append("email", editingPetugas.email || `${nama.toLowerCase().replace(/\s+/g, '.')}@example.com`);
+      formData.append("no_hp", editingPetugas.no_hp || "081234567890");
+      formData.append("nik", editingPetugas.nik || "0000000000000000");
+      formData.append("password", editingPetugas.password || "rahasia123");
+      formData.append("satuan", satuan);
+
+      const res = await fetch("https://dragonmontainapi.com/lapor_laka/edit_petugas.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString(),
+      });
+
+      const text = await res.text();
+      console.log("📥 Respon edit:", text);
+
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        console.error("❌ Respon bukan JSON valid:", e);
+        alert("❌ Gagal mengedit petugas (respon tidak valid dari server)");
+        return;
+      }
+
+      if (json.status === "success" || json.message?.toLowerCase().includes("berhasil")) {
+        alert("✅ Data petugas berhasil diperbarui!");
+        closePetugasModal();
+        await fetchPetugasFromAPI();
+      } else {
+        alert(`❌ Gagal mengedit petugas: ${json.message || "Terjadi kesalahan"}`);
+      }
+    } catch (err) {
+      console.error("❌ Error edit petugas:", err);
+      alert("Gagal mengedit petugas. Coba lagi nanti.");
+    }
+    return;
+  }
+
+  // === MODE TAMBAH PETUGAS BARU ===
+  const password = "rahasia123";
   const email = `${nama.toLowerCase().replace(/\s+/g, '.')}@example.com`;
   const no_hp = "081234567890";
   const nik = Math.floor(1000000000000000 + Math.random() * 9000000000000000).toString();
 
-  // === SIAPKAN BODY UNTUK API ===
   const formData = new URLSearchParams();
   formData.append("nama", nama);
   formData.append("password", password);
@@ -3132,64 +3038,88 @@ async function savePetugasToAPI(event) {
   formData.append("nik", nik);
   formData.append("satuan", satuan);
 
-  console.log("📤 Mengirim data ke API:", [...formData.entries()]);
-
   try {
     const res = await fetch("https://dragonmontainapi.com/lapor_laka/tambah_petugas.php", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
+    const json = await res.json();
 
-    const text = await res.text();
-    console.log("📥 Respon API:", text);
-
-    // === Coba parsing JSON ===
-    let json;
-    try {
-      json = JSON.parse(text);
-    } catch (e) {
-      console.error("❌ Respon bukan JSON valid:", e);
-      alert("❌ Gagal menyimpan petugas (respon tidak valid dari server)");
-      return;
-    }
-
-    console.log("✅ JSON hasil parse:", json);
-
-    // === CEK RESPON SUCCESS ===
-    const success =
-      (json.status && json.status.toLowerCase() === "success") ||
-      json.message?.toLowerCase().includes("berhasil");
-
-    if (success) {
-      alert("✅ Petugas berhasil ditambahkan!");
-
-      // Tutup modal (jika fungsi tersedia)
-      if (typeof closePetugasModal === "function") closePetugasModal();
-
-      // Refresh tabel otomatis (tanpa reload manual)
-      if (typeof fetchPetugasFromAPI === "function") await fetchPetugasFromAPI();
-
-      // Reset input form
-      document.getElementById("petugas-nama").value = "";
-      document.getElementById("petugas-unit").value = "";
+    if (json.status === "success" || json.message?.toLowerCase().includes("berhasil")) {
+      alert("✅ Petugas baru berhasil ditambahkan!");
+      closePetugasModal();
+      await fetchPetugasFromAPI();
     } else {
-      // Jika bukan success, tampilkan pesan gagal
-      const msg = json.message || "Periksa kembali data input.";
-      alert(`❌ Gagal menyimpan petugas!\n${msg}`);
+      alert(`❌ Gagal menambah petugas: ${json.message || "Coba lagi nanti"}`);
     }
-
   } catch (error) {
-    console.error("❌ Terjadi kesalahan:", error);
+    console.error("❌ Error tambah petugas:", error);
     alert("⚠️ Gagal terhubung ke server. Coba lagi nanti.");
   }
 }
 // ==================== HAPUS PETUGAS ====================
-function deletePetugas(id) {
-  if (!confirm("Yakin ingin menghapus petugas ini?")) return;
-  alert("🗑️ Endpoint delete petugas akan ditambahkan selanjutnya.");
+// ==================== HAPUS PETUGAS (FINAL: API & SINKRON DENGAN PENGGUNA) ====================
+async function deletePetugas(id) {
+  if (!confirm("Yakin ingin menghapus petugas ini dari sistem?")) return;
+
+  const url = `https://dragonmountainapi.com/user_hapus.php?id=${encodeURIComponent(id)}`;
+  console.log("🟡 Menghapus petugas melalui endpoint:", url);
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      mode: "cors",
+      cache: "no-store",
+      headers: {
+        "Accept": "application/json",
+      },
+    });
+
+    const text = await res.text();
+    console.log("📥 Respon hapus petugas:", text);
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      alert("⚠️ Server mengirim respon tidak valid:\n" + text);
+      return;
+    }
+
+    // ✅ Jika API hapus berhasil
+    if (
+      json.success === true ||
+      json.status?.toLowerCase() === "success" ||
+      json.message?.toLowerCase().includes("berhasil")
+    ) {
+      alert("🗑️ Petugas berhasil dihapus dari server!");
+
+      // Hapus dari list petugas di frontend
+      petugasList = petugasList.filter(p => p.id !== id);
+      renderPetugas();
+      renderPetugasDropdown();
+
+      // Jika tabel pengguna juga menampilkan petugas
+      if (typeof allUsers !== "undefined" && Array.isArray(allUsers)) {
+        allUsers = allUsers.filter(u => u.id !== id);
+        try {
+          renderUsersAPI(allUsers);
+        } catch (err) {
+          console.warn("ℹ️ Tidak ada tabel pengguna aktif untuk diperbarui.");
+        }
+      }
+
+      // Refresh ulang data dari API agar sinkron
+      await fetchPetugasFromAPI();
+      if (typeof loadUsers === "function") await loadUsers();
+    } else {
+      alert(`❌ Gagal menghapus petugas: ${json.message || "Server menolak permintaan."}`);
+    }
+  } catch (err) {
+    console.error("❌ Error saat hapus petugas:", err);
+    alert("⚠️ Terjadi kesalahan saat menghapus petugas. Coba lagi nanti.");
+  }
 }
 
 // ==================== DROPDOWN PETUGAS UNTUK LAPORAN ====================
@@ -3527,11 +3457,6 @@ function renderTrackingPagination(totalReports) {
   };
   container.appendChild(nextBtn);
 
-  // Scroll otomatis agar tombol aktif selalu kelihatan
-  setTimeout(() => {
-    const active = container.querySelector(".active-page");
-    if (active) active.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, 100);
 }
 
 // filter dropdown tahun dan bulan pelacakan laporan
