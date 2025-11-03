@@ -166,32 +166,31 @@
             </div>
         </section>
 
-        <div class="content-section" id="titik-laporan-section">
-    <h2>Titik Laporan Kecelakaan di Kota Bogor</h2>
-    <p>Halaman ini menampilkan titik laporan kecelakaan berdasarkan tahun yang dipilih.</p>
+        <!-- Titik laporan -->
+<div class="content-section" id="titik-laporan-section">
+  <h2>Titik Laporan Kecelakaan di Kota Bogor</h2>
+  <p>Halaman ini menampilkan titik laporan kecelakaan berdasarkan tahun yang dipilih.</p>
 
-    <div class="filter-section">
-        <label for="filter-tahun-laporan">Pilih Tahun:</label>
-        <select id="filter-tahun-laporan" onchange="toggleMapByYear()">
-            <option value="2023">2023</option>
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-        </select>
-    </div>
+  <!-- Filter monitoring -->
+  <div class="filter-section">
+    <label for="filter-tahun-laporan">Pilih Tahun:</label>
+    <select id="filter-tahun-laporan" onchange="toggleMapByYear()">
+      <option value="2023">2023</option>
+      <option value="2024">2024</option>
+      <option value="2025" selected>2025</option>
+    </select>
+  </div>
 
-    <div id="map-2024-container">
-        <h3>Titik Laporan Kecelakaan di Kota Bogor Pada Tahun 2024</h3>
-        <button class="map-download-btn" onclick="downloadMapImage('map-2024', 'peta-wilayah-2024')">Unduh Gambar Peta 2024</button>
-        <button class="map-download-btn" onclick="downloadMapDataToExcel('2024')">Unduh Excel Data 2024</button>
-        <div id="map-2024" style="height: 400px; width: 100%;"></div>
-    </div>
+  <!-- Tombol Unduh di bawah dropdown -->
+  <div class="download-buttons">
+    <button class="map-download-btn" onclick="downloadSelectedMapImage()">🖼️ Unduh Gambar Peta</button>
+    <button class="map-download-btn" onclick="downloadSelectedMapExcel()">📊 Unduh Data Excel</button>
+  </div>
 
-    <div id="map-2023-container">
-        <h3>Titik Laporan Kecelakaan di Kota Bogor Pada Tahun 2023</h3>
-        <button class="map-download-btn" onclick="downloadMapImage('map-2023', 'peta-wilayah-2023')">Unduh Gambar Peta 2023</button>
-        <button class="map-download-btn" onclick="downloadMapDataToExcel('2023')">Unduh Excel Data 2023</button>
-        <div id="map-2023" style="height: 400px; width: 100%;"></div>
-    </div>
+  <!-- Map Container -->
+  <div id="map-2023" style="height: 400px; width: 100%; display:none;"></div>
+  <div id="map-2024" style="height: 400px; width: 100%; display:none;"></div>
+  <div id="map-2025" style="height: 400px; width: 100%;"></div>
 </div>
 
 <!-- ================= MODAL DETAIL LAPORAN (PIMPINAN) ================= -->
