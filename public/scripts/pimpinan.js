@@ -438,7 +438,6 @@ async function fetchMonitoringData(tahun) {
   }
 }
 
-// RENDER BAR CHART (semua bulan)
 function renderBarChart(dataArr, tahun) {
   const labels = monthNames.map(m => m.slice(0,3)); // Jan, Feb, ...
   const totalLaporan = Array(12).fill(0);
@@ -452,6 +451,12 @@ function renderBarChart(dataArr, tahun) {
 
   if (monitoringChart) monitoringChart.destroy();
 
+  // Pastikan canvas menyesuaikan ukuran container
+  ctx.canvas.parentNode.style.width = "100%";    // container bisa di CSS juga
+  ctx.canvas.parentNode.style.height = "400px";  // misal tinggi default
+  ctx.canvas.width = ctx.canvas.parentNode.offsetWidth;
+  ctx.canvas.height = ctx.canvas.parentNode.offsetHeight;
+
   monitoringChart = new Chart(ctx, {
     type: "bar",
     data: {
@@ -463,6 +468,7 @@ function renderBarChart(dataArr, tahun) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false, // ini penting agar chart bisa mengikuti ukuran canvas
       plugins: {
         title: { display: true, text: `Data Kecelakaan Tahun ${tahun}` },
         legend: { position: "top" }
@@ -476,6 +482,12 @@ function renderBarChart(dataArr, tahun) {
 function renderPieChart(monthData, monthLabel, tahun) {
   if (monitoringChart) monitoringChart.destroy();
 
+  // Atur ukuran canvas sama seperti bar chart
+  ctx.canvas.parentNode.style.width = "100%";
+  ctx.canvas.parentNode.style.height = "400px";
+  ctx.canvas.width = ctx.canvas.parentNode.offsetWidth;
+  ctx.canvas.height = ctx.canvas.parentNode.offsetHeight;
+
   const labels = ["Total Laporan", "Total Korban"];
   const data = [monthData.total_laporan ?? 0, monthData.total_korban ?? 0];
 
@@ -487,6 +499,7 @@ function renderPieChart(monthData, monthLabel, tahun) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         title: { display: true, text: `Distribusi ${monthLabel} ${tahun}` },
         legend: { position: "top" }
@@ -494,6 +507,7 @@ function renderPieChart(monthData, monthLabel, tahun) {
     }
   });
 }
+
 
 // Akan membaca year-select & month-select, fetch data dan render sesuai pilihan.
 async function updateChart() {

@@ -3024,7 +3024,7 @@ button#batal:hover {
 /* Tombol yang membuka modal laporan */
 /* Tombol umum untuk ikon modal (report & tracking) */
 button[onclick^="openReportModal"],
-button[onclick^="openTrackingModal"] {
+button[onclick^="openTrackingModal"], button[onclick^="bukaDetailLaporan"] {
     background-color: #375b85;
     border: none;
     padding: 6px;

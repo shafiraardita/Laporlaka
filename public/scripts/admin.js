@@ -906,7 +906,7 @@ async function bukaDetailLaporan(id) {
 
     // --- Tampilkan modal
     document.getElementById("report-modal").style.display = "block";
-
+    
   } catch (error) {
     console.error("❌ Gagal memuat detail laporan:", error);
     alert("Terjadi kesalahan saat memuat data laporan.");
@@ -1698,8 +1698,8 @@ function renderTrackingTable(data) {
         <td>${escapeHTML(report.titik?.length > 40 ? report.titik.substring(0, 40) + '...' : report.titik || '-')}</td>
         <td>${escapeHTML(report.kronologi?.length > 80 ? report.kronologi.substring(0, 80) + '...' : report.kronologi || '-')}</td>
 
-            <td><button onclick="openTrackingModal(${report.id})">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 16 16">
+            <td><button onclick="bukaDetailLaporan(${report.id})">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#FFFFFF" viewBox="0 0 16 16">
                                 <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                                 <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
                             </svg></button></td>
@@ -3658,7 +3658,7 @@ function renderMap(containerId, data, year) {
     const marker = L.marker([lat, lng], {
       icon: createNumberedMarkerIcon(count)
     }).addTo(map);
-
+    // Otomatis Tutup Popup
     marker.bindPopup(popupTable, { closeButton: true, autoClose: false });
   });
 
