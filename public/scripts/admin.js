@@ -2296,16 +2296,12 @@ function renderNotifications() {
         showErrorBoundary('Gagal memuat notifikasi: ' + e.message);
     }
 }
-// === Notifikasi Laporan Baru + Suara Sirine ===
 
-// Inisialisasi variabel
 let lastReportCount = 0;
-const sirineAudio = new Audio("assets/sirine.mp3");
-sirineAudio.loop = true; // suara berulang terus sampai ditutup
+const sirineAudio = new Audio("{{ asset('assets/sirine.mp3') }}");
+sirineAudio.loop = true;
 
-// Fungsi tampilkan popup di atas tengah
 function showNewReportPopup(count) {
-  // Hapus popup lama (jika masih ada)
   const oldPopup = document.querySelector(".new-report-popup");
   if (oldPopup) oldPopup.remove();
 
@@ -2313,47 +2309,20 @@ function showNewReportPopup(count) {
   popup.className = "new-report-popup";
   popup.innerHTML = `
     <div class="popup-content">
-      🚨 <strong>Laporan Baru Masuk!</strong>
+      🚨 <strong>${count} Laporan Baru Masuk!</strong>
       <button id="popup-close">Tutup</button>
     </div>
   `;
   popup.style.cssText = `
-  position: fixed;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #e63946;
-  color: white;
-  padding: 16px 24px;
-  border-radius: 10px;
-  font-size: 16px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  animation: popupFade 0.5s ease;
-  text-align: center;
-`;
-  // Animasi popup + efek sirine berdenyut
-  const style = document.createElement("style");
-  style.innerHTML = `
-    @keyframes popupFade {
-      from { opacity: 0; transform: translate(-50%, -20px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 10px #ff4d4d; }
-      50% { box-shadow: 0 0 30px #ff0000; }
-      100% { box-shadow: 0 0 10px #ff4d4d; }
-    }
+    position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
+    background: #e63946; color: white; padding: 16px 24px;
+    border-radius: 10px; font-size: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 9999;
+    display: flex; align-items: center; gap: 12px;
+    animation: popupFade 0.5s ease;
   `;
-  document.head.appendChild(style);
-
   document.body.appendChild(popup);
 
-  // Tombol "Tutup"
   document.getElementById("popup-close").onclick = () => {
     popup.remove();
     sirineAudio.pause();
@@ -2361,36 +2330,33 @@ function showNewReportPopup(count) {
   };
 }
 
-// Fungsi cek laporan dari API
 async function checkNewReportsFromAPI() {
   try {
-    const response = await fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1");
-    const data = await response.json();
-
-    // Ambil laporan baru (status = 0 berarti "Terkirim")
+    const res = await fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1");
+    const data = await res.json();
     const newReports = data.filter(r => r.status === "0");
 
-    // Jika ada laporan baru sejak terakhir kali
-    if (lastReportCount !== 0 && newReports.length > lastReportCount) {
+    if (lastReportCount === 0) {
+      lastReportCount = newReports.length;
+      return;
+    }
+
+    if (newReports.length > lastReportCount) {
       const diff = newReports.length - lastReportCount;
       showNewReportPopup(diff);
       sirineAudio.play().catch(err => console.warn("⚠️ Audio tidak dapat diputar otomatis:", err));
     }
 
-    // Update jumlah terakhir
     lastReportCount = newReports.length;
   } catch (err) {
-    console.error("❌ Gagal mengambil data laporan:", err);
+    console.error("❌ Gagal mengambil laporan:", err);
   }
 }
 
-// Jalankan otomatis setiap 5 detik
 setInterval(checkNewReportsFromAPI, 5000);
-
-// Jalankan pertama kali saat halaman dibuka
 checkNewReportsFromAPI();
 
-// Aktifkan izin audio setelah klik pertama
+// aktifkan audio setelah satu kali klik di halaman
 document.addEventListener("click", () => {
   sirineAudio.play().then(() => {
     sirineAudio.pause();
