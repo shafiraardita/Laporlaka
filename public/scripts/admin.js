@@ -2298,7 +2298,7 @@ function renderNotifications() {
 }
 
 let lastReportCount = 0;
-const sirineAudio = new Audio("{{ asset('assets/sirine.mp3') }}");
+const sirineAudio = new Audio("assets/sirine.mp3");
 sirineAudio.loop = true;
 
 function showNewReportPopup(count) {
