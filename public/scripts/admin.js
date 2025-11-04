@@ -429,6 +429,11 @@ function renderBarChart(dataArr, tahun) {
   });
 
   if (monitoringChart) monitoringChart.destroy();
+  // Pastikan canvas menyesuaikan ukuran container
+  ctx.canvas.parentNode.style.width = "100%";    // container bisa di CSS juga
+  ctx.canvas.parentNode.style.height = "400px";  // misal tinggi default
+  ctx.canvas.width = ctx.canvas.parentNode.offsetWidth;
+  ctx.canvas.height = ctx.canvas.parentNode.offsetHeight;
 
   monitoringChart = new Chart(ctx, {
     type: "bar",
@@ -436,11 +441,12 @@ function renderBarChart(dataArr, tahun) {
       labels,
       datasets: [
         { label: "Total Laporan", data: totalLaporan, backgroundColor: "rgba(54,162,235,0.7)" },
-        { label: "Total Korban", data: totalKorban, backgroundColor: "rgba(255,99,132,0.7)" }
+        { label: "Total Korban", data: totalKorban, backgroundColor: "rgba(246, 53, 95, 0.7)" }
       ]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false, // ini penting agar chart bisa mengikuti ukuran canvas
       plugins: {
         title: { display: true, text: `Data Kecelakaan Tahun ${tahun}` },
         legend: { position: "top" }
@@ -454,6 +460,12 @@ function renderBarChart(dataArr, tahun) {
 function renderPieChart(monthData, monthLabel, tahun) {
   if (monitoringChart) monitoringChart.destroy();
 
+  // Atur ukuran canvas sama seperti bar chart
+  ctx.canvas.parentNode.style.width = "100%";
+  ctx.canvas.parentNode.style.height = "400px";
+  ctx.canvas.width = ctx.canvas.parentNode.offsetWidth;
+  ctx.canvas.height = ctx.canvas.parentNode.offsetHeight;
+
   const labels = ["Total Laporan", "Total Korban"];
   const data = [monthData.total_laporan ?? 0, monthData.total_korban ?? 0];
 
@@ -461,10 +473,11 @@ function renderPieChart(monthData, monthLabel, tahun) {
     type: "pie",
     data: {
       labels,
-      datasets: [{ data, backgroundColor: ["rgba(54,162,235,0.7)","rgba(255,99,132,0.7)"] }]
+      datasets: [{ data, backgroundColor: ["rgba(54,162,235,0.7)","rgba(246, 53, 95, 0.7)"] }]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         title: { display: true, text: `Distribusi ${monthLabel} ${tahun}` },
         legend: { position: "top" }
@@ -4179,7 +4192,7 @@ function optimizeChartForMobile() {
 
   // Jika layar < 768px → dianggap mobile
   if (window.innerWidth < 768) {
-    canvas.style.height = "450px"; // Tinggi besar agar batang jelas
+    canvas.style.height = "350px"; // Tinggi besar agar batang jelas
     canvas.style.width = "100%";
 
     if (accidentChart?.options) {
