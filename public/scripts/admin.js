@@ -1522,6 +1522,8 @@ async function updateStatus(reportId, newStatus) {
     // await loadAllReports();
     closeReportModal();
     window.location.reload();
+    renderTracking(getCurrentCategory());
+    renderReportList();
 
     // Render ulang halaman pelacakan
     renderTracking(getCurrentCategory());
@@ -2270,7 +2272,6 @@ function renderNotifications() {
             statusClass = "read"; // abu
             }
 
-
             return `
                 <div class="notification-item">
                     <span class="status-indicator ${statusClass}"></span>
@@ -2296,9 +2297,10 @@ function renderNotifications() {
         showErrorBoundary('Gagal memuat notifikasi: ' + e.message);
     }
 }
-
+// Laporan baru masuk beserta suara
 let lastReportCount = 0;
-const sirineAudio = new Audio("assets/sirine.mp3");
+const sirineAudio = new Audio("assets/sirine.mp3"); // file suara laporan masuk
+sirineAudio.play();
 sirineAudio.loop = true;
 
 function showNewReportPopup(count) {
@@ -2329,7 +2331,7 @@ function showNewReportPopup(count) {
     sirineAudio.currentTime = 0;
   };
 }
-
+// Laporan terbaru muncul
 async function checkNewReportsFromAPI() {
   try {
     const res = await fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1");
@@ -3039,17 +3041,16 @@ async function savePetugasToAPI(event) {
   }
 }
 // ==================== HAPUS PETUGAS ====================
-// ==================== HAPUS PETUGAS (FINAL: API & SINKRON DENGAN PENGGUNA) ====================
 async function deletePetugas(id) {
-  if (!confirm("Yakin ingin menghapus petugas ini dari sistem?")) return;
+  if (!confirm("Yakin ingin menghapus petugas ini?")) return;
 
-  const url = `https://dragonmountainapi.com/user_hapus.php?id=${encodeURIComponent(id)}`;
-  console.log("🟡 Menghapus petugas melalui endpoint:", url);
+  // ✅ perbaiki domain di sini
+  const url = `https://dragonmontainapi.com/user_hapus.php?id=${encodeURIComponent(id)}`;
+  console.log("🟡 Menghapus petugas melalui:", url);
 
   try {
     const res = await fetch(url, {
       method: "GET",
-      mode: "cors",
       cache: "no-store",
       headers: {
         "Accept": "application/json",
@@ -3062,46 +3063,31 @@ async function deletePetugas(id) {
     let json;
     try {
       json = JSON.parse(text);
-    } catch (e) {
-      alert("⚠️ Server mengirim respon tidak valid:\n" + text);
+    } catch {
+      alert("⚠️ Respon server tidak valid:\n" + text);
       return;
     }
 
-    // ✅ Jika API hapus berhasil
     if (
       json.success === true ||
       json.status?.toLowerCase() === "success" ||
       json.message?.toLowerCase().includes("berhasil")
     ) {
       alert("🗑️ Petugas berhasil dihapus dari server!");
-
-      // Hapus dari list petugas di frontend
-      petugasList = petugasList.filter(p => p.id !== id);
+      petugasList = petugasList.filter(p => String(p.id) !== String(id));
       renderPetugas();
-      renderPetugasDropdown();
-
-      // Jika tabel pengguna juga menampilkan petugas
-      if (typeof allUsers !== "undefined" && Array.isArray(allUsers)) {
-        allUsers = allUsers.filter(u => u.id !== id);
-        try {
-          renderUsersAPI(allUsers);
-        } catch (err) {
-          console.warn("ℹ️ Tidak ada tabel pengguna aktif untuk diperbarui.");
-        }
-      }
-
-      // Refresh ulang data dari API agar sinkron
       await fetchPetugasFromAPI();
-      if (typeof loadUsers === "function") await loadUsers();
     } else {
       alert(`❌ Gagal menghapus petugas: ${json.message || "Server menolak permintaan."}`);
     }
   } catch (err) {
     console.error("❌ Error saat hapus petugas:", err);
-    alert("⚠️ Terjadi kesalahan saat menghapus petugas. Coba lagi nanti.");
+    alert("⚠️ Terjadi kesalahan koneksi ke server.");
   }
 }
 
+// Jalankan saat halaman admin terbuka
+document.addEventListener("DOMContentLoaded", fetchPetugasFromAPI)
 // ==================== DROPDOWN PETUGAS UNTUK LAPORAN ====================
 function renderPetugasDropdown() {
   const dropdown = document.getElementById("report-petugas");
@@ -3198,14 +3184,14 @@ function editPetugas(id) {
   openPetugasModal(true, id);
 }
 
-function deletePetugas(id) {
-  if (confirm("Yakin ingin menghapus petugas ini?")) {
-    petugasList = petugasList.filter(p => p.id !== id);
-    localStorage.setItem("petugasList", JSON.stringify(petugasList));
-    renderPetugas();
-    updatePetugasDropdown();
-  }
-}
+// function deletePetugas(id) {
+//   if (confirm("Yakin ingin menghapus petugas ini?")) {
+//     petugasList = petugasList.filter(p => p.id !== id);
+//     localStorage.setItem("petugasList", JSON.stringify(petugasList));
+//     renderPetugas();
+//     updatePetugasDropdown();
+//   }
+// }
 
 // ==================== PAGINATION ====================
 function prevPetugasPage() {
