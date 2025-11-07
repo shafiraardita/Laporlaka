@@ -2587,7 +2587,6 @@ function renderUsersAPI(users) {
       <td>${user.no_hp || "-"}</td>
       <td>${user.nik || "-"}</td>
       <td>${getKategoriName(user.kategori)}</td>
-      <td>${user.terakhir_aktif || "-"}</td>
       <td style="display:flex; justify-content:center; align-items:center; gap:10px;">
         <button 
           onclick='openEditUserModal(${JSON.stringify(user).replace(/"/g, "&quot;")})' 

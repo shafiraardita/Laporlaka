@@ -1578,8 +1578,7 @@ input, textarea {
     margin-top: 10px;
     justify-content: center;
 }
-
- .add-user-btn, .edit-btn, .download-btn {
+.edit-btn, .download-btn {
     background: #375b85;
     color: #fff;
     border: none;
@@ -1588,7 +1587,6 @@ input, textarea {
     cursor: pointer;
     transition: background 0.3s ease, transform 0.3s ease;
 }
-
 .download-pdf-btn {
     background-color: transparent;
     border: none;
@@ -1684,6 +1682,7 @@ input, textarea {
     cursor: pointer;
     transition: background 0.3s ease, transform 0.3s ease;
 }
+
 #save-user-btn {
     background: #006400;
     color: #fff;
@@ -2469,8 +2468,18 @@ h4 {
   color: #006400;
   border-color: #006400;
 }
-
-.user-table, #report-table, #tracking-table {
+.user-table{
+width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 13.5px;           /* 🔹 sedikit kecil agar muat */
+  table-layout: fixed;         /* 🔹 kolom otomatis menyesuaikan lebar halaman */
+  word-wrap: break-word;       /* 🔹 teks panjang dibungkus ke baris berikutnya */
+  overflow: hidden; 
+}
+ #report-table, #tracking-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
@@ -2671,17 +2680,48 @@ h4 {
 .pagination-center button:hover {
     background-color: #f0f4f8;
 }
+/* Tombol pagination utama */
+.pagination button,
+#prev-page,
+#next-page {
+  padding: 8px 15px;
+  border: 1px solid #375B85;
+  color: #000;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 12px;
+  transition: background 0.3s ease, transform 0.3s ease;
+  margin: 2px;
+}
 
+/* Saat tombol aktif (halaman sekarang) */
+.pagination button.active {
+  background: #375B85;
+  color: #fff;
+  transform: scale(1.05);
+}
 
-.pagination button, #prev-page, #next-page  {
-    padding: 8px 15px;
-    border: 1px solid #375B85;
-    color: #000;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 12px;
-    transition: background 0.3s ease, transform 0.3s ease;
+/* Saat tombol di-hover */
+.pagination button:hover:not(:disabled) {
+  background: #375B85;
+  color: #fff;
+}
+
+/* Tombol nonaktif (tidak bisa diklik) */
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Wrapper pagination agar center */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 10px;
 }
 
 .pagination button:hover:not(:disabled) {
@@ -3054,7 +3094,6 @@ button[onclick^="openTrackingModal"] svg {
     height: 16px;
     pointer-events: none;
 }
-
 
 .custom-gmaps-popup {
     border-radius: 8px;

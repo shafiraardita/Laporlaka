@@ -1247,35 +1247,58 @@ function setupTrackingFilters() {
     });
 }
 function renderTrackingPagination(totalReports) {
-    const container = document.querySelector("#tracking-section .pagination");
-    if (!container) return;
+  const totalPages = Math.ceil(totalReports / reportsPerPage);
+  const groupSize = 3;
+  const paginationContainer = document.querySelector("#tracking-section .pagination");
 
-    container.innerHTML = '';
-    const totalPages = Math.ceil(totalReports / reportsPerPage);
+  // Pastikan tombol ada di HTML
+  const prevBtn = document.getElementById("prev-page");
+  const nextBtn = document.getElementById("next-page");
 
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = "Previous";
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => previousPage(true);
-    container.appendChild(prevBtn);
+  if (!prevBtn || !nextBtn) return;
 
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = "Next";
-    nextBtn.disabled = currentPage >= totalPages;
-    nextBtn.onclick = () => nextPage(totalReports, true);
-    container.appendChild(nextBtn);
+  // Hitung grup halaman aktif
+  const currentGroup = Math.floor((currentPage - 1) / groupSize);
+  const startPage = currentGroup * groupSize + 1;
+  const endPage = Math.min(startPage + groupSize - 1, totalPages);
+
+  // Hapus tombol angka lama
+  paginationContainer.querySelectorAll(".page-number").forEach(btn => btn.remove());
+
+  // Tambahkan 3 tombol angka di antara Prev dan Next
+  for (let i = startPage; i <= endPage; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.classList.add("page-number");
+    if (i === currentPage) btn.classList.add("active");
+    btn.onclick = () => {
+      currentPage = i;
+      renderTrackingReports(); // tampilkan data
+      renderTrackingPagination(totalReports); // perbarui pagination
+    };
+    nextBtn.parentNode.insertBefore(btn, nextBtn); // sisipkan sebelum tombol Next
+  }
+
+  // Event tombol Kembali
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTrackingReports();
+      renderTrackingPagination(totalReports);
+    }
+  };
+
+  // Event tombol Lanjut
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTrackingReports();
+      renderTrackingPagination(totalReports);
+    }
+  };
 }
-
-
-// Fungsi untuk memperbarui pagination
-function updatePagination(totalReports) {
-    const totalPages = Math.ceil(totalReports / reportsPerPage);
-    const prevBtn = document.querySelector('.pagination button:first-child');
-    const nextBtn = document.querySelector('.pagination button:last-child');
-    if (prevBtn) prevBtn.disabled = currentPage === 1;
-    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-}
-
 function closeModal() {
     const modal = document.getElementById('report-modal');
     if (modal) {
