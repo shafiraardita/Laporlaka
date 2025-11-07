@@ -3584,7 +3584,7 @@ function renderMap(containerId, data, year) {
           <tr style="background-color:#375B85; color:white; text-align:center;">
             <th>No</th>
             <th>Nama</th>
-            <th>Tanggal</th>
+            <th>Tanggal Laporan</th>
             <th>Saksi</th>
             <th>Telepon</th>
             <th>Jenis</th>
