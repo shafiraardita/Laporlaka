@@ -636,7 +636,7 @@ function addReport(reportData) {
             nik: reportData.nik || "",
             email: reportData.email || "",
             telepon: reportData.telepon || "",
-            tanggal: reportData.tanggal || new Date().toISOString().replace('T', ' ').substring(0, 16),
+            tanggalLaporan: reportData.tanggal || new Date().toISOString().replace('T', ' ').substring(0, 16),
             status: reportData.status || "Masuk",
             titik: reportData.titik || "",
             bukti: reportData.bukti || "",
@@ -753,7 +753,7 @@ async function fetchLaporanMasuk() {
       nik: item.nik || '',
       email: item.email || '',
       no_hp: item.no_hp || '',
-      tanggal: item.tanggal || '',
+      tanggalLaporan: item.tanggal || '',
       status: statusMap[item.status] || "Masuk",
       titik: item.alamat || '',
       bukti: item.foto?.[0] || '',
@@ -1246,6 +1246,7 @@ function openReportModal(reportId) {
     // Jika elemen keterangan selesai ada di modal
     if (keteranganInput) {
     keteranganInput.value = report.keterangan_selesai || '';
+     keteranganInput.placeholder = "Masukkan Keterangan Selesai Beserta Waktu Penanganan";
     }
 
     // Jika elemen bukti selesai ada di modal
@@ -2299,9 +2300,8 @@ function renderNotifications() {
 }
 // Laporan baru masuk beserta suara
 let lastReportCount = 0;
-const sirineAudio = new Audio("assets/sirine.mp3"); // file suara laporan masuk
-sirineAudio.play();
-sirineAudio.loop = true;
+const sirineAudio = new Audio("assets/sirine.mp3");
+sirineAudio.loop = true; // boleh tetap loop, tapi jangan auto-play
 
 function showNewReportPopup(count) {
   const oldPopup = document.querySelector(".new-report-popup");
@@ -2325,24 +2325,28 @@ function showNewReportPopup(count) {
   `;
   document.body.appendChild(popup);
 
+  // Tombol untuk menutup popup dan menghentikan suara
   document.getElementById("popup-close").onclick = () => {
     popup.remove();
     sirineAudio.pause();
     sirineAudio.currentTime = 0;
   };
 }
-// Laporan terbaru muncul
+
+// Fungsi pengecekan laporan baru
 async function checkNewReportsFromAPI() {
   try {
     const res = await fetch("https://dragonmontainapi.com/riwayat_laporan.php?user=1");
     const data = await res.json();
-    const newReports = data.filter(r => r.status === "0");
+    const newReports = data.filter(r => r.status === "0"); // laporan baru
 
+    // Simpan jumlah awal
     if (lastReportCount === 0) {
       lastReportCount = newReports.length;
       return;
     }
 
+    // Jika ada laporan baru
     if (newReports.length > lastReportCount) {
       const diff = newReports.length - lastReportCount;
       showNewReportPopup(diff);
@@ -2355,10 +2359,11 @@ async function checkNewReportsFromAPI() {
   }
 }
 
+// Cek laporan setiap 5 detik
 setInterval(checkNewReportsFromAPI, 5000);
 checkNewReportsFromAPI();
 
-// aktifkan audio setelah satu kali klik di halaman
+// Aktifkan izin audio setelah satu kali klik di halaman
 document.addEventListener("click", () => {
   sirineAudio.play().then(() => {
     sirineAudio.pause();
@@ -2366,6 +2371,7 @@ document.addEventListener("click", () => {
     console.log("✅ Audio diaktifkan, popup akan bunyi otomatis berikutnya.");
   }).catch(() => {});
 }, { once: true });
+
 
 // Laporan terbaru menuju laporan masuk
 function navigateToLaporanMasuk(reportId) {
