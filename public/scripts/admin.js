@@ -1075,7 +1075,7 @@ function renderReportList() {
                     </button>
                 </td>
                 <td>
-                    <button onclick="downloadReportPDF(${report.id})" class="download-pdf-btn" title="Unduh PDF">
+                    <button onclick="downloadReportPDF('${report.id}')" class="download-pdf-btn" title="Unduh PDF">
                         <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="#375B85" viewBox="0 0 17 17">
                             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
                             <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
@@ -2068,13 +2068,23 @@ async function downloadReportPDF(reportId) {
 
     const { jsPDF } = window.jspdf;
 
-    // Ambil semua data laporan
+    // --- Ambil semua data laporan ---
     const res = await fetch(`https://dragonmontainapi.com/riwayat_laporan.php?user=1`);
-    const allReports = await res.json();
-    const report = allReports.find(r => String(r.id) === String(reportId));
+    const result = await res.json();
 
+    // Pastikan ambil dari result.data jika formatnya seperti { status: true, data: [...] }
+    const allReports = Array.isArray(result) ? result : result.data;
+    if (!Array.isArray(allReports)) {
+      alert('Data laporan tidak valid.');
+      return;
+    }
+
+    // --- Cari laporan berdasarkan ID ---
+    const report = allReports.find(r => String(r.id) === String(reportId));
     if (!report) {
       alert('Laporan tidak ditemukan.');
+      console.log("ID tidak ditemukan:", reportId);
+      console.log("Semua laporan:", allReports);
       return;
     }
 
@@ -2152,7 +2162,7 @@ async function downloadReportPDF(reportId) {
       y += 20;
 
       for (let i = 0; i < report.foto.length; i++) {
-        const imgUrl = report.foto[i];
+        const imgUrl = report.foto[i].startsWith('http') ? report.foto[i] : `https://dragonmontainapi.com/foto/${report.foto[i]}`;
         try {
           const imgData = await loadImageAsDataURL(imgUrl);
           doc.addImage(imgData, "JPEG", 60, y, 200, 120);
@@ -2191,7 +2201,7 @@ async function downloadReportPDF(reportId) {
       doc.text(`Keterangan Selesai: ${report.keterangan_selesai || "-"}`, 60, y);
     }
 
-    // Footer
+    // --- Footer ---
     doc.setFontSize(10);
     doc.text(`Halaman 1 dari 1`, 260, 820);
 
@@ -2203,17 +2213,17 @@ async function downloadReportPDF(reportId) {
   }
 }
 
+// --- Fungsi untuk ambil gambar sebagai Base64 ---
 async function loadImageAsDataURL(url) {
   const res = await fetch(url);
   const blob = await res.blob();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onloadend = () => resolve(reader.result);
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
 }
-
 
 function updatePagination(totalItems) {
     const prevBtn = document.querySelector('.pagination button:first-child');
