@@ -1647,30 +1647,38 @@ input, textarea {
   font-size: 16px;
 }
 
-.detail-icon-btn, .download-pdf-btn {
-    background-color: transparent;
+.detail-icon-btn,
+.download-pdf-btn {
+    width: 36px;
+    height: 36px;
     border: none;
-    padding: 6px 12px;
-    border-radius: 5px;
-    cursor: pointer;
+    border-radius: 8px;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 40px;
-    min-height: 40px;
-    transition: background 0.3s ease, transform 0.2s ease;
+    margin: auto;
+    cursor: pointer;
+    transition: all .25s ease;
 }
 
-.detail-icon-btn svg, .download-pdf-btn svg {
-    width: 18px;
-    height: 18px;
-    fill: #375B85;
-    transition: transform 0.2s ease, fill 0.2s ease;
+.detail-icon-btn:hover,
+.download-pdf-btn:hover{
+    background:#eef3f9;
 }
 
-.detail-icon-btn:hover svg, .download-pdf-btn:hover svg {
-    transform: scale(1.2);
-    fill: #2c4768;
+.detail-icon-btn svg,
+.download-pdf-btn svg{
+    width:18px;
+    height:18px;
+    fill:#375B85;
+    transition:.25s;
+}
+
+.detail-icon-btn:hover svg,
+.download-pdf-btn:hover svg{
+    fill:#1d4f91;
+    transform:scale(1.15);
 }
 
 .cancel-btn, .delete-btn, #cancel-report-btn {
