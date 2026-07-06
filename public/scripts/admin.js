@@ -687,7 +687,13 @@ function renderReportList() {
                 <td>${escapeHTML(report.saksi?.length > 25 ? report.saksi.substring(0, 25) + '...' : report.saksi || '-')}</td>
                 <td>${escapeHTML(report.kronologi?.length > 80 ? report.kronologi.substring(0, 80) + '...' : report.kronologi || '-')}</td>
                 <td><span class="report-status ${report.status?.toLowerCase()}">${escapeHTML(report.status || 'Masuk')}</span></td>
-                <td><button onclick="openReportModal('${report.id}')">Detail</button></td>
+                <td><button
+                      class="detail-icon-btn"
+                      onclick="openReportModal('${report.id}')"
+                      title="Lihat Detail">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                </td>
                 <td><button onclick="downloadReportPDF('${report.id}')" class="download-pdf-btn" title="Unduh PDF">PDF</button></td>
             `;
             tableBody.appendChild(row);
