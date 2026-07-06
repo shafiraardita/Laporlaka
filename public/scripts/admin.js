@@ -692,16 +692,7 @@ function renderReportList() {
         class="detail-icon-btn"
         onclick="openReportModal('${report.id}')"
         title="Lihat Detail">
-
-        <svg xmlns="http://www.w3.org/2000/svg"
-             width="18"
-             height="18"
-             fill="currentColor"
-             viewBox="0 0 16 16">
-            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8z"/>
-            <path d="M8 10.5A2.5 2.5 0 108 5.5a2.5 2.5 0 000 5z"/>
-        </svg>
-
+        <i class="fas fa-eye"></i>
     </button>
 </td>
                 <td><button onclick="downloadReportPDF('${report.id}')" class="download-pdf-btn" title="Unduh PDF">PDF</button></td>
@@ -1026,16 +1017,7 @@ function renderTrackingTable(data) {
         class="detail-icon-btn"
         onclick="openReportModal('${report.id}')"
         title="Lihat Detail">
-
-        <svg xmlns="http://www.w3.org/2000/svg"
-             width="18"
-             height="18"
-             fill="currentColor"
-             viewBox="0 0 16 16">
-            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8z"/>
-            <path d="M8 10.5A2.5 2.5 0 108 5.5a2.5 2.5 0 000 5z"/>
-        </svg>
-
+        <i class="fas fa-eye"></i>
     </button>
 </td>
             <td><span class="report-status ${report.status.toLowerCase()}">${escapeHTML(report.status)}</span></td>
